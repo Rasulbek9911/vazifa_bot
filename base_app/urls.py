@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
      StudentRegisterView, StudentChangeGroupView, TaskSubmitView,
      StudentIsRegisteredView, GroupsListView, TopicsListView,
-     TaskListView, TaskUpdateView, WeeklyReportPDFView
+     TaskListView, TaskUpdateView, WeeklyReportPDFView, StudentListView
 )
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
      path("students/register/", StudentRegisterView.as_view(), name="student-register"),
      path("students/<int:pk>/", StudentIsRegisteredView.as_view(), name="student-detail"),
      path("students/<int:pk>/change-group/", StudentChangeGroupView.as_view(), name="student-change-group"),
+     path("students/", StudentListView.as_view(), name="student-list"),
 
      # Group and topic-related URLs
      path("groups/", GroupsListView.as_view(), name="groups-list"),

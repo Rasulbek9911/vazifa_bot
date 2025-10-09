@@ -4,7 +4,8 @@ from django.db import models
 class Group(models.Model):
     name = models.CharField(max_length=100, unique=True)
     telegram_group_id = models.CharField(
-        max_length=50, unique=True, null=True, blank=True,default=None)
+        max_length=50, unique=True, null=True, blank=True, default=None)
+    invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name

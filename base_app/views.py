@@ -1,3 +1,4 @@
+
 from reportlab.lib.pagesizes import A4, landscape
 from django.http import HttpResponse
 from django.utils.timezone import now, timedelta
@@ -10,6 +11,20 @@ from rest_framework.views import APIView
 from .models import Student, Task, Group, Topic
 from .serializers import StudentSerializer, TaskSerializer
 
+class StudentListView(APIView):
+    """
+    Studentlar ro'yxati (group_id bo'yicha filter)
+    GET /api/students/?group_id=1
+    """
+    def get(self, request):
+        group_id = request.query_params.get("group_id")
+        if group_id:
+            students = Student.objects.filter(group_id=group_id)
+        else:
+            students = Student.objects.all()
+        from .serializers import StudentSerializer
+        serializer = StudentSerializer(students, many=True)
+        return Response(serializer.data)
 
 class StudentIsRegisteredView(APIView):
     """
@@ -63,9 +78,13 @@ class GroupsListView(APIView):
     """
 
     def get(self, request):
+        from .serializers import GroupSerializer
         groups = Group.objects.all()
-        data = [{"id": group.id, "name": group.name,
-                 "telegram_group_id": group.telegram_group_id} for group in groups]
+        serializer = GroupSerializer(groups, many=True)
+        # current_size ni ham qo'shamiz
+        data = serializer.data
+        for i, group in enumerate(groups):
+            data[i]["current_size"] = group.students.count()
         return Response(data)
 
 

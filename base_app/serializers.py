@@ -5,7 +5,7 @@ from .models import Group, Student, Topic, Task
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ["id", "name", "telegram_group_id"]
+        fields = ["id", "name", "telegram_group_id", "invite_link"]
 
 
 class StudentSerializer(serializers.ModelSerializer):

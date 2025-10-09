@@ -38,18 +38,50 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def process_fish(message: types.Message, state: FSMContext):
     await state.update_data(full_name=message.text)
 
-    # Guruhlarni olish
+    # Guruhlarni va ularning a'zolar sonini olish
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
-           
             groups = await resp.json()
 
-    kb = types.InlineKeyboardMarkup()
-    for g in groups:
-        kb.add(types.InlineKeyboardButton(text=g["name"], callback_data=f"group_{g['id']}"))
+        # Har bir guruh uchun a'zolar sonini tekshiramiz
+        selected_group = None
+        for g in groups:
+            group_id = g["id"]
+            async with session.get(f"{API_BASE_URL}/students/?group_id={group_id}") as resp2:
+                students_in_group = await resp2.json()
+                if len(students_in_group) < 30:
+                    selected_group = group_id
+                    break
 
-    await message.answer("📚 Guruhingizni tanlang:", reply_markup=kb)
-    await RegisterState.group.set()
+    if selected_group is None:
+        await message.answer("❌ Hech bir guruhda bo'sh joy yo'q. Admin bilan bog'laning.")
+        await state.finish()
+        return
+
+    # Avtomatik tanlangan guruhga ro'yxatdan o'tkazamiz
+    data = await state.get_data()
+    full_name = data["full_name"]
+    payload = {
+        "telegram_id": str(message.from_user.id),
+        "full_name": full_name,
+        "group_id": selected_group
+    }
+
+    # Guruh linkini olish (guruh obyektidan)
+    group_obj = next((g for g in groups if g["id"] == selected_group), None)
+    group_link = group_obj.get("invite_link") if group_obj else None
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
+            if resp.status == 201:
+                group_name = group_obj["name"] if group_obj else ""
+                msg = f"✅ Ro‘yxatdan o‘tdingiz! Sizning guruh - {group_name}. Guruhga qo'shilib oling. Endi vazifalarni yuborishingiz mumkin 👇"
+                if group_link:
+                    msg += f"\n\nGuruhga qo'shilish uchun link: {group_link}"
+                await message.answer(msg, reply_markup=vazifa_key)
+            else:
+                await message.answer("❌ Ro‘yxatdan o‘tishda xatolik bo‘ldi.")
+    await state.finish()
     
 
 # Guruh tanlash
@@ -267,9 +299,21 @@ async def send_unsubmitted_warnings():
             await safe_send_message(student.telegram_id, msg)
 
             if len(unsubmitted) >= 3:
+                admin_msg = f"🚨 {student.full_name} {len(unsubmitted)} ta vazifa topshirmagan."
+                admin_msg += f"\nTelegram ID: <code>{student.telegram_id}</code>"
+                admin_msg += f"\nMavzular:\n" + "\n".join([f"- {t.title}" for t in unsubmitted])
+
+                kb = InlineKeyboardMarkup()
+                kb.add(InlineKeyboardButton(
+                    text="Chatga o'tish",
+                    url=f"tg://user?id={student.telegram_id}"
+                ))
+
                 await bot.send_message(
                     ADMINS[0],
-                    f"🚨 {student.full_name} {len(unsubmitted)} ta vazifa topshirmagan."
+                    admin_msg,
+                    reply_markup=kb,
+                    parse_mode="HTML"
                 )
 from asgiref.sync import sync_to_async
 
