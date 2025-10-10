@@ -4,16 +4,37 @@ from data.config import ADMINS
 from loader import bot
 # --- xavfsiz xabar yuborish helper ---
 async def safe_send_message(user_id: int, text: str):
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     try:
         await bot.send_message(user_id, text)
     except BotBlocked:
-        await bot.send_message(ADMINS[0], f"⚠️ Student {user_id} botni blok qildi.")
+        kb = InlineKeyboardMarkup()
+        kb.add(InlineKeyboardButton(
+            text="Chatga o'tish",
+            url=f"tg://user?id={user_id}"
+        ))
+        await bot.send_message(ADMINS[0], f"⚠️ Student botni blok qildi.", reply_markup=kb)
     except ChatNotFound:
-        await bot.send_message(ADMINS[0], f"⚠️ Student {user_id} uchun chat topilmadi.")
+        kb = InlineKeyboardMarkup()
+        kb.add(InlineKeyboardButton(
+            text="Chatga o'tish",
+            url=f"tg://user?id={user_id}"
+        ))
+        await bot.send_message(ADMINS[0], f"⚠️ Student uchun chat topilmadi.", reply_markup=kb)
     except Unauthorized:
-        await bot.send_message(ADMINS[0], f"⚠️ Student {user_id} botni stop qildi.")
+        kb = InlineKeyboardMarkup()
+        kb.add(InlineKeyboardButton(
+            text="Chatga o'tish",
+            url=f"tg://user?id={user_id}"
+        ))
+        await bot.send_message(ADMINS[0], f"⚠️ Student botni stop qildi.", reply_markup=kb)
     except RetryAfter as e:
         await asyncio.sleep(e.timeout)
         await safe_send_message(user_id, text)
     except Exception as e:
-        await bot.send_message(ADMINS[0], f"❌ Student {user_id} ga xabar yuborilmadi: {e}")
+        kb = InlineKeyboardMarkup()
+        kb.add(InlineKeyboardButton(
+            text="Chatga o'tish",
+            url=f"tg://user?id={user_id}"
+        ))
+        await bot.send_message(ADMINS[0], f"❌ Studentga xabar yuborilmadi: {e}", reply_markup=kb)
