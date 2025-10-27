@@ -49,7 +49,7 @@ async def process_fish(message: types.Message, state: FSMContext):
             group_id = g["id"]
             async with session.get(f"{API_BASE_URL}/students/?group_id={group_id}") as resp2:
                 students_in_group = await resp2.json()
-                if len(students_in_group) < 30:
+                if len(students_in_group) < 50:
                     selected_group = group_id
                     break
 
@@ -70,7 +70,7 @@ async def process_fish(message: types.Message, state: FSMContext):
     # Guruh linkini olish (guruh obyektidan)
     group_obj = next((g for g in groups if g["id"] == selected_group), None)
     group_link = group_obj.get("invite_link") if group_obj else None
-
+    umumiy_link = "https://t.me/joinchat/AAAAAE2V2Yz_example_link"  # umumiy guruh linki
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
             if resp.status == 201:
@@ -78,6 +78,7 @@ async def process_fish(message: types.Message, state: FSMContext):
                 msg = f"✅ Ro‘yxatdan o‘tdingiz! Sizning guruh - {group_name}. Guruhga qo'shilib oling. Endi vazifalarni yuborishingiz mumkin 👇"
                 if group_link:
                     msg += f"\n\nGuruhga qo'shilish uchun link: {group_link}"
+                    msg += f"\n\nUmumiy guruhga qo'shilish uchun link: {umumiy_link}"
                 await message.answer(msg, reply_markup=vazifa_key)
             else:
                 await message.answer("❌ Ro‘yxatdan o‘tishda xatolik bo‘ldi.")
