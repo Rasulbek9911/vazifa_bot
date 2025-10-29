@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Group, Student, Topic, Task
+from .models import Group, Student, Topic, Task, InviteCode
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -47,3 +47,9 @@ class TaskSerializer(serializers.ModelSerializer):
             "topic", "topic_id",
             "file_link", "grade", "submitted_at"
         ]
+
+
+class InviteCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InviteCode
+        fields = ["id", "code", "created_by", "is_used", "used_by", "created_at", "used_at"]

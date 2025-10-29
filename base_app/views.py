@@ -253,7 +253,64 @@ class UnsubmittedTasksCheckView(APIView):
                 # 🔔 ogohlantirish (student)
                 # Bot orqali yuboriladigan joyda ishlatiladi
                 if unsubmitted.count() >= 3:
-                    # 🔔 Adminni ham ogohlantirish kerak bo‘ladi
+                    # 🔔 Adminni ham ogohlantirish kerak bo'ladi
                     pass
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+# Invite Code views
+class CreateInviteCodeView(APIView):
+    """
+    Admin invite code yaratadi
+    POST /api/invites/create/
+    """
+    def post(self, request):
+        from .models import InviteCode
+        from .serializers import InviteCodeSerializer
+        import uuid
+        
+        admin_id = request.data.get("admin_id")
+        if not admin_id:
+            return Response({"error": "admin_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Yangi invite code yaratish
+        invite = InviteCode.objects.create(
+            code=str(uuid.uuid4())[:8],  # 8 belgili kod
+            created_by=admin_id
+        )
+        
+        serializer = InviteCodeSerializer(invite)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ValidateInviteCodeView(APIView):
+    """
+    Invite code ni tekshirish va ishlatish
+    POST /api/invites/validate/
+    """
+    def post(self, request):
+        from .models import InviteCode
+        from django.utils import timezone
+        
+        code = request.data.get("code")
+        user_id = request.data.get("user_id")
+        
+        if not code or not user_id:
+            return Response({"error": "code va user_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            invite = InviteCode.objects.get(code=code)
+        except InviteCode.DoesNotExist:
+            return Response({"error": "Invite code topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if invite.is_used:
+            return Response({"error": "Bu invite code allaqachon ishlatilgan"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Invite code ni ishlatilgan deb belgilash
+        invite.is_used = True
+        invite.used_by = user_id
+        invite.used_at = timezone.now()
+        invite.save()
+        
+        return Response({"success": True, "message": "Invite code qabul qilindi"}, status=status.HTTP_200_OK)

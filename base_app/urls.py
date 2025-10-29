@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
      StudentRegisterView, StudentChangeGroupView, TaskSubmitView,
      StudentIsRegisteredView, GroupsListView, TopicsListView,
-     TaskListView, TaskUpdateView, WeeklyReportPDFView, StudentListView
+     TaskListView, TaskUpdateView, WeeklyReportPDFView, StudentListView,
+     CreateInviteCodeView, ValidateInviteCodeView
 )
 
 urlpatterns = [
@@ -23,4 +24,8 @@ urlpatterns = [
 
      # Report-related URLs
      path("reports/<int:group_id>/weekly/pdf/", WeeklyReportPDFView.as_view(), name="weekly_report_pdf"),
+     
+     # Invite Code URLs
+     path("invites/create/", CreateInviteCodeView.as_view(), name="invite-create"),
+     path("invites/validate/", ValidateInviteCodeView.as_view(), name="invite-validate"),
 ]

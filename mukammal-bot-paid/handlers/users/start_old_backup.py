@@ -1,9 +1,11 @@
 from aiogram import types
 import aiohttp
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from data.config import ADMINS, API_BASE_URL
-from loader import dp, bot
+from loader import dp,bot
+from aiogram.dispatcher.filters import Text
+from aiogram.utils import executor
 from states.register_state import RegisterState
 from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import vazifa_key
@@ -12,127 +14,46 @@ from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
 
 
-# --- START with Invite Code ---
+
+# --- START ---
 @dp.message_handler(commands=["start"], state="*")
-async def cmd_start(message: types.Message, state: FSMContext):
-    """
-    /start yoki /start abc12345 (invite code bilan deep linking)
-    """
-    # Avval state ni tozalaymiz
-    current_state = await state.get_state()
-    if current_state:
-        try:
-            await state.finish()
-        except Exception as e:
-            pass
-        
-    
-    # Deep linking - invite code bilan kelganmi?
-    args = message.get_args()
-    
-    # Admin bo'lsa, invite code so'ramaslik
-    if str(message.from_user.id) in ADMINS:
-        await message.answer(
-            f"👋 Admin salom!\n\n"
-            f"Buyruqlar:\n"
-            f"/generate_invite - Yangi invite code yaratish\n\n"
-            f"Invite code yaratganingizdan so'ng, uni foydalanuvchilarga yuboring."
-        )
-        return
-    
-    # Student allaqachon ro'yxatdan o'tganmi tekshiramiz
+async def cmd_start_all_states(message: types.Message, state: FSMContext):
+    """Student allaqachon ro'yxatdan o'tganmi tekshiramiz"""
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/students/{message.from_user.id}/") as resp:
             if resp.status == 200:
                 data = await resp.json()
                 await message.answer(
-                    f"👋 Salom, {data['full_name']}!\nSiz allaqachon ro'yxatdan o'tgansiz ✅",
+                    f"👋 Salom, {data['full_name']}!\nSiz allaqachon ro‘yxatdan o‘tgansiz ✅",
                     reply_markup=vazifa_key
                 )
                 return
-    
-    # Agar invite code bilan kelgan bo'lsa
-    if args:
-        # Deep linking - validatsiya keyinroq (process_fish da)
-        await state.update_data(invite_code=args, validated=False)
-        await message.answer(
-            "Assalomu alaykum! 👋\n\n"
-            f"Invite code qabul qilindi: <code>{args}</code>\n\n"
-            "Endi ro'yxatdan o'tish uchun F.I.Sh kiriting:",
-            parse_mode="HTML"
-        )
-        await RegisterState.full_name.set()
-    else:
-        # Invite code yo'q - so'raymiz
-        await message.answer(
-            "Assalomu alaykum! 👋\n\n"
-            "Ro'yxatdan o'tish uchun invite code kiriting:\n\n"
-            "💡 Invite code yo'qmi? Admin bilan bog'laning."
-        )
-        await RegisterState.invite_code.set()
 
+    # Agar topilmasa ro‘yxatdan o‘tadi
+    await message.answer("Assalomu alaykum! Ro‘yxatdan o‘tish uchun F.I.Sh kiriting:")
+    await RegisterState.full_name.set()
 
-# Invite code qabul qilish (agar deep linking bo'lmasa)
-@dp.message_handler(state=RegisterState.invite_code)
-async def process_invite_code(message: types.Message, state: FSMContext):
-    invite_code = message.text.strip()
-    
-    # Invite code ni tekshirish
+@dp.message_handler(commands=["start"])
+async def cmd_start(message: types.Message, state: FSMContext):
+    """Student allaqachon ro'yxatdan o'tganmi tekshiramiz"""
     async with aiohttp.ClientSession() as session:
-        payload = {
-            "code": invite_code,
-            "user_id": str(message.from_user.id)
-        }
-        async with session.post(f"{API_BASE_URL}/invites/validate/", json=payload) as resp:
+        async with session.get(f"{API_BASE_URL}/students/{message.from_user.id}/") as resp:
             if resp.status == 200:
-                await state.update_data(invite_code=invite_code, validated=True)
+                data = await resp.json()
                 await message.answer(
-                    "✅ Invite code qabul qilindi!\n\n"
-                    "Endi F.I.Sh kiriting:"
-                )
-                await RegisterState.full_name.set()
-            else:
-                error_data = await resp.json()
-                error_msg = error_data.get("error", "Noto'g'ri invite code")
-                await message.answer(
-                    f"❌ {error_msg}\n\n"
-                    "Iltimos, qaytadan to'g'ri invite code kiriting:"
+                    f"👋 Salom, {data['full_name']}!\nSiz allaqachon ro‘yxatdan o‘tgansiz ✅",
+                    reply_markup=vazifa_key
                 )
                 return
 
+    # Agar topilmasa ro‘yxatdan o‘tadi
+    await message.answer("Assalomu alaykum! Ro‘yxatdan o‘tish uchun F.I.Sh kiriting:")
+    await RegisterState.full_name.set()
 
 # F.I.Sh qabul qilish
 @dp.message_handler(state=RegisterState.full_name)
 async def process_fish(message: types.Message, state: FSMContext):
     await state.update_data(full_name=message.text)
-    
-    # Invite code mavjudligini tekshiramiz
-    data = await state.get_data()
-    invite_code = data.get("invite_code")
-    
-    if not invite_code:
-        await message.answer("❌ Xatolik: Invite code topilmadi. Iltimos, /start dan qayta boshlang.")
-        await state.finish()
-        return
-    
-    # Invite code ni validatsiya qilamiz (agar deep linking bo'lsa)
-    if "invite_code" in data and not data.get("validated"):
-        async with aiohttp.ClientSession() as session:
-            payload = {
-                "code": invite_code,
-                "user_id": str(message.from_user.id)
-            }
-            async with session.post(f"{API_BASE_URL}/invites/validate/", json=payload) as resp:
-                if resp.status != 200:
-                    error_data = await resp.json()
-                    error_msg = error_data.get("error", "Noto'g'ri invite code")
-                    await message.answer(
-                        f"❌ {error_msg}\n\n"
-                        "Iltimos, /start dan qayta boshlang."
-                    )
-                    await state.finish()
-                    return
-                await state.update_data(validated=True)
 
     # Guruhlarni va ularning a'zolar sonini olish
     async with aiohttp.ClientSession() as session:
@@ -158,6 +79,7 @@ async def process_fish(message: types.Message, state: FSMContext):
         return
 
     # Avtomatik tanlangan guruhga ro'yxatdan o'tkazamiz
+    data = await state.get_data()
     full_name = data["full_name"]
     payload = {
         "telegram_id": str(message.from_user.id),
@@ -165,109 +87,54 @@ async def process_fish(message: types.Message, state: FSMContext):
         "group_id": selected_group
     }
 
-    # Guruh linkini yaratish - har bir user uchun unique, 1 martalik
+    # Guruh linkini olish (guruh obyektidan)
     group_obj = next((g for g in groups if g["id"] == selected_group), None)
-    
-    # O'z guruhi uchun unique invite link yaratish
-    group_invite_link = None
-    if group_obj and group_obj.get("telegram_group_id"):
-        try:
-            # 1 martalik invite link yaratish (member_limit=1)
-            print(f"Guruh uchun invite link yaratilmoqda (chat_id={type(group_obj.get('telegram_group_id'))})...")
-            group_chat_invite = await bot.create_chat_invite_link(
-                chat_id=group_obj.get("telegram_group_id"),
-                member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
-            )
-            group_invite_link = group_chat_invite.invite_link
-        except Exception as e:
-            print(f"Guruh invite link yaratishda xatolik (chat_id={group_obj.get('telegram_group_id')}): {e}")
-            # Agar xatolik bo'lsa, eski linkni ishlatamiz
-            group_invite_link = group_obj.get("invite_link")
-    elif group_obj:
-        # telegram_group_id bo'sh bo'lsa, eski linkni ishlatamiz
-        group_invite_link = group_obj.get("invite_link")
-        if not group_invite_link:
-            print(f"⚠️ Guruh {group_obj.get('name')} uchun telegram_group_id va invite_link yo'q!")
-    
-    # Umumiy guruh uchun ham 1 martalik link yaratish
-    umumiy_invite_link = None
-    GENERAL_GROUP_ID = "-1003273702109"
-    try:
-        # 1 martalik invite link yaratish (member_limit=1)
-        general_chat_invite = await bot.create_chat_invite_link(
-            chat_id=GENERAL_GROUP_ID,
-            member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
-        )
-        umumiy_invite_link = general_chat_invite.invite_link
-    except Exception as e:
-        print(f"❌ XATOLIK: Umumiy guruh uchun link yaratib bo'lmadi (chat_id={GENERAL_GROUP_ID}): {e}")
-        print(f"⚠️ Botni guruhga admin qiling va 'Invite users via link' ruxsatini bering!")
-        # Link yaratib bo'lmasa, userni xabardor qilamiz
-        await message.answer(
-            "❌ Umumiy guruh linki yaratishda xatolik yuz berdi.\n"
-            "Admin bilan bog'laning."
-        )
-        await state.finish()
-        return
-    
+    group_link = group_obj.get("invite_link") if group_obj else None
+    umumiy_link = "https://t.me/+yIsZnSKlj9lmMTEy"  # umumiy guruh linki
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
             if resp.status == 201:
                 group_name = group_obj["name"] if group_obj else ""
-                msg = f"✅ Ro'yxatdan o'tdingiz! Sizning guruh - {group_name}.\n\n"
-                msg += "📚 Quyidagi guruhlarga HOZIR qo'shiling:\n"
-                if group_invite_link:
-                    msg += f"🔹 O'z guruhingiz: {group_invite_link}\n"
-                if umumiy_invite_link:
-                    msg += f"🔹 Umumiy guruh: {umumiy_invite_link}\n\n"
-                msg += "⚠️ HAR BIR LINK FAQAT 1 MARTA ISHLATILADI!\n"
-                msg += "⚠️ Linklar tez eskiradi - DARHOL bosing!\n"
-                msg += "⚠️ Vazifa yuborishdan oldin IKKALA guruhga ham qo'shilishingiz shart!"
-                
+                msg = f"✅ Ro‘yxatdan o‘tdingiz! Sizning guruh - {group_name}. Guruhga qo'shilib oling. Endi vazifalarni yuborishingiz mumkin 👇"
+                if group_link:
+                    msg += f"\n\nGuruhga qo'shilish uchun link: {group_link}"
+                    msg += f"\n\nUmumiy guruhga qo'shilish uchun link: {umumiy_link}"
                 await message.answer(msg, reply_markup=vazifa_key)
             else:
-                await message.answer("❌ Ro'yxatdan o'tishda xatolik bo'ldi.")
-    
+                await message.answer("❌ Ro‘yxatdan o‘tishda xatolik bo‘ldi.")
     try:
         await state.finish()
     except Exception as e:
         pass
 
 
-# --- Admin: Invite code yaratish ---
-@dp.message_handler(commands=["generate_invite"], state="*")
-async def generate_invite(message: types.Message, state: FSMContext):
-    """Admin faqat invite code yaratishi mumkin"""
-    if str(message.from_user.id) not in ADMINS:
-        await message.answer("❌ Sizda bu buyruqni ishlatish huquqi yo'q.")
-        return
-    
-    # Hozirgi state ni to'xtatish (agar admin ro'yxatdan o'tish jarayonida bo'lsa)
-    current_state = await state.get_state()
-    if current_state:
-        try:
-            await state.finish()
-        except:
-            pass
-    
+# Guruh tanlash
+@dp.callback_query_handler(lambda c: c.data.startswith("group_"), state=RegisterState.group)
+async def process_group(callback: types.CallbackQuery, state: FSMContext):
+    group_id = int(callback.data.split("_")[1])
+    data = await state.get_data()
+    full_name = data["full_name"]
+
+    payload = {
+        "telegram_id": str(callback.from_user.id),
+        "full_name": full_name,
+        "group_id": group_id
+    }
+
     async with aiohttp.ClientSession() as session:
-        payload = {"admin_id": str(message.from_user.id)}
-        async with session.post(f"{API_BASE_URL}/invites/create/", json=payload) as resp:
+        async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
             if resp.status == 201:
-                data = await resp.json()
-                invite_code = data["code"]
-                bot_username = (await bot.get_me()).username
-                invite_link = f"https://t.me/{bot_username}?start={invite_code}"
-                
-                await message.answer(
-                    f"✅ Yangi invite yaratildi!\n\n"
-                    f"📝 Invite code: <code>{invite_code}</code>\n"
-                    f"🔗 Bot linki: {invite_link}\n\n"
-                    f"⚠️ Bu link faqat 1 marta ishlatiladi!",
-                    parse_mode="HTML"
+                await callback.message.answer(
+                    "✅ Ro‘yxatdan o‘tdingiz!\nEndi vazifalarni yuborishingiz mumkin 👇",
+                    reply_markup=vazifa_key
                 )
             else:
-                await message.answer("❌ Invite yaratishda xatolik yuz berdi.")
+                await callback.message.answer("❌ Ro‘yxatdan o‘tishda xatolik bo‘ldi.")
+    await state.finish()
+    await callback.answer()
+
+
+# --- Vazifa yuborish ---
 @dp.message_handler(Text(equals="📤 Vazifa yuborish"))
 async def send_task(message: types.Message):
     telegram_id = message.from_user.id
@@ -286,77 +153,39 @@ async def send_task(message: types.Message):
             groups = await resp.json()
             
         group_obj = next((g for g in groups if g["id"] == group_id), None)
-        GENERAL_GROUP_ID = "-1003273702109"
+        group_link = group_obj.get("invite_link") if group_obj else None
+        umumiy_link = "https://t.me/+yIsZnSKlj9lmMTEy"
         
         # Guruhlarga qo'shilganligini tekshirish
-        group_not_joined = False
-        general_not_joined = False
-        
-        # O'z guruhiga qo'shilganmi tekshirish
-        if group_obj and group_obj.get("telegram_group_id"):
-            try:
-                group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                if group_member.status in ["left", "kicked"]:
-                    group_not_joined = True
-            except Exception as e:
-                # Guruhni tekshira olmasa, link beramiz (bot admin emas)
-                print(f"⚠️ O'z guruhini tekshirib bo'lmadi (bot admin emasligidan): {e}")
-                # Guruh linki bormi tekshirish, agar bor bo'lsa beramiz
-                group_not_joined = bool(group_obj.get("invite_link"))
-        else:
-            # telegram_group_id bo'sh bo'lsa, link bermaslik
-            group_not_joined = False
-            
-        # Umumiy guruh uchun tekshiruvni qayta yoqish
         try:
-            # Umumiy guruhga qo'shilganmi
+            # O'z guruhiga qo'shilganmi
+            group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
+            if group_member.status in ["left", "kicked"]:
+                await message.answer(
+                    f"❌ Siz o'z guruhingizga qo'shilmagansiz!\n\n"
+                    f"Guruhga qo'shilish uchun: {group_link}"
+                )
+                return
+        except Exception as e:
+            # Guruh ID mavjud emas yoki boshqa xatolik
+            pass
+            
+        try:
+            # Umumiy guruhga qo'shilganmi (bu yerda umumiy guruh chat_id ni qo'ying)
+            GENERAL_GROUP_ID = "-1002319099734"  # Umumiy guruh ID sini bu yerga qo'ying
             general_member = await bot.get_chat_member(GENERAL_GROUP_ID, telegram_id)
             if general_member.status in ["left", "kicked"]:
-                general_not_joined = True
+                await message.answer(
+                    f"❌ Siz umumiy guruhga qo'shilmagansiz!\n\n"
+                    f"Umumiy guruhga qo'shilish uchun: {umumiy_link}"
+                )
+                return
         except Exception as e:
             # Umumiy guruhga qo'shilmagan
-            print(f"⚠️ Umumiy guruhni tekshirib bo'lmadi: {e}")
-            general_not_joined = True
-        
-        # Agar qo'shilmagan bo'lsa, yangi 1 martalik linklar yaratamiz
-        if group_not_joined or general_not_joined:
-            msg = "❌ Siz quyidagi guruhlarga qo'shilmagansiz:\n\n"
-            
-            if group_not_joined and group_obj and group_obj.get("telegram_group_id"):
-                try:
-                    # Yangi 1 martalik link yaratish
-                    group_invite = await bot.create_chat_invite_link(
-                        chat_id=group_obj.get("telegram_group_id"),
-                        member_limit=1
-                    )
-                    msg += f"🔹 O'z guruhingiz: {group_invite.invite_link}\n"
-                except Exception as e:
-                    print(f"O'z guruhi uchun link yaratishda xatolik (chat_id={group_obj.get('telegram_group_id')}): {e}")
-                    if group_obj.get("invite_link"):
-                        msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
-                    else:
-                        print(f"⚠️ Guruh {group_obj.get('name')} uchun zaxira link ham yo'q!")
-            elif group_not_joined and group_obj:
-                # telegram_group_id bo'sh, lekin eski link bor bo'lsa
-                if group_obj.get("invite_link"):
-                    msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
-            
-            if general_not_joined:
-                try:
-                    # Yangi 1 martalik link yaratish
-                    general_invite = await bot.create_chat_invite_link(
-                        chat_id=GENERAL_GROUP_ID,
-                        member_limit=1
-                    )
-                    msg += f"🔹 Umumiy guruh: {general_invite.invite_link}\n"
-                except Exception as e:
-                    print(f"❌ XATOLIK: Umumiy guruh linki yaratib bo'lmadi (chat_id={GENERAL_GROUP_ID}): {e}")
-                    msg += f"❌ Umumiy guruh linki yaratib bo'lmadi. Admin bilan bog'laning.\n"
-            
-            msg += "\n⚠️ Har bir link FAQAT 1 MARTA ishlatiladi!\n"
-            msg += "⚠️ Iltimos, guruhlarga qo'shiling va qayta urinib ko'ring."
-            
-            await message.answer(msg)
+            await message.answer(
+                f"❌ Siz umumiy guruhga qo'shilmagansiz!\n\n"
+                f"Umumiy guruhga qo'shilish uchun: {umumiy_link}"
+            )
             return
 
     async with aiohttp.ClientSession() as session:

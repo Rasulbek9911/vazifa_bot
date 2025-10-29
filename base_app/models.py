@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 
 class Group(models.Model):
@@ -47,3 +48,15 @@ class Task(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} → {self.topic.title} ({self.grade or 'Baholanmagan'})"
+
+
+class InviteCode(models.Model):
+    code = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
+    created_by = models.CharField(max_length=50)  # Admin telegram_id
+    is_used = models.BooleanField(default=False)
+    used_by = models.CharField(max_length=50, null=True, blank=True)  # Student telegram_id
+    created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.code} - {'Ishlatilgan' if self.is_used else 'Yangi'}"
