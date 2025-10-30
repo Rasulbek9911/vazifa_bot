@@ -11,6 +11,10 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
 
+# Global umumiy guruh linki (bir marta yaratiladi)
+GENERAL_GROUP_INVITE_LINK = None
+GENERAL_GROUP_ID = "-1003295943458"
+
 
 # --- START with Invite Code ---
 @dp.message_handler(commands=["start"], state="*")
@@ -112,7 +116,10 @@ async def process_fish(message: types.Message, state: FSMContext):
     
     if not invite_code:
         await message.answer("❌ Xatolik: Invite code topilmadi. Iltimos, /start dan qayta boshlang.")
-        await state.finish()
+        try:
+            await state.finish()
+        except Exception:
+            pass
         return
     
     # Invite code ni validatsiya qilamiz (agar deep linking bo'lsa)
@@ -130,7 +137,10 @@ async def process_fish(message: types.Message, state: FSMContext):
                         f"❌ {error_msg}\n\n"
                         "Iltimos, /start dan qayta boshlang."
                     )
-                    await state.finish()
+                    try:
+                        await state.finish()
+                    except Exception:
+                        pass
                     return
                 await state.update_data(validated=True)
 
@@ -173,7 +183,7 @@ async def process_fish(message: types.Message, state: FSMContext):
     if group_obj and group_obj.get("telegram_group_id"):
         try:
             # 1 martalik invite link yaratish (member_limit=1)
-            print(f"Guruh uchun invite link yaratilmoqda (chat_id={type(group_obj.get('telegram_group_id'))})...")
+            print(f"Guruh uchun invite link yaratilmoqda (chat_id={group_obj.get('telegram_group_id')})...")
             group_chat_invite = await bot.create_chat_invite_link(
                 chat_id=group_obj.get("telegram_group_id"),
                 member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
@@ -191,23 +201,26 @@ async def process_fish(message: types.Message, state: FSMContext):
     
     # Umumiy guruh uchun ham 1 martalik link yaratish
     umumiy_invite_link = None
-    GENERAL_GROUP_ID = "-1003273702109"
+    GENERAL_GROUP_ID = "-1003295943458"
     try:
         # 1 martalik invite link yaratish (member_limit=1)
         general_chat_invite = await bot.create_chat_invite_link(
             chat_id=GENERAL_GROUP_ID,
             member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
         )
+        print(general_chat_invite.invite_link)
         umumiy_invite_link = general_chat_invite.invite_link
     except Exception as e:
         print(f"❌ XATOLIK: Umumiy guruh uchun link yaratib bo'lmadi (chat_id={GENERAL_GROUP_ID}): {e}")
-        print(f"⚠️ Botni guruhga admin qiling va 'Invite users via link' ruxsatini bering!")
         # Link yaratib bo'lmasa, userni xabardor qilamiz
         await message.answer(
             "❌ Umumiy guruh linki yaratishda xatolik yuz berdi.\n"
             "Admin bilan bog'laning."
         )
-        await state.finish()
+        try:
+            await state.finish()
+        except Exception:
+            pass
         return
     
     async with aiohttp.ClientSession() as session:
@@ -286,7 +299,7 @@ async def send_task(message: types.Message):
             groups = await resp.json()
             
         group_obj = next((g for g in groups if g["id"] == group_id), None)
-        GENERAL_GROUP_ID = "-1003273702109"
+        GENERAL_GROUP_ID = "-1003295943458"
         
         # Guruhlarga qo'shilganligini tekshirish
         group_not_joined = False
