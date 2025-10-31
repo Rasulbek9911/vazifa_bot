@@ -5,17 +5,14 @@ from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data.config import ADMINS, API_BASE_URL
+from data.config import ADMINS, API_BASE_URL, GENERAL_GROUP_ID, GENERAL_GROUP_INVITE_LINK
 from loader import dp, bot
 from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import vazifa_key
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-# Global constants
-GENERAL_GROUP_ID = "-1003295943458"
-# Umumiy kanal uchun doimiy approval link (qo'lda tasdiqlash bilan)
-GENERAL_GROUP_INVITE_LINK = "https://t.me/+6TLsK-8Z7PJhNWY6"
+# General channel/group ID is configured in data.config
 
 
 @dp.message_handler(Text(equals="📤 Vazifa yuborish"))
@@ -47,24 +44,18 @@ async def send_task(message: types.Message):
                 group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
                 if group_member.status in ["left", "kicked"]:
                     group_not_joined = True
-            except Exception as e:
-                # Guruhni tekshira olmasa, link beramiz (bot admin emas)
-                print(f"⚠️ O'z guruhini tekshirib bo'lmadi (bot admin emasligidan): {e}")
-                # Guruh linki bormi tekshirish, agar bor bo'lsa beramiz
+            except:
+                # Guruhni tekshira olmasa, link beramiz
                 group_not_joined = bool(group_obj.get("invite_link"))
         else:
-            # telegram_group_id bo'sh bo'lsa, link bermaslik
             group_not_joined = False
             
-        # Umumiy guruh uchun tekshiruvni qayta yoqish
+        # Umumiy guruhga qo'shilganmi
         try:
-            # Umumiy guruhga qo'shilganmi
             general_member = await bot.get_chat_member(GENERAL_GROUP_ID, telegram_id)
             if general_member.status in ["left", "kicked"]:
                 general_not_joined = True
-        except Exception as e:
-            # Umumiy guruhga qo'shilmagan
-            print(f"⚠️ Umumiy guruhni tekshirib bo'lmadi: {e}")
+        except:
             general_not_joined = True
         
         # Agar qo'shilmagan bo'lsa, yangi 1 martalik linklar yaratamiz
@@ -73,49 +64,46 @@ async def send_task(message: types.Message):
             
             if group_not_joined and group_obj and group_obj.get("telegram_group_id"):
                 try:
-                    # Yangi 1 martalik link yaratish
+                    # Yangi 1 martalik link
                     group_invite = await bot.create_chat_invite_link(
                         chat_id=group_obj.get("telegram_group_id"),
                         member_limit=1
                     )
                     msg += f"🔹 O'z guruhingiz: {group_invite.invite_link}\n"
-                except Exception as e:
-                    print(f"O'z guruhi uchun link yaratishda xatolik (chat_id={group_obj.get('telegram_group_id')}): {e}")
+                except:
                     if group_obj.get("invite_link"):
                         msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
-                    else:
-                        print(f"⚠️ Guruh {group_obj.get('name')} uchun zaxira link ham yo'q!")
             elif group_not_joined and group_obj:
-                # telegram_group_id bo'sh, lekin eski link bor bo'lsa
                 if group_obj.get("invite_link"):
                     msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
             
             if general_not_joined:
                 try:
-                    # Channel ekanligini tekshirish
+                    # Kanal yoki guruh
                     is_channel = False
                     try:
                         chat_info = await bot.get_chat(GENERAL_GROUP_ID)
-                        if chat_info.type == "channel":
-                            is_channel = True
+                        is_channel = chat_info.type == "channel"
                     except:
                         pass
-                    
-                    # Link yaratish
+
                     if is_channel:
-                        # Channel uchun - doimiy approval link
-                        msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
-                        msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
+                        # Kanal - primary link
+                        try:
+                            primary_link = await bot.export_chat_invite_link(chat_id=GENERAL_GROUP_ID)
+                            msg += f"🔹 Umumiy kanal: {primary_link}\n"
+                        except:
+                            # Fallback
+                            msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
                     else:
-                        # Supergroup uchun member_limit
+                        # Supergroup - 1 martalik
                         general_invite = await bot.create_chat_invite_link(
                             chat_id=GENERAL_GROUP_ID,
                             member_limit=1
                         )
                         msg += f"🔹 Umumiy guruh: {general_invite.invite_link}\n"
-                except Exception as e:
-                    print(f"❌ XATOLIK: Umumiy guruh linki yaratib bo'lmadi (chat_id={GENERAL_GROUP_ID}): {e}")
-                    msg += f"❌ Umumiy guruh linki yaratib bo'lmadi. Admin bilan bog'laning.\n"
+                except:
+                    msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
             
             msg += "\n⚠️ Iltimos, guruhlarga qo'shiling va qayta urinib ko'ring."
             
@@ -213,4 +201,7 @@ async def process_file(message: types.Message, state: FSMContext):
             else:
                 await message.answer("❌ Vazifa yuborishda xatolik bo'ldi.")
 
-    await state.finish()
+    try:
+        await state.finish()
+    except:
+        pass

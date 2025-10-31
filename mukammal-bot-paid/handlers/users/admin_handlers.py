@@ -50,6 +50,10 @@ async def generate_invite(message: types.Message, state: FSMContext):
 # --- Baho qo'yish ---
 @dp.callback_query_handler(lambda c: c.data.startswith("grade_"))
 async def set_grade(callback: types.CallbackQuery):
+    # Only admins are allowed to grade
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda baho qo'yish huquqi yo'q.", show_alert=True)
+        return
     _, task_id, grade = callback.data.split("_")
     payload = {"grade": int(grade)}
 

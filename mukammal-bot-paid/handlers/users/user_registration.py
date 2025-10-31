@@ -4,16 +4,13 @@ User registration flow: start command, invite code validation, full name process
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
-from data.config import ADMINS, API_BASE_URL
+from data.config import ADMINS, API_BASE_URL, GENERAL_GROUP_ID, GENERAL_GROUP_INVITE_LINK
 from loader import dp, bot
 from states.register_state import RegisterState
 from keyboards.default.vazifa_keyboard import vazifa_key
 
 
-# Global constants
-GENERAL_GROUP_ID = "-1003295943458"
-# Umumiy kanal uchun doimiy approval link (qo'lda tasdiqlash bilan)
-GENERAL_GROUP_INVITE_LINK = "https://t.me/+6TLsK-8Z7PJhNWY6"
+# General channel/group ID is configured in data.config
 
 
 # --- START with Invite Code ---
@@ -182,151 +179,70 @@ async def process_fish(message: types.Message, state: FSMContext):
     group_invite_link = None
     if group_obj and group_obj.get("telegram_group_id"):
         try:
-            # 1 martalik invite link yaratish (member_limit=1)
             group_chat_id = group_obj.get("telegram_group_id")
-            print(f"Guruh uchun invite link yaratilmoqda (chat_id={group_chat_id})...")
             
             # Guruh turini tekshirish
             try:
                 chat_info = await bot.get_chat(group_chat_id)
-                print(f"   📋 Guruh nomi: {chat_info.title}")
-                print(f"   📋 Guruh turi: {chat_info.type}")
                 is_group_channel = chat_info.type == "channel"
-            except Exception as e:
-                print(f"   ⚠️ Guruh ma'lumotini olishda xatolik: {e}")
+            except:
                 is_group_channel = False
             
             if is_group_channel:
-                # Bu ham channel ekan - member_limit ishlamaydi
-                print(f"   ⚠️ Bu CHANNEL - member_limit ishlamaydi!")
-                print(f"   ℹ️ Oddiy link yaratiladi...")
-                group_chat_invite = await bot.create_chat_invite_link(
-                    chat_id=group_chat_id
-                )
+                # Channel - oddiy link
+                group_chat_invite = await bot.create_chat_invite_link(chat_id=group_chat_id)
             else:
-                # Bu supergroup - member_limit ishlaydi
-                print(f"   ✅ Bu SUPERGROUP - member_limit=1 ishlatiladi")
+                # Supergroup - 1 martalik link
                 group_chat_invite = await bot.create_chat_invite_link(
                     chat_id=group_chat_id,
-                    member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
+                    member_limit=1
                 )
             
             group_invite_link = group_chat_invite.invite_link
-            print(f"✅ Guruh invite link yaratildi: {group_invite_link}")
         except Exception as e:
-            print(f"❌ Guruh invite link yaratishda xatolik (chat_id={group_obj.get('telegram_group_id')}): {e}")
-            # Agar xatolik bo'lsa, eski linkni ishlatamiz
+            # Xatolik bo'lsa, eski linkni ishlatamiz
             group_invite_link = group_obj.get("invite_link")
     elif group_obj:
-        # telegram_group_id bo'sh bo'lsa, eski linkni ishlatamiz
         group_invite_link = group_obj.get("invite_link")
-        if not group_invite_link:
-            print(f"⚠️ Guruh {group_obj.get('name')} uchun telegram_group_id va invite_link yo'q!")
     
-    # Umumiy guruh uchun ham 1 martalik link yaratish
+    # Umumiy guruh uchun invite link
     umumiy_invite_link = None
-    
-    # Avval user allaqachon guruhda ekanligini tekshiramiz
     user_already_in_general = False
+    
     try:
         user_member = await bot.get_chat_member(GENERAL_GROUP_ID, message.from_user.id)
         if user_member.status not in ["left", "kicked"]:
             user_already_in_general = True
-            print(f"✅ User allaqachon umumiy guruhda: {user_member.status}")
-    except Exception as e:
-        print(f"⚠️ User umumiy guruhda emasligini tekshirdik: {e}")
+    except:
+        pass
     
-    if user_already_in_general:
-        # User allaqachon guruhda - link yaratmaslik
-        print(f"ℹ️ User allaqachon umumiy guruhda, link yaratilmaydi")
-    else:
+    if not user_already_in_general:
         try:
-            # Avval botning statusini tekshiramiz
-            print(f"🔍 Umumiy guruhdagi bot statusini tekshirish... (chat_id={GENERAL_GROUP_ID})")
-            try:
-                bot_member = await bot.get_chat_member(GENERAL_GROUP_ID, bot.id)
-                print(f"   Bot statusi: {bot_member.status}")
-                if bot_member.status == "administrator":
-                    # Bot adminligining ruxsatlarini ko'ramiz
-                    print(f"   ✅ Bot administrator")
-                    if hasattr(bot_member, 'can_invite_users'):
-                        print(f"   📋 can_invite_users: {bot_member.can_invite_users}")
-                    if hasattr(bot_member, 'can_manage_chat'):
-                        print(f"   📋 can_manage_chat: {bot_member.can_manage_chat}")
-                else:
-                    print(f"   ⚠️ Bot admin emas! Status: {bot_member.status}")
-            except Exception as status_err:
-                print(f"   ⚠️ Bot statusini tekshirib bo'lmadi: {status_err}")
-            
-            # Guruh haqida ma'lumot olish
+            # Guruh turini aniqlash
             is_channel = False
             try:
                 chat_info = await bot.get_chat(GENERAL_GROUP_ID)
-                print(f"   📋 Guruh nomi: {chat_info.title}")
-                print(f"   📋 Guruh turi: {chat_info.type}")
-                
-                # Username borligini tekshirish (public kanal bo'lsa)
-                if hasattr(chat_info, 'username') and chat_info.username:
-                    print(f"   🌐 PUBLIC kanal! Username: @{chat_info.username}")
-                    print(f"   ℹ️ Public link: https://t.me/{chat_info.username}")
-                else:
-                    print(f"   🔒 PRIVATE kanal (username yo'q)")
-                
-                # Channel ekanligini tekshirish
-                if chat_info.type == "channel":
-                    is_channel = True
-                    print(f"   ℹ️ Bu CHANNEL - invite link strategiyasi ishlatiladi")
-                
-                # join_by_request borligini tekshirish (faqat supergroup uchun)
-                if hasattr(chat_info, 'join_by_request') and not is_channel:
-                    print(f"   ⚠️ Join by request: {chat_info.join_by_request}")
-                    if chat_info.join_by_request:
-                        print(f"   ❌ MUAMMO: 'Approve new members' YOQIQ!")
-                        print(f"   ❌ Guruh sozlamalarida 'Approve new members' ni O'CHIRING!")
-            except Exception as info_err:
-                print(f"   ⚠️ Guruh ma'lumotini ololmadik: {info_err}")
+                is_channel = chat_info.type == "channel"
+            except:
+                pass
             
-            # Invite link yaratish
-            print(f"🔗 Umumiy guruh uchun invite link...")
             if is_channel:
-                # PRIVATE kanal uchun - export_chat_invite_link (primary link)
+                # Channel - primary link
                 try:
                     umumiy_invite_link = await bot.export_chat_invite_link(chat_id=GENERAL_GROUP_ID)
-                    print(f"   🔒 PRIVATE kanal - primary link olindi")
-                    print(f"   ⚠️ Admin so'rovlarni qo'lda tasdiqlashi kerak!")
-                    print(f"   ✅ Link: {umumiy_invite_link}")
-                except Exception as export_err:
-                    print(f"   ❌ Primary link olishda xatolik: {export_err}")
-                    # Fallback - doimiy linkni ishlatamiz
+                except:
+                    # Fallback - doimiy link
                     umumiy_invite_link = GENERAL_GROUP_INVITE_LINK
-                    print(f"   ℹ️ Doimiy link ishlatiladi: {umumiy_invite_link}")
             else:
-                # Supergroup uchun - member_limit bilan (1 martalik)
+                # Supergroup - 1 martalik link
                 general_chat_invite = await bot.create_chat_invite_link(
                     chat_id=GENERAL_GROUP_ID,
-                    member_limit=1  # Faqat 1 kishi qo'shilishi mumkin
+                    member_limit=1
                 )
                 umumiy_invite_link = general_chat_invite.invite_link
-                print(f"   ✅ Supergroup uchun 1 martalik link yaratildi: {umumiy_invite_link}")
-            
-            print(f"✅ Umumiy guruh invite link tayyor!")
-        except Exception as e:
-            print(f"❌ XATOLIK: Umumiy guruh uchun link yaratib bo'lmadi (chat_id={GENERAL_GROUP_ID})")
-            print(f"   Xato turi: {type(e).__name__}")
-            print(f"   Xato matni: {str(e)}")
-            import traceback
-            print(f"   Traceback:\n{traceback.format_exc()}")
-            
-            # Link yaratib bo'lmasa, userni xabardor qilamiz
-            await message.answer(
-                "❌ Umumiy guruh linki yaratishda xatolik yuz berdi.\n"
-                "Admin bilan bog'laning."
-            )
-            try:
-                await state.finish()
-            except Exception:
-                pass
-            return
+        except:
+            # Xatolik - doimiy linkni ishlatamiz
+            umumiy_invite_link = GENERAL_GROUP_INVITE_LINK
     
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
@@ -341,10 +257,10 @@ async def process_fish(message: types.Message, state: FSMContext):
                 if group_invite_link:
                     msg += f"🔹 O'z guruhingiz: {group_invite_link}\n"
                 
-                # Umumiy kanal linki (har doim)
-                if not user_already_in_general:
-                    msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
-                    msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
+                # Umumiy kanal linki (har doim, agar mavjud bo'lsa)
+                if not user_already_in_general and umumiy_invite_link:
+                    msg += f"🔹 Umumiy kanal: {umumiy_invite_link}\n"
+                    msg += f"   (So'rov yuboring, bot auto-approve qiladi)\n"
                 
                 msg += "\n⚠️ Vazifa yuborishdan oldin guruhlarga qo'shilishingiz shart!\n"
                 
