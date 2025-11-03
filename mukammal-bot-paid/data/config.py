@@ -11,4 +11,4 @@ IP = env.str("ip")  # Xosting ip manzili
 API_BASE_URL = "http://127.0.0.1:8000/api"
 GENERAL_GROUP_ID = env.str("GENERAL_GROUP_ID", default="-1003295943458")
 # Umumiy kanal uchun doimiy approval link
-GENERAL_GROUP_INVITE_LINK = env.str("GENERAL_GROUP_INVITE_LINK", default="https://t.me/+7xo2avflxCczMDBi")
+GENERAL_GROUP_INVITE_LINK = env.str("GENERAL_GROUP_INVITE_LINK", default="https://t.me/+Pa-WbbL1s0c3NmYy")
