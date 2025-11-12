@@ -1,10 +1,11 @@
 """
 User registration flow: start command, invite code validation, full name processing
+Both channels now use approval links (no one-time links)
 """
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
-from data.config import ADMINS, API_BASE_URL, GENERAL_GROUP_ID, GENERAL_GROUP_INVITE_LINK
+from data.config import ADMINS, API_BASE_URL, GENERAL_CHANNEL_ID, GENERAL_CHANNEL_INVITE_LINK
 from loader import dp, bot
 from states.register_state import RegisterState
 from keyboards.default.vazifa_keyboard import vazifa_key
@@ -31,14 +32,9 @@ async def cmd_start(message: types.Message, state: FSMContext):
     # Deep linking - invite code bilan kelganmi?
     args = message.get_args()
     
-    # Admin bo'lsa, invite code so'ramaslik
+    # Admin bo'lsa, oddiy salom xabari
     if str(message.from_user.id) in ADMINS:
-        await message.answer(
-            f"👋 Admin salom!\n\n"
-            f"Buyruqlar:\n"
-            f"/generate_invite - Yangi invite code yaratish\n\n"
-            f"Invite code yaratganingizdan so'ng, uni foydalanuvchilarga yuboring."
-        )
+        await message.answer("👋 Admin salom!")
         return
     
     # Student allaqachon ro'yxatdan o'tganmi tekshiramiz
@@ -141,23 +137,23 @@ async def process_fish(message: types.Message, state: FSMContext):
                     return
                 await state.update_data(validated=True)
 
-    # Guruhlarni va ularning a'zolar sonini olish
+    # Kanallarni va ularning a'zolar sonini olish
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
             groups = await resp.json()
 
-        # Har bir guruh uchun a'zolar sonini tekshiramiz
+        # Har bir kanal uchun a'zolar sonini tekshiramiz (700 foydalanuvchi + 3 admin = 703 limit)
         selected_group = None
         for g in groups:
             group_id = g["id"]
             async with session.get(f"{API_BASE_URL}/students/?group_id={group_id}") as resp2:
                 students_in_group = await resp2.json()
-                if len(students_in_group) < 50:
+                if len(students_in_group) < 700:
                     selected_group = group_id
                     break
 
     if selected_group is None:
-        await message.answer("❌ Hech bir guruhda bo'sh joy yo'q. Admin bilan bog'laning.")
+        await message.answer("❌ Hech bir kanalda bo'sh joy yo'q. Admin bilan bog'laning.")
         try:
             await state.finish()
         except Exception as e:
@@ -172,74 +168,52 @@ async def process_fish(message: types.Message, state: FSMContext):
         "group_id": selected_group
     }
 
-    # Guruh linkini yaratish - har bir user uchun unique, 1 martalik
+    # Guruh linkini olish - endi kanal bo'lgani uchun approval link
     group_obj = next((g for g in groups if g["id"] == selected_group), None)
     
-    # O'z guruhi uchun unique invite link yaratish
+    # O'z kanal uchun approval link (databazadan)
     group_invite_link = None
-    if group_obj and group_obj.get("telegram_group_id"):
-        try:
-            group_chat_id = group_obj.get("telegram_group_id")
-                # Supergroup - 1 martalik link
-            group_chat_invite = await bot.create_chat_invite_link(
-                    chat_id=group_chat_id,
-                    member_limit=1
-                )
-            group_invite_link = group_chat_invite.invite_link
-            print("Created group invite link:", group_invite_link)
-        except Exception as e:
-            pass
-            # Xatolik bo'lsa, eski linkni ishlatamiz
-            # group_invite_link = group_obj.get("invite_link")
-    elif group_obj:
-        await message.answer("❌ Diqqat: Guruhi telegram_group_id o'rnatilmagan. Admin bilan bog'laning.")
-        admin_msg = (
-            "🚨 Diqqat: Guruhi telegram_group_id o'rnatilmagan!\n\n"
-            f"Guruh nomi: {group_obj['name']}\n"
-        )
-
-        for admin_id in ADMINS:
-            try:
-                await bot.send_message(int(admin_id), admin_msg)
-            except Exception:
-                pass
-        
+    if group_obj:
+        # Kanal uchun approval link faqat databazada saqlangan linkdan olinadi
+        group_invite_link = group_obj.get("invite_link")
+        if not group_invite_link:
+            # Agar link yo'q bo'lsa, adminlarga xabar beramiz
+            await message.answer("❌ Diqqat: Kanalingiz uchun approval link o'rnatilmagan. Admin bilan bog'laning.")
+            admin_msg = (
+                "🚨 Diqqat: Kanal uchun approval link o'rnatilmagan!\n\n"
+                f"Kanal nomi: {group_obj['name']}\n"
+                f"Kanal ID: {group_obj.get('telegram_group_id', 'N/A')}\n"
+            )
+            for admin_id in ADMINS:
+                try:
+                    await bot.send_message(int(admin_id), admin_msg)
+                except Exception:
+                    pass
     
-    # Umumiy guruh uchun invite link
-    umumiy_invite_link = None
-    user_already_in_general = False
-    
-    # try:
-    #     user_member = await bot.get_chat_member(GENERAL_GROUP_ID, message.from_user.id)
-    #     print("User member status in general group:", user_member.status)
-    #     if user_member.status not in ["left", "kicked"]:
-    #         user_already_in_general = True
-    # except:
-    #     pass
-    
-    # if not user_already_in_general:   
-    umumiy_invite_link = GENERAL_GROUP_INVITE_LINK
+    # Umumiy kanal uchun approval link
+    umumiy_invite_link = GENERAL_CHANNEL_INVITE_LINK
         
     
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
             if resp.status == 201:
                 group_name = group_obj["name"] if group_obj else ""
-                msg = f"✅ Ro'yxatdan o'tdingiz! Sizning guruh - {group_name}.\n\n"
+                msg = f"✅ Ro'yxatdan o'tdingiz! Sizning kanal - {group_name}.\n\n"
                 
                 # Linklar haqida xabar berish
-                msg += "📚 Quyidagi guruhlarga qo'shiling:\n"
+                msg += "📚 Quyidagi kanallarga qo'shiling:\n"
                 
-                # O'z guruhi linki
+                # O'z kanali linki
                 if group_invite_link:
-                    msg += f"🔹 O'z guruhingiz: {group_invite_link}\n"
+                    msg += f"🔹 O'z kanalingiz: {group_invite_link}\n"
+                    msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
                 
-                # Umumiy kanal linki (har doim, agar mavjud bo'lsa)
-                if not user_already_in_general and umumiy_invite_link:
+                # Umumiy kanal linki
+                if umumiy_invite_link:
                     msg += f"🔹 Umumiy kanal: {umumiy_invite_link}\n"
-                    msg += f"   (So'rov yuboring, bot auto-approve qiladi)\n"
+                    msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
                 
-                msg += "\n⚠️ Vazifa yuborishdan oldin guruhlarga qo'shilishingiz shart!\n"
+                msg += "\n⚠️ Vazifa yuborishdan oldin kanallarga qo'shilishingiz shart!\n"
                 
                 await message.answer(msg, reply_markup=vazifa_key)
             else:

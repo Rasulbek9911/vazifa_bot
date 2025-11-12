@@ -30,10 +30,10 @@ async def on_startup(dispatcher):
     # Scheduler sozlash
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     # Har dushanba ertalab 9:00 da
-    scheduler.add_job(send_weekly_reports, "cron", day_of_week="mon", hour=9, minute=0)
-    # scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
-    scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
-    # scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=2)
+    # scheduler.add_job(send_weekly_reports, "cron", day_of_week="mon", hour=9, minute=0)
+    scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
+    # scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
+    scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=2)
     scheduler.start()
 
 

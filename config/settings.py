@@ -73,12 +73,29 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# PostgreSQL konfiguratsiyasi (SQLite dan o'tdik)
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",  # PostgreSQL backend
+        "NAME": "vazifa_bot",  # Database nomi
+        "USER": "vazifa_user",  # PostgreSQL user
+        "PASSWORD": "vazifa_bot_2025",  # User paroli
+        "HOST": "localhost",  # Database server manzili (local serverda)
+        "PORT": "5432",  # PostgreSQL default porti
+        "CONN_MAX_AGE": 600,  # Connection pooling: 10 daqiqa connection reuse
+        "OPTIONS": {
+            "connect_timeout": 10,  # Connection timeout: 10 soniya
+        },
     }
 }
+
+# Eski SQLite konfiguratsiyasi (backup uchun saqlab qo'yamiz)
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 
 # Password validation

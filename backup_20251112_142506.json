@@ -1,0 +1,8589 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-09-18T17:25:47.136Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "101-guruh",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-09-18T17:25:56.248Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "102-guruh",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-09-18T17:26:03.527Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3",
+    "object_repr": "103-guruh",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-09-18T17:45:50.143Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Natural sonlar",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-09-19T16:59:58.257Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "Qodirov R.H → Natural sonlar (Baholanmagan)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-09-19T17:46:04.691Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "2",
+    "object_repr": "Qodirov R.H → Natural sonlar (Baholanmagan)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-09-19T17:46:42.353Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "kasr sonlar",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-09-19T17:47:10.951Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "4",
+    "object_repr": "Qodirov R.H → kasr sonlar (5)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Grade\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-09-19T17:47:16.150Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "4",
+    "object_repr": "Qodirov R.H → kasr sonlar (Baholanmagan)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Grade\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-09-19T17:52:25.683Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "3",
+    "object_repr": "Qodirov R.H → Natural sonlar (Baholanmagan)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-09-19T17:58:48.520Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "5",
+    "object_repr": "Qodirov R.H → Natural sonlar (4)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2025-09-19T17:58:48.520Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "4",
+    "object_repr": "Qodirov R.H → kasr sonlar (Baholanmagan)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2025-09-20T11:54:57.005Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "7",
+    "object_repr": "Qodirov R.H → kasr sonlar (5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2025-09-20T12:29:34.917Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "101-guruh",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Telegram group id\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2025-09-20T15:55:35.931Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "kasr sonlar",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2025-09-20T15:55:40.116Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Natural sonlar",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2025-09-20T15:55:45.917Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "8",
+    "object_repr": "Qodirov R.H → kasr sonlar (5)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2025-09-20T15:55:45.917Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "6",
+    "object_repr": "Qodirov R.H → Natural sonlar (3)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2025-09-20T16:47:41.436Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "kasr sonlar",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2025-09-21T07:48:31.473Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "3",
+    "object_repr": "Qodirov Toyirjon Hasanovich (102-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2025-09-21T07:49:42.045Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "3",
+    "object_repr": "Mukammal sonlar",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2025-09-21T07:49:59.031Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "4",
+    "object_repr": "test sinov",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2025-09-21T07:56:53.206Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "4",
+    "object_repr": "Qodirov Toyirjon Hasanovich (102-guruh)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Group\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2025-09-21T08:00:05.571Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "102-guruh",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Telegram group id\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 25,
+  "fields": {
+    "action_time": "2025-09-21T08:03:52.772Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "4",
+    "object_repr": "test sinov",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 26,
+  "fields": {
+    "action_time": "2025-10-09T10:46:01.118Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "101-guruh",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Invite link\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 27,
+  "fields": {
+    "action_time": "2025-10-09T10:46:10.694Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "4",
+    "object_repr": "Qodirov Toyirjon Hasanovich (102-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 28,
+  "fields": {
+    "action_time": "2025-10-09T10:46:10.694Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "2",
+    "object_repr": "test testov (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 29,
+  "fields": {
+    "action_time": "2025-10-09T10:46:10.694Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "1",
+    "object_repr": "Qodirov R.H (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 30,
+  "fields": {
+    "action_time": "2025-10-09T10:58:38.851Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "5",
+    "object_repr": "Qodirov Rasulbek (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 31,
+  "fields": {
+    "action_time": "2025-10-09T11:13:07.229Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "6",
+    "object_repr": "Qodirov Rasulbek (101-guruh)",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 32,
+  "fields": {
+    "action_time": "2025-10-27T09:33:12.065Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "7",
+    "object_repr": "test testov (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 33,
+  "fields": {
+    "action_time": "2025-10-27T09:33:12.065Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "6",
+    "object_repr": "Qodirov Rasulbek (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 34,
+  "fields": {
+    "action_time": "2025-10-28T04:50:22.587Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "8",
+    "object_repr": "qwdqwefewf (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 35,
+  "fields": {
+    "action_time": "2025-10-28T05:03:53.653Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "9",
+    "object_repr": "/start (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 36,
+  "fields": {
+    "action_time": "2025-10-28T05:11:29.233Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "10",
+    "object_repr": "ewgwgwrg\\ (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 37,
+  "fields": {
+    "action_time": "2025-10-28T05:48:21.694Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "11",
+    "object_repr": "wdwefweewfgweg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 38,
+  "fields": {
+    "action_time": "2025-10-29T05:14:11.001Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "12",
+    "object_repr": "Q.R>H (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 39,
+  "fields": {
+    "action_time": "2025-10-29T05:32:05.199Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "14",
+    "object_repr": "Test (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 40,
+  "fields": {
+    "action_time": "2025-10-29T07:28:01.990Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "15",
+    "object_repr": "fwefwfgwg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 41,
+  "fields": {
+    "action_time": "2025-10-29T07:39:27.922Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "16",
+    "object_repr": "agafuag (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 42,
+  "fields": {
+    "action_time": "2025-10-29T07:50:51.809Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "17",
+    "object_repr": "sgserhger (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 43,
+  "fields": {
+    "action_time": "2025-10-29T11:11:04.838Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "18",
+    "object_repr": "wghwhwer (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 44,
+  "fields": {
+    "action_time": "2025-10-29T11:42:54.089Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "19",
+    "object_repr": "affkjwebkg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 45,
+  "fields": {
+    "action_time": "2025-10-30T04:04:24.480Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "20",
+    "object_repr": "afsdfgsdg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 46,
+  "fields": {
+    "action_time": "2025-10-30T04:33:04.775Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "21",
+    "object_repr": "adfsfseg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 47,
+  "fields": {
+    "action_time": "2025-10-30T04:36:57.825Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "22",
+    "object_repr": "uvavfhsjfssg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 48,
+  "fields": {
+    "action_time": "2025-10-30T04:44:42.707Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "23",
+    "object_repr": "sfsgsgss (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 49,
+  "fields": {
+    "action_time": "2025-10-30T04:56:39.468Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "24",
+    "object_repr": "rehyrtsu (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 50,
+  "fields": {
+    "action_time": "2025-10-30T05:01:10.786Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "25",
+    "object_repr": "segsgsrgr (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 51,
+  "fields": {
+    "action_time": "2025-10-30T05:03:06.993Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "26",
+    "object_repr": "ehehatehte\\ (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 52,
+  "fields": {
+    "action_time": "2025-10-30T09:12:37.561Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "27",
+    "object_repr": "wrgergegr (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 53,
+  "fields": {
+    "action_time": "2025-10-30T09:43:45.719Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "28",
+    "object_repr": "wegwggs (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 54,
+  "fields": {
+    "action_time": "2025-10-30T09:47:35.047Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "29",
+    "object_repr": "gwegwegwe (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 55,
+  "fields": {
+    "action_time": "2025-10-30T09:51:07.939Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "30",
+    "object_repr": "agadgsdgs (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 56,
+  "fields": {
+    "action_time": "2025-10-30T10:08:32.119Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "31",
+    "object_repr": "fsgsgsd (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 57,
+  "fields": {
+    "action_time": "2025-10-30T10:25:54.355Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "32",
+    "object_repr": "sdsdg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 58,
+  "fields": {
+    "action_time": "2025-10-30T10:29:01.398Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "33",
+    "object_repr": "fgseggr (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 59,
+  "fields": {
+    "action_time": "2025-10-30T10:53:44.710Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "34",
+    "object_repr": "dafsdfsgs (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 60,
+  "fields": {
+    "action_time": "2025-10-30T11:04:50.661Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "35",
+    "object_repr": "ghghgvgv (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 61,
+  "fields": {
+    "action_time": "2025-10-30T11:06:46.620Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "36",
+    "object_repr": "fhbfuywe (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 62,
+  "fields": {
+    "action_time": "2025-10-30T11:11:21.349Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "37",
+    "object_repr": "afwefwe (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 63,
+  "fields": {
+    "action_time": "2025-10-31T05:06:46.855Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "38",
+    "object_repr": "dgsdgsdg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 64,
+  "fields": {
+    "action_time": "2025-10-31T05:49:32.579Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "39",
+    "object_repr": "ajfafefjw (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 65,
+  "fields": {
+    "action_time": "2025-10-31T05:54:53.105Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "40",
+    "object_repr": "fwfwwgreg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 66,
+  "fields": {
+    "action_time": "2025-10-31T05:57:03.049Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "41",
+    "object_repr": "sdgsgdgsg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 67,
+  "fields": {
+    "action_time": "2025-10-31T06:00:12.171Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "42",
+    "object_repr": "afgger (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 68,
+  "fields": {
+    "action_time": "2025-10-31T06:41:42.527Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "43",
+    "object_repr": "xdgsdfgdg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 69,
+  "fields": {
+    "action_time": "2025-11-03T05:15:06.784Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "44",
+    "object_repr": "gergerger (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 70,
+  "fields": {
+    "action_time": "2025-11-03T05:26:36.609Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "45",
+    "object_repr": "awfwfgweg (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 71,
+  "fields": {
+    "action_time": "2025-11-03T05:26:36.609Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "13",
+    "object_repr": "Q>RH (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 72,
+  "fields": {
+    "action_time": "2025-11-03T05:44:48.366Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "46",
+    "object_repr": "efwegwgw (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 73,
+  "fields": {
+    "action_time": "2025-11-03T05:57:02.234Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "47",
+    "object_repr": "faffgwgergre (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 74,
+  "fields": {
+    "action_time": "2025-11-03T06:00:37.498Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "48",
+    "object_repr": "egheghggihrth (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 75,
+  "fields": {
+    "action_time": "2025-11-03T06:27:05.348Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "49",
+    "object_repr": "efwgwgrwe (101-guruh)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 76,
+  "fields": {
+    "action_time": "2025-11-03T06:30:56.180Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "101-guruh",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 77,
+  "fields": {
+    "action_time": "2025-11-12T04:39:52.092Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "1-test-kanal",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Name\", \"Invite link\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 78,
+  "fields": {
+    "action_time": "2025-11-12T04:40:46.641Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "1-test-kanal",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Telegram group id\"]}}]"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 2,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 2,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 2,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 2,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 3,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 3,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 3,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 3,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add user",
+    "content_type": 4,
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change user",
+    "content_type": 4,
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete user",
+    "content_type": 4,
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view user",
+    "content_type": 4,
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 5,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 5,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 5,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 5,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 6,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 6,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 6,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 6,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 7,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 7,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 7,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 7,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add topic",
+    "content_type": 8,
+    "codename": "add_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change topic",
+    "content_type": 8,
+    "codename": "change_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete topic",
+    "content_type": 8,
+    "codename": "delete_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view topic",
+    "content_type": 8,
+    "codename": "view_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add student",
+    "content_type": 9,
+    "codename": "add_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change student",
+    "content_type": 9,
+    "codename": "change_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete student",
+    "content_type": 9,
+    "codename": "delete_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view student",
+    "content_type": 9,
+    "codename": "view_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add task",
+    "content_type": 10,
+    "codename": "add_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change task",
+    "content_type": 10,
+    "codename": "change_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete task",
+    "content_type": 10,
+    "codename": "delete_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view task",
+    "content_type": 10,
+    "codename": "view_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add invite code",
+    "content_type": 11,
+    "codename": "add_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change invite code",
+    "content_type": 11,
+    "codename": "change_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete invite code",
+    "content_type": 11,
+    "codename": "delete_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view invite code",
+    "content_type": 11,
+    "codename": "view_invitecode"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$0AHEn9UGQXXuxoyzC56cMn$lp8tKQCLW21xnFAGw9pQXaiL7IZqT2z8/0XmqCKfHv0=",
+    "last_login": "2025-11-12T04:37:42.418Z",
+    "is_superuser": true,
+    "username": "a",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-09-18T16:36:01.058Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 1,
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 2,
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 3,
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 4,
+  "fields": {
+    "app_label": "auth",
+    "model": "user"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 5,
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 6,
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 7,
+  "fields": {
+    "app_label": "base_app",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 8,
+  "fields": {
+    "app_label": "base_app",
+    "model": "topic"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 9,
+  "fields": {
+    "app_label": "base_app",
+    "model": "student"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 10,
+  "fields": {
+    "app_label": "base_app",
+    "model": "task"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 11,
+  "fields": {
+    "app_label": "base_app",
+    "model": "invitecode"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "3mng37e438rklzc3umm6txdw4d3jnp7k",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1v6NCt:9CPbtTKyHVe3yTsihPWVvBWbdXs5DY65v7nWIjezYY4",
+    "expire_date": "2025-10-22T05:59:23.146Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4xm1lhsgmqg5tihtxmmp4cw1greygzes",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1vDyVX:6P_xkKgpYgmbtpS1_XuS7-stf-hTukG-7bfZUF1tW_U",
+    "expire_date": "2025-11-12T05:14:03.908Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "76u3hzx40zpvi4vjzqfwhgvoyu60e8nd",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1vFmuC:tCUIhu-rTlAZASBpfJxys_apUgd0MUXjubF2RsI9FKc",
+    "expire_date": "2025-11-17T05:15:00.419Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8zuchqafh2fvvol0n9gbt3peitw4z6q2",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1vJ2c2:qgic8a7U1magsun4t-kuG2HRAHLWXP_xxpLOQZo8LjA",
+    "expire_date": "2025-11-26T04:37:42.421Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "cuehnucynbhwdd9wzvumnzkir2n8sf4z",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1v6o8m:MdLBjXUXKatkZmvcV1qH10HqKx87TQE7iWduwUCY4w4",
+    "expire_date": "2025-10-23T10:44:56.610Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "dbxfu2hhrmox1gewbxcryermisbs2cs5",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1vDJb4:1hMQLj43QLFYL516FRF146xVmNNwK6nvQYCXNOEbTg0",
+    "expire_date": "2025-11-10T09:33:02.782Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "eequn1x49kv0gtlw31sg8arkbg6093ha",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1uzIN9:kYtlFfjtdBu20VE4xW7_Za0qs3Uzyte4JZ4vVldh5Ns",
+    "expire_date": "2025-10-02T17:24:43.468Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ii66uisbzwhmkvpntreq1cm1x2e1tazl",
+  "fields": {
+    "session_data": ".eJxVjEsOgjAUAO_StWn6-qHg0j1naPo-FdTQhMLKeHdDwkK3M5N5q5T3bUp7kzXNrK4K1OWXYaanLIfgR17uVVNdtnVGfST6tE2PleV1O9u_wZTbdGwjejC5RIfOIjIFKH30DMIdewIXvQSmaDoYgi2xE0eFbDDQe7SDVZ8v5ME3lQ:1vDbet:BIDK3-vT04kI1_UuXuaXpQN_Cy5TZwoHDXMTBBNaaZE",
+    "expire_date": "2025-11-11T04:50:11.056Z"
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 2,
+  "fields": {
+    "name": "1-test-kanal",
+    "telegram_group_id": "-1003470158245",
+    "invite_link": "https://t.me/+AhvthpR0Z8M1Y2Iy"
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 3,
+  "fields": {
+    "name": "103-guruh",
+    "telegram_group_id": null,
+    "invite_link": null
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 4,
+  "fields": {
+    "name": "Test Group 700",
+    "telegram_group_id": "-1001234567890",
+    "invite_link": "https://t.me/+test700"
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 51,
+  "fields": {
+    "telegram_id": "1811507184",
+    "full_name": "fsgger",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 52,
+  "fields": {
+    "telegram_id": "test_100000",
+    "full_name": "Test Student 1",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 53,
+  "fields": {
+    "telegram_id": "test_100001",
+    "full_name": "Test Student 2",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 54,
+  "fields": {
+    "telegram_id": "test_100002",
+    "full_name": "Test Student 3",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 55,
+  "fields": {
+    "telegram_id": "test_100003",
+    "full_name": "Test Student 4",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 56,
+  "fields": {
+    "telegram_id": "test_100004",
+    "full_name": "Test Student 5",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 57,
+  "fields": {
+    "telegram_id": "test_100005",
+    "full_name": "Test Student 6",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 58,
+  "fields": {
+    "telegram_id": "test_100006",
+    "full_name": "Test Student 7",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 59,
+  "fields": {
+    "telegram_id": "test_100007",
+    "full_name": "Test Student 8",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 60,
+  "fields": {
+    "telegram_id": "test_100008",
+    "full_name": "Test Student 9",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 61,
+  "fields": {
+    "telegram_id": "test_100009",
+    "full_name": "Test Student 10",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 62,
+  "fields": {
+    "telegram_id": "test_100010",
+    "full_name": "Test Student 11",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 63,
+  "fields": {
+    "telegram_id": "test_100011",
+    "full_name": "Test Student 12",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 64,
+  "fields": {
+    "telegram_id": "test_100012",
+    "full_name": "Test Student 13",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 65,
+  "fields": {
+    "telegram_id": "test_100013",
+    "full_name": "Test Student 14",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 66,
+  "fields": {
+    "telegram_id": "test_100014",
+    "full_name": "Test Student 15",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 67,
+  "fields": {
+    "telegram_id": "test_100015",
+    "full_name": "Test Student 16",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 68,
+  "fields": {
+    "telegram_id": "test_100016",
+    "full_name": "Test Student 17",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 69,
+  "fields": {
+    "telegram_id": "test_100017",
+    "full_name": "Test Student 18",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 70,
+  "fields": {
+    "telegram_id": "test_100018",
+    "full_name": "Test Student 19",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 71,
+  "fields": {
+    "telegram_id": "test_100019",
+    "full_name": "Test Student 20",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 72,
+  "fields": {
+    "telegram_id": "test_100020",
+    "full_name": "Test Student 21",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 73,
+  "fields": {
+    "telegram_id": "test_100021",
+    "full_name": "Test Student 22",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 74,
+  "fields": {
+    "telegram_id": "test_100022",
+    "full_name": "Test Student 23",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 75,
+  "fields": {
+    "telegram_id": "test_100023",
+    "full_name": "Test Student 24",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 76,
+  "fields": {
+    "telegram_id": "test_100024",
+    "full_name": "Test Student 25",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 77,
+  "fields": {
+    "telegram_id": "test_100025",
+    "full_name": "Test Student 26",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 78,
+  "fields": {
+    "telegram_id": "test_100026",
+    "full_name": "Test Student 27",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 79,
+  "fields": {
+    "telegram_id": "test_100027",
+    "full_name": "Test Student 28",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 80,
+  "fields": {
+    "telegram_id": "test_100028",
+    "full_name": "Test Student 29",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 81,
+  "fields": {
+    "telegram_id": "test_100029",
+    "full_name": "Test Student 30",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 82,
+  "fields": {
+    "telegram_id": "test_100030",
+    "full_name": "Test Student 31",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 83,
+  "fields": {
+    "telegram_id": "test_100031",
+    "full_name": "Test Student 32",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 84,
+  "fields": {
+    "telegram_id": "test_100032",
+    "full_name": "Test Student 33",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 85,
+  "fields": {
+    "telegram_id": "test_100033",
+    "full_name": "Test Student 34",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 86,
+  "fields": {
+    "telegram_id": "test_100034",
+    "full_name": "Test Student 35",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 87,
+  "fields": {
+    "telegram_id": "test_100035",
+    "full_name": "Test Student 36",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 88,
+  "fields": {
+    "telegram_id": "test_100036",
+    "full_name": "Test Student 37",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 89,
+  "fields": {
+    "telegram_id": "test_100037",
+    "full_name": "Test Student 38",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 90,
+  "fields": {
+    "telegram_id": "test_100038",
+    "full_name": "Test Student 39",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 91,
+  "fields": {
+    "telegram_id": "test_100039",
+    "full_name": "Test Student 40",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 92,
+  "fields": {
+    "telegram_id": "test_100040",
+    "full_name": "Test Student 41",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 93,
+  "fields": {
+    "telegram_id": "test_100041",
+    "full_name": "Test Student 42",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 94,
+  "fields": {
+    "telegram_id": "test_100042",
+    "full_name": "Test Student 43",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 95,
+  "fields": {
+    "telegram_id": "test_100043",
+    "full_name": "Test Student 44",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 96,
+  "fields": {
+    "telegram_id": "test_100044",
+    "full_name": "Test Student 45",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 97,
+  "fields": {
+    "telegram_id": "test_100045",
+    "full_name": "Test Student 46",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 98,
+  "fields": {
+    "telegram_id": "test_100046",
+    "full_name": "Test Student 47",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 99,
+  "fields": {
+    "telegram_id": "test_100047",
+    "full_name": "Test Student 48",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 100,
+  "fields": {
+    "telegram_id": "test_100048",
+    "full_name": "Test Student 49",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 101,
+  "fields": {
+    "telegram_id": "test_100049",
+    "full_name": "Test Student 50",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 102,
+  "fields": {
+    "telegram_id": "test_100050",
+    "full_name": "Test Student 51",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 103,
+  "fields": {
+    "telegram_id": "test_100051",
+    "full_name": "Test Student 52",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 104,
+  "fields": {
+    "telegram_id": "test_100052",
+    "full_name": "Test Student 53",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 105,
+  "fields": {
+    "telegram_id": "test_100053",
+    "full_name": "Test Student 54",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 106,
+  "fields": {
+    "telegram_id": "test_100054",
+    "full_name": "Test Student 55",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 107,
+  "fields": {
+    "telegram_id": "test_100055",
+    "full_name": "Test Student 56",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 108,
+  "fields": {
+    "telegram_id": "test_100056",
+    "full_name": "Test Student 57",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 109,
+  "fields": {
+    "telegram_id": "test_100057",
+    "full_name": "Test Student 58",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 110,
+  "fields": {
+    "telegram_id": "test_100058",
+    "full_name": "Test Student 59",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 111,
+  "fields": {
+    "telegram_id": "test_100059",
+    "full_name": "Test Student 60",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 112,
+  "fields": {
+    "telegram_id": "test_100060",
+    "full_name": "Test Student 61",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 113,
+  "fields": {
+    "telegram_id": "test_100061",
+    "full_name": "Test Student 62",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 114,
+  "fields": {
+    "telegram_id": "test_100062",
+    "full_name": "Test Student 63",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 115,
+  "fields": {
+    "telegram_id": "test_100063",
+    "full_name": "Test Student 64",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 116,
+  "fields": {
+    "telegram_id": "test_100064",
+    "full_name": "Test Student 65",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 117,
+  "fields": {
+    "telegram_id": "test_100065",
+    "full_name": "Test Student 66",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 118,
+  "fields": {
+    "telegram_id": "test_100066",
+    "full_name": "Test Student 67",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 119,
+  "fields": {
+    "telegram_id": "test_100067",
+    "full_name": "Test Student 68",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 120,
+  "fields": {
+    "telegram_id": "test_100068",
+    "full_name": "Test Student 69",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 121,
+  "fields": {
+    "telegram_id": "test_100069",
+    "full_name": "Test Student 70",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 122,
+  "fields": {
+    "telegram_id": "test_100070",
+    "full_name": "Test Student 71",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 123,
+  "fields": {
+    "telegram_id": "test_100071",
+    "full_name": "Test Student 72",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 124,
+  "fields": {
+    "telegram_id": "test_100072",
+    "full_name": "Test Student 73",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 125,
+  "fields": {
+    "telegram_id": "test_100073",
+    "full_name": "Test Student 74",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 126,
+  "fields": {
+    "telegram_id": "test_100074",
+    "full_name": "Test Student 75",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 127,
+  "fields": {
+    "telegram_id": "test_100075",
+    "full_name": "Test Student 76",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 128,
+  "fields": {
+    "telegram_id": "test_100076",
+    "full_name": "Test Student 77",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 129,
+  "fields": {
+    "telegram_id": "test_100077",
+    "full_name": "Test Student 78",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 130,
+  "fields": {
+    "telegram_id": "test_100078",
+    "full_name": "Test Student 79",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 131,
+  "fields": {
+    "telegram_id": "test_100079",
+    "full_name": "Test Student 80",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 132,
+  "fields": {
+    "telegram_id": "test_100080",
+    "full_name": "Test Student 81",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 133,
+  "fields": {
+    "telegram_id": "test_100081",
+    "full_name": "Test Student 82",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 134,
+  "fields": {
+    "telegram_id": "test_100082",
+    "full_name": "Test Student 83",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 135,
+  "fields": {
+    "telegram_id": "test_100083",
+    "full_name": "Test Student 84",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 136,
+  "fields": {
+    "telegram_id": "test_100084",
+    "full_name": "Test Student 85",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 137,
+  "fields": {
+    "telegram_id": "test_100085",
+    "full_name": "Test Student 86",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 138,
+  "fields": {
+    "telegram_id": "test_100086",
+    "full_name": "Test Student 87",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 139,
+  "fields": {
+    "telegram_id": "test_100087",
+    "full_name": "Test Student 88",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 140,
+  "fields": {
+    "telegram_id": "test_100088",
+    "full_name": "Test Student 89",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 141,
+  "fields": {
+    "telegram_id": "test_100089",
+    "full_name": "Test Student 90",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 142,
+  "fields": {
+    "telegram_id": "test_100090",
+    "full_name": "Test Student 91",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 143,
+  "fields": {
+    "telegram_id": "test_100091",
+    "full_name": "Test Student 92",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 144,
+  "fields": {
+    "telegram_id": "test_100092",
+    "full_name": "Test Student 93",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 145,
+  "fields": {
+    "telegram_id": "test_100093",
+    "full_name": "Test Student 94",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 146,
+  "fields": {
+    "telegram_id": "test_100094",
+    "full_name": "Test Student 95",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 147,
+  "fields": {
+    "telegram_id": "test_100095",
+    "full_name": "Test Student 96",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 148,
+  "fields": {
+    "telegram_id": "test_100096",
+    "full_name": "Test Student 97",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 149,
+  "fields": {
+    "telegram_id": "test_100097",
+    "full_name": "Test Student 98",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 150,
+  "fields": {
+    "telegram_id": "test_100098",
+    "full_name": "Test Student 99",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 151,
+  "fields": {
+    "telegram_id": "test_100099",
+    "full_name": "Test Student 100",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 152,
+  "fields": {
+    "telegram_id": "test_100100",
+    "full_name": "Test Student 101",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 153,
+  "fields": {
+    "telegram_id": "test_100101",
+    "full_name": "Test Student 102",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 154,
+  "fields": {
+    "telegram_id": "test_100102",
+    "full_name": "Test Student 103",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 155,
+  "fields": {
+    "telegram_id": "test_100103",
+    "full_name": "Test Student 104",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 156,
+  "fields": {
+    "telegram_id": "test_100104",
+    "full_name": "Test Student 105",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 157,
+  "fields": {
+    "telegram_id": "test_100105",
+    "full_name": "Test Student 106",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 158,
+  "fields": {
+    "telegram_id": "test_100106",
+    "full_name": "Test Student 107",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 159,
+  "fields": {
+    "telegram_id": "test_100107",
+    "full_name": "Test Student 108",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 160,
+  "fields": {
+    "telegram_id": "test_100108",
+    "full_name": "Test Student 109",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 161,
+  "fields": {
+    "telegram_id": "test_100109",
+    "full_name": "Test Student 110",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 162,
+  "fields": {
+    "telegram_id": "test_100110",
+    "full_name": "Test Student 111",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 163,
+  "fields": {
+    "telegram_id": "test_100111",
+    "full_name": "Test Student 112",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 164,
+  "fields": {
+    "telegram_id": "test_100112",
+    "full_name": "Test Student 113",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 165,
+  "fields": {
+    "telegram_id": "test_100113",
+    "full_name": "Test Student 114",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 166,
+  "fields": {
+    "telegram_id": "test_100114",
+    "full_name": "Test Student 115",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 167,
+  "fields": {
+    "telegram_id": "test_100115",
+    "full_name": "Test Student 116",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 168,
+  "fields": {
+    "telegram_id": "test_100116",
+    "full_name": "Test Student 117",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 169,
+  "fields": {
+    "telegram_id": "test_100117",
+    "full_name": "Test Student 118",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 170,
+  "fields": {
+    "telegram_id": "test_100118",
+    "full_name": "Test Student 119",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 171,
+  "fields": {
+    "telegram_id": "test_100119",
+    "full_name": "Test Student 120",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 172,
+  "fields": {
+    "telegram_id": "test_100120",
+    "full_name": "Test Student 121",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 173,
+  "fields": {
+    "telegram_id": "test_100121",
+    "full_name": "Test Student 122",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 174,
+  "fields": {
+    "telegram_id": "test_100122",
+    "full_name": "Test Student 123",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 175,
+  "fields": {
+    "telegram_id": "test_100123",
+    "full_name": "Test Student 124",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 176,
+  "fields": {
+    "telegram_id": "test_100124",
+    "full_name": "Test Student 125",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 177,
+  "fields": {
+    "telegram_id": "test_100125",
+    "full_name": "Test Student 126",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 178,
+  "fields": {
+    "telegram_id": "test_100126",
+    "full_name": "Test Student 127",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 179,
+  "fields": {
+    "telegram_id": "test_100127",
+    "full_name": "Test Student 128",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 180,
+  "fields": {
+    "telegram_id": "test_100128",
+    "full_name": "Test Student 129",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 181,
+  "fields": {
+    "telegram_id": "test_100129",
+    "full_name": "Test Student 130",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 182,
+  "fields": {
+    "telegram_id": "test_100130",
+    "full_name": "Test Student 131",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 183,
+  "fields": {
+    "telegram_id": "test_100131",
+    "full_name": "Test Student 132",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 184,
+  "fields": {
+    "telegram_id": "test_100132",
+    "full_name": "Test Student 133",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 185,
+  "fields": {
+    "telegram_id": "test_100133",
+    "full_name": "Test Student 134",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 186,
+  "fields": {
+    "telegram_id": "test_100134",
+    "full_name": "Test Student 135",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 187,
+  "fields": {
+    "telegram_id": "test_100135",
+    "full_name": "Test Student 136",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 188,
+  "fields": {
+    "telegram_id": "test_100136",
+    "full_name": "Test Student 137",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 189,
+  "fields": {
+    "telegram_id": "test_100137",
+    "full_name": "Test Student 138",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 190,
+  "fields": {
+    "telegram_id": "test_100138",
+    "full_name": "Test Student 139",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 191,
+  "fields": {
+    "telegram_id": "test_100139",
+    "full_name": "Test Student 140",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 192,
+  "fields": {
+    "telegram_id": "test_100140",
+    "full_name": "Test Student 141",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 193,
+  "fields": {
+    "telegram_id": "test_100141",
+    "full_name": "Test Student 142",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 194,
+  "fields": {
+    "telegram_id": "test_100142",
+    "full_name": "Test Student 143",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 195,
+  "fields": {
+    "telegram_id": "test_100143",
+    "full_name": "Test Student 144",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 196,
+  "fields": {
+    "telegram_id": "test_100144",
+    "full_name": "Test Student 145",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 197,
+  "fields": {
+    "telegram_id": "test_100145",
+    "full_name": "Test Student 146",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 198,
+  "fields": {
+    "telegram_id": "test_100146",
+    "full_name": "Test Student 147",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 199,
+  "fields": {
+    "telegram_id": "test_100147",
+    "full_name": "Test Student 148",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 200,
+  "fields": {
+    "telegram_id": "test_100148",
+    "full_name": "Test Student 149",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 201,
+  "fields": {
+    "telegram_id": "test_100149",
+    "full_name": "Test Student 150",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 202,
+  "fields": {
+    "telegram_id": "test_100150",
+    "full_name": "Test Student 151",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 203,
+  "fields": {
+    "telegram_id": "test_100151",
+    "full_name": "Test Student 152",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 204,
+  "fields": {
+    "telegram_id": "test_100152",
+    "full_name": "Test Student 153",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 205,
+  "fields": {
+    "telegram_id": "test_100153",
+    "full_name": "Test Student 154",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 206,
+  "fields": {
+    "telegram_id": "test_100154",
+    "full_name": "Test Student 155",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 207,
+  "fields": {
+    "telegram_id": "test_100155",
+    "full_name": "Test Student 156",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 208,
+  "fields": {
+    "telegram_id": "test_100156",
+    "full_name": "Test Student 157",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 209,
+  "fields": {
+    "telegram_id": "test_100157",
+    "full_name": "Test Student 158",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 210,
+  "fields": {
+    "telegram_id": "test_100158",
+    "full_name": "Test Student 159",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 211,
+  "fields": {
+    "telegram_id": "test_100159",
+    "full_name": "Test Student 160",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 212,
+  "fields": {
+    "telegram_id": "test_100160",
+    "full_name": "Test Student 161",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 213,
+  "fields": {
+    "telegram_id": "test_100161",
+    "full_name": "Test Student 162",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 214,
+  "fields": {
+    "telegram_id": "test_100162",
+    "full_name": "Test Student 163",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 215,
+  "fields": {
+    "telegram_id": "test_100163",
+    "full_name": "Test Student 164",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 216,
+  "fields": {
+    "telegram_id": "test_100164",
+    "full_name": "Test Student 165",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 217,
+  "fields": {
+    "telegram_id": "test_100165",
+    "full_name": "Test Student 166",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 218,
+  "fields": {
+    "telegram_id": "test_100166",
+    "full_name": "Test Student 167",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 219,
+  "fields": {
+    "telegram_id": "test_100167",
+    "full_name": "Test Student 168",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 220,
+  "fields": {
+    "telegram_id": "test_100168",
+    "full_name": "Test Student 169",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 221,
+  "fields": {
+    "telegram_id": "test_100169",
+    "full_name": "Test Student 170",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 222,
+  "fields": {
+    "telegram_id": "test_100170",
+    "full_name": "Test Student 171",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 223,
+  "fields": {
+    "telegram_id": "test_100171",
+    "full_name": "Test Student 172",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 224,
+  "fields": {
+    "telegram_id": "test_100172",
+    "full_name": "Test Student 173",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 225,
+  "fields": {
+    "telegram_id": "test_100173",
+    "full_name": "Test Student 174",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 226,
+  "fields": {
+    "telegram_id": "test_100174",
+    "full_name": "Test Student 175",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 227,
+  "fields": {
+    "telegram_id": "test_100175",
+    "full_name": "Test Student 176",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 228,
+  "fields": {
+    "telegram_id": "test_100176",
+    "full_name": "Test Student 177",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 229,
+  "fields": {
+    "telegram_id": "test_100177",
+    "full_name": "Test Student 178",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 230,
+  "fields": {
+    "telegram_id": "test_100178",
+    "full_name": "Test Student 179",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 231,
+  "fields": {
+    "telegram_id": "test_100179",
+    "full_name": "Test Student 180",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 232,
+  "fields": {
+    "telegram_id": "test_100180",
+    "full_name": "Test Student 181",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 233,
+  "fields": {
+    "telegram_id": "test_100181",
+    "full_name": "Test Student 182",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 234,
+  "fields": {
+    "telegram_id": "test_100182",
+    "full_name": "Test Student 183",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 235,
+  "fields": {
+    "telegram_id": "test_100183",
+    "full_name": "Test Student 184",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 236,
+  "fields": {
+    "telegram_id": "test_100184",
+    "full_name": "Test Student 185",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 237,
+  "fields": {
+    "telegram_id": "test_100185",
+    "full_name": "Test Student 186",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 238,
+  "fields": {
+    "telegram_id": "test_100186",
+    "full_name": "Test Student 187",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 239,
+  "fields": {
+    "telegram_id": "test_100187",
+    "full_name": "Test Student 188",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 240,
+  "fields": {
+    "telegram_id": "test_100188",
+    "full_name": "Test Student 189",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 241,
+  "fields": {
+    "telegram_id": "test_100189",
+    "full_name": "Test Student 190",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 242,
+  "fields": {
+    "telegram_id": "test_100190",
+    "full_name": "Test Student 191",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 243,
+  "fields": {
+    "telegram_id": "test_100191",
+    "full_name": "Test Student 192",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 244,
+  "fields": {
+    "telegram_id": "test_100192",
+    "full_name": "Test Student 193",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 245,
+  "fields": {
+    "telegram_id": "test_100193",
+    "full_name": "Test Student 194",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 246,
+  "fields": {
+    "telegram_id": "test_100194",
+    "full_name": "Test Student 195",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 247,
+  "fields": {
+    "telegram_id": "test_100195",
+    "full_name": "Test Student 196",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 248,
+  "fields": {
+    "telegram_id": "test_100196",
+    "full_name": "Test Student 197",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 249,
+  "fields": {
+    "telegram_id": "test_100197",
+    "full_name": "Test Student 198",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 250,
+  "fields": {
+    "telegram_id": "test_100198",
+    "full_name": "Test Student 199",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 251,
+  "fields": {
+    "telegram_id": "test_100199",
+    "full_name": "Test Student 200",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 252,
+  "fields": {
+    "telegram_id": "test_100200",
+    "full_name": "Test Student 201",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 253,
+  "fields": {
+    "telegram_id": "test_100201",
+    "full_name": "Test Student 202",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 254,
+  "fields": {
+    "telegram_id": "test_100202",
+    "full_name": "Test Student 203",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 255,
+  "fields": {
+    "telegram_id": "test_100203",
+    "full_name": "Test Student 204",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 256,
+  "fields": {
+    "telegram_id": "test_100204",
+    "full_name": "Test Student 205",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 257,
+  "fields": {
+    "telegram_id": "test_100205",
+    "full_name": "Test Student 206",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 258,
+  "fields": {
+    "telegram_id": "test_100206",
+    "full_name": "Test Student 207",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 259,
+  "fields": {
+    "telegram_id": "test_100207",
+    "full_name": "Test Student 208",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 260,
+  "fields": {
+    "telegram_id": "test_100208",
+    "full_name": "Test Student 209",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 261,
+  "fields": {
+    "telegram_id": "test_100209",
+    "full_name": "Test Student 210",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 262,
+  "fields": {
+    "telegram_id": "test_100210",
+    "full_name": "Test Student 211",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 263,
+  "fields": {
+    "telegram_id": "test_100211",
+    "full_name": "Test Student 212",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 264,
+  "fields": {
+    "telegram_id": "test_100212",
+    "full_name": "Test Student 213",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 265,
+  "fields": {
+    "telegram_id": "test_100213",
+    "full_name": "Test Student 214",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 266,
+  "fields": {
+    "telegram_id": "test_100214",
+    "full_name": "Test Student 215",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 267,
+  "fields": {
+    "telegram_id": "test_100215",
+    "full_name": "Test Student 216",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 268,
+  "fields": {
+    "telegram_id": "test_100216",
+    "full_name": "Test Student 217",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 269,
+  "fields": {
+    "telegram_id": "test_100217",
+    "full_name": "Test Student 218",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 270,
+  "fields": {
+    "telegram_id": "test_100218",
+    "full_name": "Test Student 219",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 271,
+  "fields": {
+    "telegram_id": "test_100219",
+    "full_name": "Test Student 220",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 272,
+  "fields": {
+    "telegram_id": "test_100220",
+    "full_name": "Test Student 221",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 273,
+  "fields": {
+    "telegram_id": "test_100221",
+    "full_name": "Test Student 222",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 274,
+  "fields": {
+    "telegram_id": "test_100222",
+    "full_name": "Test Student 223",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 275,
+  "fields": {
+    "telegram_id": "test_100223",
+    "full_name": "Test Student 224",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 276,
+  "fields": {
+    "telegram_id": "test_100224",
+    "full_name": "Test Student 225",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 277,
+  "fields": {
+    "telegram_id": "test_100225",
+    "full_name": "Test Student 226",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 278,
+  "fields": {
+    "telegram_id": "test_100226",
+    "full_name": "Test Student 227",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 279,
+  "fields": {
+    "telegram_id": "test_100227",
+    "full_name": "Test Student 228",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 280,
+  "fields": {
+    "telegram_id": "test_100228",
+    "full_name": "Test Student 229",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 281,
+  "fields": {
+    "telegram_id": "test_100229",
+    "full_name": "Test Student 230",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 282,
+  "fields": {
+    "telegram_id": "test_100230",
+    "full_name": "Test Student 231",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 283,
+  "fields": {
+    "telegram_id": "test_100231",
+    "full_name": "Test Student 232",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 284,
+  "fields": {
+    "telegram_id": "test_100232",
+    "full_name": "Test Student 233",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 285,
+  "fields": {
+    "telegram_id": "test_100233",
+    "full_name": "Test Student 234",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 286,
+  "fields": {
+    "telegram_id": "test_100234",
+    "full_name": "Test Student 235",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 287,
+  "fields": {
+    "telegram_id": "test_100235",
+    "full_name": "Test Student 236",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 288,
+  "fields": {
+    "telegram_id": "test_100236",
+    "full_name": "Test Student 237",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 289,
+  "fields": {
+    "telegram_id": "test_100237",
+    "full_name": "Test Student 238",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 290,
+  "fields": {
+    "telegram_id": "test_100238",
+    "full_name": "Test Student 239",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 291,
+  "fields": {
+    "telegram_id": "test_100239",
+    "full_name": "Test Student 240",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 292,
+  "fields": {
+    "telegram_id": "test_100240",
+    "full_name": "Test Student 241",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 293,
+  "fields": {
+    "telegram_id": "test_100241",
+    "full_name": "Test Student 242",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 294,
+  "fields": {
+    "telegram_id": "test_100242",
+    "full_name": "Test Student 243",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 295,
+  "fields": {
+    "telegram_id": "test_100243",
+    "full_name": "Test Student 244",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 296,
+  "fields": {
+    "telegram_id": "test_100244",
+    "full_name": "Test Student 245",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 297,
+  "fields": {
+    "telegram_id": "test_100245",
+    "full_name": "Test Student 246",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 298,
+  "fields": {
+    "telegram_id": "test_100246",
+    "full_name": "Test Student 247",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 299,
+  "fields": {
+    "telegram_id": "test_100247",
+    "full_name": "Test Student 248",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 300,
+  "fields": {
+    "telegram_id": "test_100248",
+    "full_name": "Test Student 249",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 301,
+  "fields": {
+    "telegram_id": "test_100249",
+    "full_name": "Test Student 250",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 302,
+  "fields": {
+    "telegram_id": "test_100250",
+    "full_name": "Test Student 251",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 303,
+  "fields": {
+    "telegram_id": "test_100251",
+    "full_name": "Test Student 252",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 304,
+  "fields": {
+    "telegram_id": "test_100252",
+    "full_name": "Test Student 253",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 305,
+  "fields": {
+    "telegram_id": "test_100253",
+    "full_name": "Test Student 254",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 306,
+  "fields": {
+    "telegram_id": "test_100254",
+    "full_name": "Test Student 255",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 307,
+  "fields": {
+    "telegram_id": "test_100255",
+    "full_name": "Test Student 256",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 308,
+  "fields": {
+    "telegram_id": "test_100256",
+    "full_name": "Test Student 257",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 309,
+  "fields": {
+    "telegram_id": "test_100257",
+    "full_name": "Test Student 258",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 310,
+  "fields": {
+    "telegram_id": "test_100258",
+    "full_name": "Test Student 259",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 311,
+  "fields": {
+    "telegram_id": "test_100259",
+    "full_name": "Test Student 260",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 312,
+  "fields": {
+    "telegram_id": "test_100260",
+    "full_name": "Test Student 261",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 313,
+  "fields": {
+    "telegram_id": "test_100261",
+    "full_name": "Test Student 262",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 314,
+  "fields": {
+    "telegram_id": "test_100262",
+    "full_name": "Test Student 263",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 315,
+  "fields": {
+    "telegram_id": "test_100263",
+    "full_name": "Test Student 264",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 316,
+  "fields": {
+    "telegram_id": "test_100264",
+    "full_name": "Test Student 265",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 317,
+  "fields": {
+    "telegram_id": "test_100265",
+    "full_name": "Test Student 266",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 318,
+  "fields": {
+    "telegram_id": "test_100266",
+    "full_name": "Test Student 267",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 319,
+  "fields": {
+    "telegram_id": "test_100267",
+    "full_name": "Test Student 268",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 320,
+  "fields": {
+    "telegram_id": "test_100268",
+    "full_name": "Test Student 269",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 321,
+  "fields": {
+    "telegram_id": "test_100269",
+    "full_name": "Test Student 270",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 322,
+  "fields": {
+    "telegram_id": "test_100270",
+    "full_name": "Test Student 271",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 323,
+  "fields": {
+    "telegram_id": "test_100271",
+    "full_name": "Test Student 272",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 324,
+  "fields": {
+    "telegram_id": "test_100272",
+    "full_name": "Test Student 273",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 325,
+  "fields": {
+    "telegram_id": "test_100273",
+    "full_name": "Test Student 274",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 326,
+  "fields": {
+    "telegram_id": "test_100274",
+    "full_name": "Test Student 275",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 327,
+  "fields": {
+    "telegram_id": "test_100275",
+    "full_name": "Test Student 276",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 328,
+  "fields": {
+    "telegram_id": "test_100276",
+    "full_name": "Test Student 277",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 329,
+  "fields": {
+    "telegram_id": "test_100277",
+    "full_name": "Test Student 278",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 330,
+  "fields": {
+    "telegram_id": "test_100278",
+    "full_name": "Test Student 279",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 331,
+  "fields": {
+    "telegram_id": "test_100279",
+    "full_name": "Test Student 280",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 332,
+  "fields": {
+    "telegram_id": "test_100280",
+    "full_name": "Test Student 281",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 333,
+  "fields": {
+    "telegram_id": "test_100281",
+    "full_name": "Test Student 282",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 334,
+  "fields": {
+    "telegram_id": "test_100282",
+    "full_name": "Test Student 283",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 335,
+  "fields": {
+    "telegram_id": "test_100283",
+    "full_name": "Test Student 284",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 336,
+  "fields": {
+    "telegram_id": "test_100284",
+    "full_name": "Test Student 285",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 337,
+  "fields": {
+    "telegram_id": "test_100285",
+    "full_name": "Test Student 286",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 338,
+  "fields": {
+    "telegram_id": "test_100286",
+    "full_name": "Test Student 287",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 339,
+  "fields": {
+    "telegram_id": "test_100287",
+    "full_name": "Test Student 288",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 340,
+  "fields": {
+    "telegram_id": "test_100288",
+    "full_name": "Test Student 289",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 341,
+  "fields": {
+    "telegram_id": "test_100289",
+    "full_name": "Test Student 290",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 342,
+  "fields": {
+    "telegram_id": "test_100290",
+    "full_name": "Test Student 291",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 343,
+  "fields": {
+    "telegram_id": "test_100291",
+    "full_name": "Test Student 292",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 344,
+  "fields": {
+    "telegram_id": "test_100292",
+    "full_name": "Test Student 293",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 345,
+  "fields": {
+    "telegram_id": "test_100293",
+    "full_name": "Test Student 294",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 346,
+  "fields": {
+    "telegram_id": "test_100294",
+    "full_name": "Test Student 295",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 347,
+  "fields": {
+    "telegram_id": "test_100295",
+    "full_name": "Test Student 296",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 348,
+  "fields": {
+    "telegram_id": "test_100296",
+    "full_name": "Test Student 297",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 349,
+  "fields": {
+    "telegram_id": "test_100297",
+    "full_name": "Test Student 298",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 350,
+  "fields": {
+    "telegram_id": "test_100298",
+    "full_name": "Test Student 299",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 351,
+  "fields": {
+    "telegram_id": "test_100299",
+    "full_name": "Test Student 300",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 352,
+  "fields": {
+    "telegram_id": "test_100300",
+    "full_name": "Test Student 301",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 353,
+  "fields": {
+    "telegram_id": "test_100301",
+    "full_name": "Test Student 302",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 354,
+  "fields": {
+    "telegram_id": "test_100302",
+    "full_name": "Test Student 303",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 355,
+  "fields": {
+    "telegram_id": "test_100303",
+    "full_name": "Test Student 304",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 356,
+  "fields": {
+    "telegram_id": "test_100304",
+    "full_name": "Test Student 305",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 357,
+  "fields": {
+    "telegram_id": "test_100305",
+    "full_name": "Test Student 306",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 358,
+  "fields": {
+    "telegram_id": "test_100306",
+    "full_name": "Test Student 307",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 359,
+  "fields": {
+    "telegram_id": "test_100307",
+    "full_name": "Test Student 308",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 360,
+  "fields": {
+    "telegram_id": "test_100308",
+    "full_name": "Test Student 309",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 361,
+  "fields": {
+    "telegram_id": "test_100309",
+    "full_name": "Test Student 310",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 362,
+  "fields": {
+    "telegram_id": "test_100310",
+    "full_name": "Test Student 311",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 363,
+  "fields": {
+    "telegram_id": "test_100311",
+    "full_name": "Test Student 312",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 364,
+  "fields": {
+    "telegram_id": "test_100312",
+    "full_name": "Test Student 313",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 365,
+  "fields": {
+    "telegram_id": "test_100313",
+    "full_name": "Test Student 314",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 366,
+  "fields": {
+    "telegram_id": "test_100314",
+    "full_name": "Test Student 315",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 367,
+  "fields": {
+    "telegram_id": "test_100315",
+    "full_name": "Test Student 316",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 368,
+  "fields": {
+    "telegram_id": "test_100316",
+    "full_name": "Test Student 317",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 369,
+  "fields": {
+    "telegram_id": "test_100317",
+    "full_name": "Test Student 318",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 370,
+  "fields": {
+    "telegram_id": "test_100318",
+    "full_name": "Test Student 319",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 371,
+  "fields": {
+    "telegram_id": "test_100319",
+    "full_name": "Test Student 320",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 372,
+  "fields": {
+    "telegram_id": "test_100320",
+    "full_name": "Test Student 321",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 373,
+  "fields": {
+    "telegram_id": "test_100321",
+    "full_name": "Test Student 322",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 374,
+  "fields": {
+    "telegram_id": "test_100322",
+    "full_name": "Test Student 323",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 375,
+  "fields": {
+    "telegram_id": "test_100323",
+    "full_name": "Test Student 324",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 376,
+  "fields": {
+    "telegram_id": "test_100324",
+    "full_name": "Test Student 325",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 377,
+  "fields": {
+    "telegram_id": "test_100325",
+    "full_name": "Test Student 326",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 378,
+  "fields": {
+    "telegram_id": "test_100326",
+    "full_name": "Test Student 327",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 379,
+  "fields": {
+    "telegram_id": "test_100327",
+    "full_name": "Test Student 328",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 380,
+  "fields": {
+    "telegram_id": "test_100328",
+    "full_name": "Test Student 329",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 381,
+  "fields": {
+    "telegram_id": "test_100329",
+    "full_name": "Test Student 330",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 382,
+  "fields": {
+    "telegram_id": "test_100330",
+    "full_name": "Test Student 331",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 383,
+  "fields": {
+    "telegram_id": "test_100331",
+    "full_name": "Test Student 332",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 384,
+  "fields": {
+    "telegram_id": "test_100332",
+    "full_name": "Test Student 333",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 385,
+  "fields": {
+    "telegram_id": "test_100333",
+    "full_name": "Test Student 334",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 386,
+  "fields": {
+    "telegram_id": "test_100334",
+    "full_name": "Test Student 335",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 387,
+  "fields": {
+    "telegram_id": "test_100335",
+    "full_name": "Test Student 336",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 388,
+  "fields": {
+    "telegram_id": "test_100336",
+    "full_name": "Test Student 337",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 389,
+  "fields": {
+    "telegram_id": "test_100337",
+    "full_name": "Test Student 338",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 390,
+  "fields": {
+    "telegram_id": "test_100338",
+    "full_name": "Test Student 339",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 391,
+  "fields": {
+    "telegram_id": "test_100339",
+    "full_name": "Test Student 340",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 392,
+  "fields": {
+    "telegram_id": "test_100340",
+    "full_name": "Test Student 341",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 393,
+  "fields": {
+    "telegram_id": "test_100341",
+    "full_name": "Test Student 342",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 394,
+  "fields": {
+    "telegram_id": "test_100342",
+    "full_name": "Test Student 343",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 395,
+  "fields": {
+    "telegram_id": "test_100343",
+    "full_name": "Test Student 344",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 396,
+  "fields": {
+    "telegram_id": "test_100344",
+    "full_name": "Test Student 345",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 397,
+  "fields": {
+    "telegram_id": "test_100345",
+    "full_name": "Test Student 346",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 398,
+  "fields": {
+    "telegram_id": "test_100346",
+    "full_name": "Test Student 347",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 399,
+  "fields": {
+    "telegram_id": "test_100347",
+    "full_name": "Test Student 348",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 400,
+  "fields": {
+    "telegram_id": "test_100348",
+    "full_name": "Test Student 349",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 401,
+  "fields": {
+    "telegram_id": "test_100349",
+    "full_name": "Test Student 350",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 402,
+  "fields": {
+    "telegram_id": "test_100350",
+    "full_name": "Test Student 351",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 403,
+  "fields": {
+    "telegram_id": "test_100351",
+    "full_name": "Test Student 352",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 404,
+  "fields": {
+    "telegram_id": "test_100352",
+    "full_name": "Test Student 353",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 405,
+  "fields": {
+    "telegram_id": "test_100353",
+    "full_name": "Test Student 354",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 406,
+  "fields": {
+    "telegram_id": "test_100354",
+    "full_name": "Test Student 355",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 407,
+  "fields": {
+    "telegram_id": "test_100355",
+    "full_name": "Test Student 356",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 408,
+  "fields": {
+    "telegram_id": "test_100356",
+    "full_name": "Test Student 357",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 409,
+  "fields": {
+    "telegram_id": "test_100357",
+    "full_name": "Test Student 358",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 410,
+  "fields": {
+    "telegram_id": "test_100358",
+    "full_name": "Test Student 359",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 411,
+  "fields": {
+    "telegram_id": "test_100359",
+    "full_name": "Test Student 360",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 412,
+  "fields": {
+    "telegram_id": "test_100360",
+    "full_name": "Test Student 361",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 413,
+  "fields": {
+    "telegram_id": "test_100361",
+    "full_name": "Test Student 362",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 414,
+  "fields": {
+    "telegram_id": "test_100362",
+    "full_name": "Test Student 363",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 415,
+  "fields": {
+    "telegram_id": "test_100363",
+    "full_name": "Test Student 364",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 416,
+  "fields": {
+    "telegram_id": "test_100364",
+    "full_name": "Test Student 365",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 417,
+  "fields": {
+    "telegram_id": "test_100365",
+    "full_name": "Test Student 366",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 418,
+  "fields": {
+    "telegram_id": "test_100366",
+    "full_name": "Test Student 367",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 419,
+  "fields": {
+    "telegram_id": "test_100367",
+    "full_name": "Test Student 368",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 420,
+  "fields": {
+    "telegram_id": "test_100368",
+    "full_name": "Test Student 369",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 421,
+  "fields": {
+    "telegram_id": "test_100369",
+    "full_name": "Test Student 370",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 422,
+  "fields": {
+    "telegram_id": "test_100370",
+    "full_name": "Test Student 371",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 423,
+  "fields": {
+    "telegram_id": "test_100371",
+    "full_name": "Test Student 372",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 424,
+  "fields": {
+    "telegram_id": "test_100372",
+    "full_name": "Test Student 373",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 425,
+  "fields": {
+    "telegram_id": "test_100373",
+    "full_name": "Test Student 374",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 426,
+  "fields": {
+    "telegram_id": "test_100374",
+    "full_name": "Test Student 375",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 427,
+  "fields": {
+    "telegram_id": "test_100375",
+    "full_name": "Test Student 376",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 428,
+  "fields": {
+    "telegram_id": "test_100376",
+    "full_name": "Test Student 377",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 429,
+  "fields": {
+    "telegram_id": "test_100377",
+    "full_name": "Test Student 378",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 430,
+  "fields": {
+    "telegram_id": "test_100378",
+    "full_name": "Test Student 379",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 431,
+  "fields": {
+    "telegram_id": "test_100379",
+    "full_name": "Test Student 380",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 432,
+  "fields": {
+    "telegram_id": "test_100380",
+    "full_name": "Test Student 381",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 433,
+  "fields": {
+    "telegram_id": "test_100381",
+    "full_name": "Test Student 382",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 434,
+  "fields": {
+    "telegram_id": "test_100382",
+    "full_name": "Test Student 383",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 435,
+  "fields": {
+    "telegram_id": "test_100383",
+    "full_name": "Test Student 384",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 436,
+  "fields": {
+    "telegram_id": "test_100384",
+    "full_name": "Test Student 385",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 437,
+  "fields": {
+    "telegram_id": "test_100385",
+    "full_name": "Test Student 386",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 438,
+  "fields": {
+    "telegram_id": "test_100386",
+    "full_name": "Test Student 387",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 439,
+  "fields": {
+    "telegram_id": "test_100387",
+    "full_name": "Test Student 388",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 440,
+  "fields": {
+    "telegram_id": "test_100388",
+    "full_name": "Test Student 389",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 441,
+  "fields": {
+    "telegram_id": "test_100389",
+    "full_name": "Test Student 390",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 442,
+  "fields": {
+    "telegram_id": "test_100390",
+    "full_name": "Test Student 391",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 443,
+  "fields": {
+    "telegram_id": "test_100391",
+    "full_name": "Test Student 392",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 444,
+  "fields": {
+    "telegram_id": "test_100392",
+    "full_name": "Test Student 393",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 445,
+  "fields": {
+    "telegram_id": "test_100393",
+    "full_name": "Test Student 394",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 446,
+  "fields": {
+    "telegram_id": "test_100394",
+    "full_name": "Test Student 395",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 447,
+  "fields": {
+    "telegram_id": "test_100395",
+    "full_name": "Test Student 396",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 448,
+  "fields": {
+    "telegram_id": "test_100396",
+    "full_name": "Test Student 397",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 449,
+  "fields": {
+    "telegram_id": "test_100397",
+    "full_name": "Test Student 398",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 450,
+  "fields": {
+    "telegram_id": "test_100398",
+    "full_name": "Test Student 399",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 451,
+  "fields": {
+    "telegram_id": "test_100399",
+    "full_name": "Test Student 400",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 452,
+  "fields": {
+    "telegram_id": "test_100400",
+    "full_name": "Test Student 401",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 453,
+  "fields": {
+    "telegram_id": "test_100401",
+    "full_name": "Test Student 402",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 454,
+  "fields": {
+    "telegram_id": "test_100402",
+    "full_name": "Test Student 403",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 455,
+  "fields": {
+    "telegram_id": "test_100403",
+    "full_name": "Test Student 404",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 456,
+  "fields": {
+    "telegram_id": "test_100404",
+    "full_name": "Test Student 405",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 457,
+  "fields": {
+    "telegram_id": "test_100405",
+    "full_name": "Test Student 406",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 458,
+  "fields": {
+    "telegram_id": "test_100406",
+    "full_name": "Test Student 407",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 459,
+  "fields": {
+    "telegram_id": "test_100407",
+    "full_name": "Test Student 408",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 460,
+  "fields": {
+    "telegram_id": "test_100408",
+    "full_name": "Test Student 409",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 461,
+  "fields": {
+    "telegram_id": "test_100409",
+    "full_name": "Test Student 410",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 462,
+  "fields": {
+    "telegram_id": "test_100410",
+    "full_name": "Test Student 411",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 463,
+  "fields": {
+    "telegram_id": "test_100411",
+    "full_name": "Test Student 412",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 464,
+  "fields": {
+    "telegram_id": "test_100412",
+    "full_name": "Test Student 413",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 465,
+  "fields": {
+    "telegram_id": "test_100413",
+    "full_name": "Test Student 414",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 466,
+  "fields": {
+    "telegram_id": "test_100414",
+    "full_name": "Test Student 415",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 467,
+  "fields": {
+    "telegram_id": "test_100415",
+    "full_name": "Test Student 416",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 468,
+  "fields": {
+    "telegram_id": "test_100416",
+    "full_name": "Test Student 417",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 469,
+  "fields": {
+    "telegram_id": "test_100417",
+    "full_name": "Test Student 418",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 470,
+  "fields": {
+    "telegram_id": "test_100418",
+    "full_name": "Test Student 419",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 471,
+  "fields": {
+    "telegram_id": "test_100419",
+    "full_name": "Test Student 420",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 472,
+  "fields": {
+    "telegram_id": "test_100420",
+    "full_name": "Test Student 421",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 473,
+  "fields": {
+    "telegram_id": "test_100421",
+    "full_name": "Test Student 422",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 474,
+  "fields": {
+    "telegram_id": "test_100422",
+    "full_name": "Test Student 423",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 475,
+  "fields": {
+    "telegram_id": "test_100423",
+    "full_name": "Test Student 424",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 476,
+  "fields": {
+    "telegram_id": "test_100424",
+    "full_name": "Test Student 425",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 477,
+  "fields": {
+    "telegram_id": "test_100425",
+    "full_name": "Test Student 426",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 478,
+  "fields": {
+    "telegram_id": "test_100426",
+    "full_name": "Test Student 427",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 479,
+  "fields": {
+    "telegram_id": "test_100427",
+    "full_name": "Test Student 428",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 480,
+  "fields": {
+    "telegram_id": "test_100428",
+    "full_name": "Test Student 429",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 481,
+  "fields": {
+    "telegram_id": "test_100429",
+    "full_name": "Test Student 430",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 482,
+  "fields": {
+    "telegram_id": "test_100430",
+    "full_name": "Test Student 431",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 483,
+  "fields": {
+    "telegram_id": "test_100431",
+    "full_name": "Test Student 432",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 484,
+  "fields": {
+    "telegram_id": "test_100432",
+    "full_name": "Test Student 433",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 485,
+  "fields": {
+    "telegram_id": "test_100433",
+    "full_name": "Test Student 434",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 486,
+  "fields": {
+    "telegram_id": "test_100434",
+    "full_name": "Test Student 435",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 487,
+  "fields": {
+    "telegram_id": "test_100435",
+    "full_name": "Test Student 436",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 488,
+  "fields": {
+    "telegram_id": "test_100436",
+    "full_name": "Test Student 437",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 489,
+  "fields": {
+    "telegram_id": "test_100437",
+    "full_name": "Test Student 438",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 490,
+  "fields": {
+    "telegram_id": "test_100438",
+    "full_name": "Test Student 439",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 491,
+  "fields": {
+    "telegram_id": "test_100439",
+    "full_name": "Test Student 440",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 492,
+  "fields": {
+    "telegram_id": "test_100440",
+    "full_name": "Test Student 441",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 493,
+  "fields": {
+    "telegram_id": "test_100441",
+    "full_name": "Test Student 442",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 494,
+  "fields": {
+    "telegram_id": "test_100442",
+    "full_name": "Test Student 443",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 495,
+  "fields": {
+    "telegram_id": "test_100443",
+    "full_name": "Test Student 444",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 496,
+  "fields": {
+    "telegram_id": "test_100444",
+    "full_name": "Test Student 445",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 497,
+  "fields": {
+    "telegram_id": "test_100445",
+    "full_name": "Test Student 446",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 498,
+  "fields": {
+    "telegram_id": "test_100446",
+    "full_name": "Test Student 447",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 499,
+  "fields": {
+    "telegram_id": "test_100447",
+    "full_name": "Test Student 448",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 500,
+  "fields": {
+    "telegram_id": "test_100448",
+    "full_name": "Test Student 449",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 501,
+  "fields": {
+    "telegram_id": "test_100449",
+    "full_name": "Test Student 450",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 502,
+  "fields": {
+    "telegram_id": "test_100450",
+    "full_name": "Test Student 451",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 503,
+  "fields": {
+    "telegram_id": "test_100451",
+    "full_name": "Test Student 452",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 504,
+  "fields": {
+    "telegram_id": "test_100452",
+    "full_name": "Test Student 453",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 505,
+  "fields": {
+    "telegram_id": "test_100453",
+    "full_name": "Test Student 454",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 506,
+  "fields": {
+    "telegram_id": "test_100454",
+    "full_name": "Test Student 455",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 507,
+  "fields": {
+    "telegram_id": "test_100455",
+    "full_name": "Test Student 456",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 508,
+  "fields": {
+    "telegram_id": "test_100456",
+    "full_name": "Test Student 457",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 509,
+  "fields": {
+    "telegram_id": "test_100457",
+    "full_name": "Test Student 458",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 510,
+  "fields": {
+    "telegram_id": "test_100458",
+    "full_name": "Test Student 459",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 511,
+  "fields": {
+    "telegram_id": "test_100459",
+    "full_name": "Test Student 460",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 512,
+  "fields": {
+    "telegram_id": "test_100460",
+    "full_name": "Test Student 461",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 513,
+  "fields": {
+    "telegram_id": "test_100461",
+    "full_name": "Test Student 462",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 514,
+  "fields": {
+    "telegram_id": "test_100462",
+    "full_name": "Test Student 463",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 515,
+  "fields": {
+    "telegram_id": "test_100463",
+    "full_name": "Test Student 464",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 516,
+  "fields": {
+    "telegram_id": "test_100464",
+    "full_name": "Test Student 465",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 517,
+  "fields": {
+    "telegram_id": "test_100465",
+    "full_name": "Test Student 466",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 518,
+  "fields": {
+    "telegram_id": "test_100466",
+    "full_name": "Test Student 467",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 519,
+  "fields": {
+    "telegram_id": "test_100467",
+    "full_name": "Test Student 468",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 520,
+  "fields": {
+    "telegram_id": "test_100468",
+    "full_name": "Test Student 469",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 521,
+  "fields": {
+    "telegram_id": "test_100469",
+    "full_name": "Test Student 470",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 522,
+  "fields": {
+    "telegram_id": "test_100470",
+    "full_name": "Test Student 471",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 523,
+  "fields": {
+    "telegram_id": "test_100471",
+    "full_name": "Test Student 472",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 524,
+  "fields": {
+    "telegram_id": "test_100472",
+    "full_name": "Test Student 473",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 525,
+  "fields": {
+    "telegram_id": "test_100473",
+    "full_name": "Test Student 474",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 526,
+  "fields": {
+    "telegram_id": "test_100474",
+    "full_name": "Test Student 475",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 527,
+  "fields": {
+    "telegram_id": "test_100475",
+    "full_name": "Test Student 476",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 528,
+  "fields": {
+    "telegram_id": "test_100476",
+    "full_name": "Test Student 477",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 529,
+  "fields": {
+    "telegram_id": "test_100477",
+    "full_name": "Test Student 478",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 530,
+  "fields": {
+    "telegram_id": "test_100478",
+    "full_name": "Test Student 479",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 531,
+  "fields": {
+    "telegram_id": "test_100479",
+    "full_name": "Test Student 480",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 532,
+  "fields": {
+    "telegram_id": "test_100480",
+    "full_name": "Test Student 481",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 533,
+  "fields": {
+    "telegram_id": "test_100481",
+    "full_name": "Test Student 482",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 534,
+  "fields": {
+    "telegram_id": "test_100482",
+    "full_name": "Test Student 483",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 535,
+  "fields": {
+    "telegram_id": "test_100483",
+    "full_name": "Test Student 484",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 536,
+  "fields": {
+    "telegram_id": "test_100484",
+    "full_name": "Test Student 485",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 537,
+  "fields": {
+    "telegram_id": "test_100485",
+    "full_name": "Test Student 486",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 538,
+  "fields": {
+    "telegram_id": "test_100486",
+    "full_name": "Test Student 487",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 539,
+  "fields": {
+    "telegram_id": "test_100487",
+    "full_name": "Test Student 488",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 540,
+  "fields": {
+    "telegram_id": "test_100488",
+    "full_name": "Test Student 489",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 541,
+  "fields": {
+    "telegram_id": "test_100489",
+    "full_name": "Test Student 490",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 542,
+  "fields": {
+    "telegram_id": "test_100490",
+    "full_name": "Test Student 491",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 543,
+  "fields": {
+    "telegram_id": "test_100491",
+    "full_name": "Test Student 492",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 544,
+  "fields": {
+    "telegram_id": "test_100492",
+    "full_name": "Test Student 493",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 545,
+  "fields": {
+    "telegram_id": "test_100493",
+    "full_name": "Test Student 494",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 546,
+  "fields": {
+    "telegram_id": "test_100494",
+    "full_name": "Test Student 495",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 547,
+  "fields": {
+    "telegram_id": "test_100495",
+    "full_name": "Test Student 496",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 548,
+  "fields": {
+    "telegram_id": "test_100496",
+    "full_name": "Test Student 497",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 549,
+  "fields": {
+    "telegram_id": "test_100497",
+    "full_name": "Test Student 498",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 550,
+  "fields": {
+    "telegram_id": "test_100498",
+    "full_name": "Test Student 499",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 551,
+  "fields": {
+    "telegram_id": "test_100499",
+    "full_name": "Test Student 500",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 552,
+  "fields": {
+    "telegram_id": "test_100500",
+    "full_name": "Test Student 501",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 553,
+  "fields": {
+    "telegram_id": "test_100501",
+    "full_name": "Test Student 502",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 554,
+  "fields": {
+    "telegram_id": "test_100502",
+    "full_name": "Test Student 503",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 555,
+  "fields": {
+    "telegram_id": "test_100503",
+    "full_name": "Test Student 504",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 556,
+  "fields": {
+    "telegram_id": "test_100504",
+    "full_name": "Test Student 505",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 557,
+  "fields": {
+    "telegram_id": "test_100505",
+    "full_name": "Test Student 506",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 558,
+  "fields": {
+    "telegram_id": "test_100506",
+    "full_name": "Test Student 507",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 559,
+  "fields": {
+    "telegram_id": "test_100507",
+    "full_name": "Test Student 508",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 560,
+  "fields": {
+    "telegram_id": "test_100508",
+    "full_name": "Test Student 509",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 561,
+  "fields": {
+    "telegram_id": "test_100509",
+    "full_name": "Test Student 510",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 562,
+  "fields": {
+    "telegram_id": "test_100510",
+    "full_name": "Test Student 511",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 563,
+  "fields": {
+    "telegram_id": "test_100511",
+    "full_name": "Test Student 512",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 564,
+  "fields": {
+    "telegram_id": "test_100512",
+    "full_name": "Test Student 513",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 565,
+  "fields": {
+    "telegram_id": "test_100513",
+    "full_name": "Test Student 514",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 566,
+  "fields": {
+    "telegram_id": "test_100514",
+    "full_name": "Test Student 515",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 567,
+  "fields": {
+    "telegram_id": "test_100515",
+    "full_name": "Test Student 516",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 568,
+  "fields": {
+    "telegram_id": "test_100516",
+    "full_name": "Test Student 517",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 569,
+  "fields": {
+    "telegram_id": "test_100517",
+    "full_name": "Test Student 518",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 570,
+  "fields": {
+    "telegram_id": "test_100518",
+    "full_name": "Test Student 519",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 571,
+  "fields": {
+    "telegram_id": "test_100519",
+    "full_name": "Test Student 520",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 572,
+  "fields": {
+    "telegram_id": "test_100520",
+    "full_name": "Test Student 521",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 573,
+  "fields": {
+    "telegram_id": "test_100521",
+    "full_name": "Test Student 522",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 574,
+  "fields": {
+    "telegram_id": "test_100522",
+    "full_name": "Test Student 523",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 575,
+  "fields": {
+    "telegram_id": "test_100523",
+    "full_name": "Test Student 524",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 576,
+  "fields": {
+    "telegram_id": "test_100524",
+    "full_name": "Test Student 525",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 577,
+  "fields": {
+    "telegram_id": "test_100525",
+    "full_name": "Test Student 526",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 578,
+  "fields": {
+    "telegram_id": "test_100526",
+    "full_name": "Test Student 527",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 579,
+  "fields": {
+    "telegram_id": "test_100527",
+    "full_name": "Test Student 528",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 580,
+  "fields": {
+    "telegram_id": "test_100528",
+    "full_name": "Test Student 529",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 581,
+  "fields": {
+    "telegram_id": "test_100529",
+    "full_name": "Test Student 530",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 582,
+  "fields": {
+    "telegram_id": "test_100530",
+    "full_name": "Test Student 531",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 583,
+  "fields": {
+    "telegram_id": "test_100531",
+    "full_name": "Test Student 532",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 584,
+  "fields": {
+    "telegram_id": "test_100532",
+    "full_name": "Test Student 533",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 585,
+  "fields": {
+    "telegram_id": "test_100533",
+    "full_name": "Test Student 534",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 586,
+  "fields": {
+    "telegram_id": "test_100534",
+    "full_name": "Test Student 535",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 587,
+  "fields": {
+    "telegram_id": "test_100535",
+    "full_name": "Test Student 536",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 588,
+  "fields": {
+    "telegram_id": "test_100536",
+    "full_name": "Test Student 537",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 589,
+  "fields": {
+    "telegram_id": "test_100537",
+    "full_name": "Test Student 538",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 590,
+  "fields": {
+    "telegram_id": "test_100538",
+    "full_name": "Test Student 539",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 591,
+  "fields": {
+    "telegram_id": "test_100539",
+    "full_name": "Test Student 540",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 592,
+  "fields": {
+    "telegram_id": "test_100540",
+    "full_name": "Test Student 541",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 593,
+  "fields": {
+    "telegram_id": "test_100541",
+    "full_name": "Test Student 542",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 594,
+  "fields": {
+    "telegram_id": "test_100542",
+    "full_name": "Test Student 543",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 595,
+  "fields": {
+    "telegram_id": "test_100543",
+    "full_name": "Test Student 544",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 596,
+  "fields": {
+    "telegram_id": "test_100544",
+    "full_name": "Test Student 545",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 597,
+  "fields": {
+    "telegram_id": "test_100545",
+    "full_name": "Test Student 546",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 598,
+  "fields": {
+    "telegram_id": "test_100546",
+    "full_name": "Test Student 547",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 599,
+  "fields": {
+    "telegram_id": "test_100547",
+    "full_name": "Test Student 548",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 600,
+  "fields": {
+    "telegram_id": "test_100548",
+    "full_name": "Test Student 549",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 601,
+  "fields": {
+    "telegram_id": "test_100549",
+    "full_name": "Test Student 550",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 602,
+  "fields": {
+    "telegram_id": "test_100550",
+    "full_name": "Test Student 551",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 603,
+  "fields": {
+    "telegram_id": "test_100551",
+    "full_name": "Test Student 552",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 604,
+  "fields": {
+    "telegram_id": "test_100552",
+    "full_name": "Test Student 553",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 605,
+  "fields": {
+    "telegram_id": "test_100553",
+    "full_name": "Test Student 554",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 606,
+  "fields": {
+    "telegram_id": "test_100554",
+    "full_name": "Test Student 555",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 607,
+  "fields": {
+    "telegram_id": "test_100555",
+    "full_name": "Test Student 556",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 608,
+  "fields": {
+    "telegram_id": "test_100556",
+    "full_name": "Test Student 557",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 609,
+  "fields": {
+    "telegram_id": "test_100557",
+    "full_name": "Test Student 558",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 610,
+  "fields": {
+    "telegram_id": "test_100558",
+    "full_name": "Test Student 559",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 611,
+  "fields": {
+    "telegram_id": "test_100559",
+    "full_name": "Test Student 560",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 612,
+  "fields": {
+    "telegram_id": "test_100560",
+    "full_name": "Test Student 561",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 613,
+  "fields": {
+    "telegram_id": "test_100561",
+    "full_name": "Test Student 562",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 614,
+  "fields": {
+    "telegram_id": "test_100562",
+    "full_name": "Test Student 563",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 615,
+  "fields": {
+    "telegram_id": "test_100563",
+    "full_name": "Test Student 564",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 616,
+  "fields": {
+    "telegram_id": "test_100564",
+    "full_name": "Test Student 565",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 617,
+  "fields": {
+    "telegram_id": "test_100565",
+    "full_name": "Test Student 566",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 618,
+  "fields": {
+    "telegram_id": "test_100566",
+    "full_name": "Test Student 567",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 619,
+  "fields": {
+    "telegram_id": "test_100567",
+    "full_name": "Test Student 568",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 620,
+  "fields": {
+    "telegram_id": "test_100568",
+    "full_name": "Test Student 569",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 621,
+  "fields": {
+    "telegram_id": "test_100569",
+    "full_name": "Test Student 570",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 622,
+  "fields": {
+    "telegram_id": "test_100570",
+    "full_name": "Test Student 571",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 623,
+  "fields": {
+    "telegram_id": "test_100571",
+    "full_name": "Test Student 572",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 624,
+  "fields": {
+    "telegram_id": "test_100572",
+    "full_name": "Test Student 573",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 625,
+  "fields": {
+    "telegram_id": "test_100573",
+    "full_name": "Test Student 574",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 626,
+  "fields": {
+    "telegram_id": "test_100574",
+    "full_name": "Test Student 575",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 627,
+  "fields": {
+    "telegram_id": "test_100575",
+    "full_name": "Test Student 576",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 628,
+  "fields": {
+    "telegram_id": "test_100576",
+    "full_name": "Test Student 577",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 629,
+  "fields": {
+    "telegram_id": "test_100577",
+    "full_name": "Test Student 578",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 630,
+  "fields": {
+    "telegram_id": "test_100578",
+    "full_name": "Test Student 579",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 631,
+  "fields": {
+    "telegram_id": "test_100579",
+    "full_name": "Test Student 580",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 632,
+  "fields": {
+    "telegram_id": "test_100580",
+    "full_name": "Test Student 581",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 633,
+  "fields": {
+    "telegram_id": "test_100581",
+    "full_name": "Test Student 582",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 634,
+  "fields": {
+    "telegram_id": "test_100582",
+    "full_name": "Test Student 583",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 635,
+  "fields": {
+    "telegram_id": "test_100583",
+    "full_name": "Test Student 584",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 636,
+  "fields": {
+    "telegram_id": "test_100584",
+    "full_name": "Test Student 585",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 637,
+  "fields": {
+    "telegram_id": "test_100585",
+    "full_name": "Test Student 586",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 638,
+  "fields": {
+    "telegram_id": "test_100586",
+    "full_name": "Test Student 587",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 639,
+  "fields": {
+    "telegram_id": "test_100587",
+    "full_name": "Test Student 588",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 640,
+  "fields": {
+    "telegram_id": "test_100588",
+    "full_name": "Test Student 589",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 641,
+  "fields": {
+    "telegram_id": "test_100589",
+    "full_name": "Test Student 590",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 642,
+  "fields": {
+    "telegram_id": "test_100590",
+    "full_name": "Test Student 591",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 643,
+  "fields": {
+    "telegram_id": "test_100591",
+    "full_name": "Test Student 592",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 644,
+  "fields": {
+    "telegram_id": "test_100592",
+    "full_name": "Test Student 593",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 645,
+  "fields": {
+    "telegram_id": "test_100593",
+    "full_name": "Test Student 594",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 646,
+  "fields": {
+    "telegram_id": "test_100594",
+    "full_name": "Test Student 595",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 647,
+  "fields": {
+    "telegram_id": "test_100595",
+    "full_name": "Test Student 596",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 648,
+  "fields": {
+    "telegram_id": "test_100596",
+    "full_name": "Test Student 597",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 649,
+  "fields": {
+    "telegram_id": "test_100597",
+    "full_name": "Test Student 598",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 650,
+  "fields": {
+    "telegram_id": "test_100598",
+    "full_name": "Test Student 599",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 651,
+  "fields": {
+    "telegram_id": "test_100599",
+    "full_name": "Test Student 600",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 652,
+  "fields": {
+    "telegram_id": "test_100600",
+    "full_name": "Test Student 601",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 653,
+  "fields": {
+    "telegram_id": "test_100601",
+    "full_name": "Test Student 602",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 654,
+  "fields": {
+    "telegram_id": "test_100602",
+    "full_name": "Test Student 603",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 655,
+  "fields": {
+    "telegram_id": "test_100603",
+    "full_name": "Test Student 604",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 656,
+  "fields": {
+    "telegram_id": "test_100604",
+    "full_name": "Test Student 605",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 657,
+  "fields": {
+    "telegram_id": "test_100605",
+    "full_name": "Test Student 606",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 658,
+  "fields": {
+    "telegram_id": "test_100606",
+    "full_name": "Test Student 607",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 659,
+  "fields": {
+    "telegram_id": "test_100607",
+    "full_name": "Test Student 608",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 660,
+  "fields": {
+    "telegram_id": "test_100608",
+    "full_name": "Test Student 609",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 661,
+  "fields": {
+    "telegram_id": "test_100609",
+    "full_name": "Test Student 610",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 662,
+  "fields": {
+    "telegram_id": "test_100610",
+    "full_name": "Test Student 611",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 663,
+  "fields": {
+    "telegram_id": "test_100611",
+    "full_name": "Test Student 612",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 664,
+  "fields": {
+    "telegram_id": "test_100612",
+    "full_name": "Test Student 613",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 665,
+  "fields": {
+    "telegram_id": "test_100613",
+    "full_name": "Test Student 614",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 666,
+  "fields": {
+    "telegram_id": "test_100614",
+    "full_name": "Test Student 615",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 667,
+  "fields": {
+    "telegram_id": "test_100615",
+    "full_name": "Test Student 616",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 668,
+  "fields": {
+    "telegram_id": "test_100616",
+    "full_name": "Test Student 617",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 669,
+  "fields": {
+    "telegram_id": "test_100617",
+    "full_name": "Test Student 618",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 670,
+  "fields": {
+    "telegram_id": "test_100618",
+    "full_name": "Test Student 619",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 671,
+  "fields": {
+    "telegram_id": "test_100619",
+    "full_name": "Test Student 620",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 672,
+  "fields": {
+    "telegram_id": "test_100620",
+    "full_name": "Test Student 621",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 673,
+  "fields": {
+    "telegram_id": "test_100621",
+    "full_name": "Test Student 622",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 674,
+  "fields": {
+    "telegram_id": "test_100622",
+    "full_name": "Test Student 623",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 675,
+  "fields": {
+    "telegram_id": "test_100623",
+    "full_name": "Test Student 624",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 676,
+  "fields": {
+    "telegram_id": "test_100624",
+    "full_name": "Test Student 625",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 677,
+  "fields": {
+    "telegram_id": "test_100625",
+    "full_name": "Test Student 626",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 678,
+  "fields": {
+    "telegram_id": "test_100626",
+    "full_name": "Test Student 627",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 679,
+  "fields": {
+    "telegram_id": "test_100627",
+    "full_name": "Test Student 628",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 680,
+  "fields": {
+    "telegram_id": "test_100628",
+    "full_name": "Test Student 629",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 681,
+  "fields": {
+    "telegram_id": "test_100629",
+    "full_name": "Test Student 630",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 682,
+  "fields": {
+    "telegram_id": "test_100630",
+    "full_name": "Test Student 631",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 683,
+  "fields": {
+    "telegram_id": "test_100631",
+    "full_name": "Test Student 632",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 684,
+  "fields": {
+    "telegram_id": "test_100632",
+    "full_name": "Test Student 633",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 685,
+  "fields": {
+    "telegram_id": "test_100633",
+    "full_name": "Test Student 634",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 686,
+  "fields": {
+    "telegram_id": "test_100634",
+    "full_name": "Test Student 635",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 687,
+  "fields": {
+    "telegram_id": "test_100635",
+    "full_name": "Test Student 636",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 688,
+  "fields": {
+    "telegram_id": "test_100636",
+    "full_name": "Test Student 637",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 689,
+  "fields": {
+    "telegram_id": "test_100637",
+    "full_name": "Test Student 638",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 690,
+  "fields": {
+    "telegram_id": "test_100638",
+    "full_name": "Test Student 639",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 691,
+  "fields": {
+    "telegram_id": "test_100639",
+    "full_name": "Test Student 640",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 692,
+  "fields": {
+    "telegram_id": "test_100640",
+    "full_name": "Test Student 641",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 693,
+  "fields": {
+    "telegram_id": "test_100641",
+    "full_name": "Test Student 642",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 694,
+  "fields": {
+    "telegram_id": "test_100642",
+    "full_name": "Test Student 643",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 695,
+  "fields": {
+    "telegram_id": "test_100643",
+    "full_name": "Test Student 644",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 696,
+  "fields": {
+    "telegram_id": "test_100644",
+    "full_name": "Test Student 645",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 697,
+  "fields": {
+    "telegram_id": "test_100645",
+    "full_name": "Test Student 646",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 698,
+  "fields": {
+    "telegram_id": "test_100646",
+    "full_name": "Test Student 647",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 699,
+  "fields": {
+    "telegram_id": "test_100647",
+    "full_name": "Test Student 648",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 700,
+  "fields": {
+    "telegram_id": "test_100648",
+    "full_name": "Test Student 649",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 701,
+  "fields": {
+    "telegram_id": "test_100649",
+    "full_name": "Test Student 650",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 702,
+  "fields": {
+    "telegram_id": "test_100650",
+    "full_name": "Test Student 651",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 703,
+  "fields": {
+    "telegram_id": "test_100651",
+    "full_name": "Test Student 652",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 704,
+  "fields": {
+    "telegram_id": "test_100652",
+    "full_name": "Test Student 653",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 705,
+  "fields": {
+    "telegram_id": "test_100653",
+    "full_name": "Test Student 654",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 706,
+  "fields": {
+    "telegram_id": "test_100654",
+    "full_name": "Test Student 655",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 707,
+  "fields": {
+    "telegram_id": "test_100655",
+    "full_name": "Test Student 656",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 708,
+  "fields": {
+    "telegram_id": "test_100656",
+    "full_name": "Test Student 657",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 709,
+  "fields": {
+    "telegram_id": "test_100657",
+    "full_name": "Test Student 658",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 710,
+  "fields": {
+    "telegram_id": "test_100658",
+    "full_name": "Test Student 659",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 711,
+  "fields": {
+    "telegram_id": "test_100659",
+    "full_name": "Test Student 660",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 712,
+  "fields": {
+    "telegram_id": "test_100660",
+    "full_name": "Test Student 661",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 713,
+  "fields": {
+    "telegram_id": "test_100661",
+    "full_name": "Test Student 662",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 714,
+  "fields": {
+    "telegram_id": "test_100662",
+    "full_name": "Test Student 663",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 715,
+  "fields": {
+    "telegram_id": "test_100663",
+    "full_name": "Test Student 664",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 716,
+  "fields": {
+    "telegram_id": "test_100664",
+    "full_name": "Test Student 665",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 717,
+  "fields": {
+    "telegram_id": "test_100665",
+    "full_name": "Test Student 666",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 718,
+  "fields": {
+    "telegram_id": "test_100666",
+    "full_name": "Test Student 667",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 719,
+  "fields": {
+    "telegram_id": "test_100667",
+    "full_name": "Test Student 668",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 720,
+  "fields": {
+    "telegram_id": "test_100668",
+    "full_name": "Test Student 669",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 721,
+  "fields": {
+    "telegram_id": "test_100669",
+    "full_name": "Test Student 670",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 722,
+  "fields": {
+    "telegram_id": "test_100670",
+    "full_name": "Test Student 671",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 723,
+  "fields": {
+    "telegram_id": "test_100671",
+    "full_name": "Test Student 672",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 724,
+  "fields": {
+    "telegram_id": "test_100672",
+    "full_name": "Test Student 673",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 725,
+  "fields": {
+    "telegram_id": "test_100673",
+    "full_name": "Test Student 674",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 726,
+  "fields": {
+    "telegram_id": "test_100674",
+    "full_name": "Test Student 675",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 727,
+  "fields": {
+    "telegram_id": "test_100675",
+    "full_name": "Test Student 676",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 728,
+  "fields": {
+    "telegram_id": "test_100676",
+    "full_name": "Test Student 677",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 729,
+  "fields": {
+    "telegram_id": "test_100677",
+    "full_name": "Test Student 678",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 730,
+  "fields": {
+    "telegram_id": "test_100678",
+    "full_name": "Test Student 679",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 731,
+  "fields": {
+    "telegram_id": "test_100679",
+    "full_name": "Test Student 680",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 732,
+  "fields": {
+    "telegram_id": "test_100680",
+    "full_name": "Test Student 681",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 733,
+  "fields": {
+    "telegram_id": "test_100681",
+    "full_name": "Test Student 682",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 734,
+  "fields": {
+    "telegram_id": "test_100682",
+    "full_name": "Test Student 683",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 735,
+  "fields": {
+    "telegram_id": "test_100683",
+    "full_name": "Test Student 684",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 736,
+  "fields": {
+    "telegram_id": "test_100684",
+    "full_name": "Test Student 685",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 737,
+  "fields": {
+    "telegram_id": "test_100685",
+    "full_name": "Test Student 686",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 738,
+  "fields": {
+    "telegram_id": "test_100686",
+    "full_name": "Test Student 687",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 739,
+  "fields": {
+    "telegram_id": "test_100687",
+    "full_name": "Test Student 688",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 740,
+  "fields": {
+    "telegram_id": "test_100688",
+    "full_name": "Test Student 689",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 741,
+  "fields": {
+    "telegram_id": "test_100689",
+    "full_name": "Test Student 690",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 742,
+  "fields": {
+    "telegram_id": "test_100690",
+    "full_name": "Test Student 691",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 743,
+  "fields": {
+    "telegram_id": "test_100691",
+    "full_name": "Test Student 692",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 744,
+  "fields": {
+    "telegram_id": "test_100692",
+    "full_name": "Test Student 693",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 745,
+  "fields": {
+    "telegram_id": "test_100693",
+    "full_name": "Test Student 694",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 746,
+  "fields": {
+    "telegram_id": "test_100694",
+    "full_name": "Test Student 695",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 747,
+  "fields": {
+    "telegram_id": "test_100695",
+    "full_name": "Test Student 696",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 748,
+  "fields": {
+    "telegram_id": "test_100696",
+    "full_name": "Test Student 697",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 749,
+  "fields": {
+    "telegram_id": "test_100697",
+    "full_name": "Test Student 698",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 750,
+  "fields": {
+    "telegram_id": "test_100698",
+    "full_name": "Test Student 699",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 751,
+  "fields": {
+    "telegram_id": "test_100699",
+    "full_name": "Test Student 700",
+    "group": 4
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 1,
+  "fields": {
+    "title": "Natural sonlar",
+    "created_at": "2025-09-18T17:45:50.142Z",
+    "is_active": true
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 2,
+  "fields": {
+    "title": "kasr sonlar",
+    "created_at": "2025-09-19T17:46:42.353Z",
+    "is_active": true
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 3,
+  "fields": {
+    "title": "Mukammal sonlar",
+    "created_at": "2025-09-21T07:49:42.042Z",
+    "is_active": true
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 4,
+  "fields": {
+    "title": "test sinov",
+    "created_at": "2025-09-21T07:49:59.029Z",
+    "is_active": true
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 17,
+  "fields": {
+    "student": 51,
+    "topic": 1,
+    "file_link": "AgACAgIAAxkBAAIHO2kUGAgJype5BPRNkDJIIyxitHYwAAKdD2sb0OugSNG8Dxqk28BIAQADAgADeQADNgQ",
+    "grade": 4,
+    "submitted_at": "2025-11-12T05:15:52.755Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 1,
+  "fields": {
+    "code": "03a91c1b",
+    "created_by": "1811507184",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T04:53:06.187Z",
+    "used_at": "2025-10-29T04:53:35.102Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 2,
+  "fields": {
+    "code": "32b21d67",
+    "created_by": "1811507184",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-10-29T04:55:01.518Z",
+    "used_at": null
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 3,
+  "fields": {
+    "code": "6c220c67",
+    "created_by": "1811507184",
+    "is_used": true,
+    "used_by": "1062271566",
+    "created_at": "2025-10-29T05:15:27.088Z",
+    "used_at": "2025-10-29T05:15:56.890Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 4,
+  "fields": {
+    "code": "722f4a81",
+    "created_by": "1811507184",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T05:22:31.816Z",
+    "used_at": "2025-10-29T05:22:39.789Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 5,
+  "fields": {
+    "code": "69cca935",
+    "created_by": "1811507184",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-10-29T05:35:17.889Z",
+    "used_at": null
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 6,
+  "fields": {
+    "code": "e5be00f4",
+    "created_by": "1811507184",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-10-29T05:35:50.807Z",
+    "used_at": null
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 7,
+  "fields": {
+    "code": "c5f83a11",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T06:59:11.131Z",
+    "used_at": "2025-10-29T06:59:17.497Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 8,
+  "fields": {
+    "code": "65496d70",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:00:00.951Z",
+    "used_at": "2025-10-29T07:00:10.033Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 9,
+  "fields": {
+    "code": "84a271ea",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:01:27.465Z",
+    "used_at": "2025-10-29T07:01:36.660Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 10,
+  "fields": {
+    "code": "8c6465b7",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:03:13.942Z",
+    "used_at": "2025-10-29T07:03:33.704Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 11,
+  "fields": {
+    "code": "910d0c1c",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:28:19.968Z",
+    "used_at": "2025-10-29T07:28:27.643Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 12,
+  "fields": {
+    "code": "a680bfd3",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:31:47.823Z",
+    "used_at": "2025-10-29T07:31:53.878Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 13,
+  "fields": {
+    "code": "a588e034",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:39:45.154Z",
+    "used_at": "2025-10-29T07:39:51.871Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 14,
+  "fields": {
+    "code": "e2b95a65",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T07:50:59.765Z",
+    "used_at": "2025-10-29T07:51:05.624Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 15,
+  "fields": {
+    "code": "d04212fb",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T11:11:23.509Z",
+    "used_at": "2025-10-29T11:11:29.575Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 16,
+  "fields": {
+    "code": "9a7da7a6",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T11:43:01.697Z",
+    "used_at": "2025-10-29T11:43:07.455Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 17,
+  "fields": {
+    "code": "76616da1",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-29T12:03:41.024Z",
+    "used_at": "2025-10-29T12:03:56.095Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 18,
+  "fields": {
+    "code": "0fa9e9a1",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T04:03:44.979Z",
+    "used_at": "2025-10-30T04:04:31.385Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 19,
+  "fields": {
+    "code": "5739926e",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T04:33:15.937Z",
+    "used_at": "2025-10-30T04:33:21.745Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 20,
+  "fields": {
+    "code": "5de2d175",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T04:37:07.636Z",
+    "used_at": "2025-10-30T04:37:13.256Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 21,
+  "fields": {
+    "code": "f09f6b9b",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T04:44:50.363Z",
+    "used_at": "2025-10-30T04:45:16.500Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 22,
+  "fields": {
+    "code": "3c429aa3",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T04:57:03.906Z",
+    "used_at": "2025-10-30T04:57:13.600Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 23,
+  "fields": {
+    "code": "2dfd4660",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T05:01:15.350Z",
+    "used_at": "2025-10-30T05:01:24.932Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 24,
+  "fields": {
+    "code": "91cad9c9",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T05:03:15.413Z",
+    "used_at": "2025-10-30T05:03:23.469Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 25,
+  "fields": {
+    "code": "6be0db9d",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T09:12:23.029Z",
+    "used_at": "2025-10-30T09:13:50.500Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 26,
+  "fields": {
+    "code": "b10f735d",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T09:18:15.944Z",
+    "used_at": "2025-10-30T09:18:22.199Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 27,
+  "fields": {
+    "code": "2063fc79",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T09:43:31.354Z",
+    "used_at": "2025-10-30T09:43:52.007Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 28,
+  "fields": {
+    "code": "cfae1f1a",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T09:47:25.132Z",
+    "used_at": "2025-10-30T09:47:41.340Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 29,
+  "fields": {
+    "code": "528a7ea4",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T09:51:01.135Z",
+    "used_at": "2025-10-30T09:51:15.736Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 30,
+  "fields": {
+    "code": "ea08bdff",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T10:08:19.230Z",
+    "used_at": "2025-10-30T10:10:12.732Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 31,
+  "fields": {
+    "code": "7df6c73e",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T10:25:57.542Z",
+    "used_at": "2025-10-30T10:26:06.657Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 32,
+  "fields": {
+    "code": "531d0451",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T10:28:47.335Z",
+    "used_at": "2025-10-30T10:29:08.778Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 33,
+  "fields": {
+    "code": "14f5b612",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T10:53:35.574Z",
+    "used_at": "2025-10-30T10:53:55.061Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 34,
+  "fields": {
+    "code": "c076ee3c",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T11:04:39.230Z",
+    "used_at": "2025-10-30T11:05:00.335Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 35,
+  "fields": {
+    "code": "0c62a5d4",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T11:06:53.519Z",
+    "used_at": "2025-10-30T11:06:58.608Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 36,
+  "fields": {
+    "code": "967f3402",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-30T11:11:12.140Z",
+    "used_at": "2025-10-30T11:11:29.954Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 37,
+  "fields": {
+    "code": "04f307bd",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T05:06:30.063Z",
+    "used_at": "2025-10-31T05:07:24.760Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 38,
+  "fields": {
+    "code": "373f79a3",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T05:50:21.948Z",
+    "used_at": "2025-10-31T05:50:31.987Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 39,
+  "fields": {
+    "code": "3b80d1b9",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T05:54:40.426Z",
+    "used_at": "2025-10-31T05:54:59.040Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 40,
+  "fields": {
+    "code": "1e61363f",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T05:56:52.993Z",
+    "used_at": "2025-10-31T05:57:14.276Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 41,
+  "fields": {
+    "code": "1bb0332e",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T05:59:50.870Z",
+    "used_at": "2025-10-31T06:00:17.433Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 42,
+  "fields": {
+    "code": "3c32a84f",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-10-31T06:40:52.721Z",
+    "used_at": "2025-10-31T06:41:48.137Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 43,
+  "fields": {
+    "code": "64e9eb2f",
+    "created_by": "1062271566",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-11-03T05:13:26.244Z",
+    "used_at": null
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 44,
+  "fields": {
+    "code": "754951af",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T05:15:20.167Z",
+    "used_at": "2025-11-03T05:15:25.425Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 45,
+  "fields": {
+    "code": "e5489118",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T05:26:40.709Z",
+    "used_at": "2025-11-03T05:26:48.239Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 46,
+  "fields": {
+    "code": "3cd704fe",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T05:44:56.496Z",
+    "used_at": "2025-11-03T05:45:28.938Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 47,
+  "fields": {
+    "code": "126ddd72",
+    "created_by": "1062271566",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-11-03T05:56:36.558Z",
+    "used_at": null
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 48,
+  "fields": {
+    "code": "294e4f96",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T05:57:21.418Z",
+    "used_at": "2025-11-03T05:57:32.071Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 49,
+  "fields": {
+    "code": "2ab8a00b",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T06:00:27.677Z",
+    "used_at": "2025-11-03T06:00:45.991Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 50,
+  "fields": {
+    "code": "54d50e66",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T06:27:22.696Z",
+    "used_at": "2025-11-03T06:27:31.720Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 51,
+  "fields": {
+    "code": "53a07a99",
+    "created_by": "1062271566",
+    "is_used": true,
+    "used_by": "1811507184",
+    "created_at": "2025-11-03T06:32:38.218Z",
+    "used_at": "2025-11-03T06:32:43.567Z"
+  }
+},
+{
+  "model": "base_app.invitecode",
+  "pk": 52,
+  "fields": {
+    "code": "268f45ec",
+    "created_by": "1062271566",
+    "is_used": false,
+    "used_by": null,
+    "created_at": "2025-11-12T04:30:20.008Z",
+    "used_at": null
+  }
+}
+]

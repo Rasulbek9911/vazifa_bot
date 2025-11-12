@@ -1,5 +1,5 @@
 """
-Admin-specific handlers: invite generation, topic management, grading
+Admin-specific handlers: topic management, grading
 """
 from aiogram import types
 import aiohttp
@@ -9,42 +9,6 @@ from loader import dp, bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
-
-
-# --- Admin: Invite code yaratish ---
-@dp.message_handler(commands=["generate_invite"], state="*")
-async def generate_invite(message: types.Message, state: FSMContext):
-    """Admin faqat invite code yaratishi mumkin"""
-    if str(message.from_user.id) not in ADMINS:
-        await message.answer("❌ Sizda bu buyruqni ishlatish huquqi yo'q.")
-        return
-    
-    # Hozirgi state ni to'xtatish (agar admin ro'yxatdan o'tish jarayonida bo'lsa)
-    current_state = await state.get_state()
-    if current_state:
-        try:
-            await state.finish()
-        except:
-            pass
-    
-    async with aiohttp.ClientSession() as session:
-        payload = {"admin_id": str(message.from_user.id)}
-        async with session.post(f"{API_BASE_URL}/invites/create/", json=payload) as resp:
-            if resp.status == 201:
-                data = await resp.json()
-                invite_code = data["code"]
-                bot_username = (await bot.get_me()).username
-                invite_link = f"https://t.me/{bot_username}?start={invite_code}"
-                
-                await message.answer(
-                    f"✅ Yangi invite yaratildi!\n\n"
-                    f"📝 Invite code: <code>{invite_code}</code>\n"
-                    f"🔗 Bot linki: {invite_link}\n\n"
-                    f"⚠️ Bu link faqat 1 marta ishlatiladi!",
-                    parse_mode="HTML"
-                )
-            else:
-                await message.answer("❌ Invite yaratishda xatolik yuz berdi.")
 
 
 # --- Baho qo'yish ---

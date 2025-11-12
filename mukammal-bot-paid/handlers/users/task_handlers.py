@@ -1,11 +1,12 @@
 """
 Task submission handlers: task sending, topic selection, file upload
+Both channels now use approval links (no one-time links)
 """
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data.config import ADMINS, API_BASE_URL, GENERAL_GROUP_ID, GENERAL_GROUP_INVITE_LINK
+from data.config import ADMINS, API_BASE_URL, GENERAL_CHANNEL_ID, GENERAL_CHANNEL_INVITE_LINK
 from loader import dp, bot
 from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import vazifa_key
@@ -34,78 +35,74 @@ async def send_task(message: types.Message):
             
         group_obj = next((g for g in groups if g["id"] == group_id), None)
         
-        # Guruhlarga qo'shilganligini tekshirish
+        # Kanallarga qo'shilganligini tekshirish
+        # Bot kanal adminida bo'lsa, statusni tekshiramiz
+        # Bot admin bo'lmasa, vazifa yuborishga ruxsat beramiz (foydalanuvchi o'zi javobgar)
         group_not_joined = False
         general_not_joined = False
         
-        # O'z guruhiga qo'shilganmi tekshirish
+        # O'z kanaliga qo'shilganmi tekshirish
         if group_obj and group_obj.get("telegram_group_id"):
             try:
-                group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                if group_member.status in ["left", "kicked"]:
-                    group_not_joined = True
-            except:
-                # Guruhni tekshira olmasa, link beramiz
-                group_not_joined = bool(group_obj.get("invite_link"))
+                # Avval botning o'zi admin ekanligini tekshiramiz
+                bot_info = await bot.get_me()
+                bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
+                
+                # Bot admin bo'lsa, user statusini tekshiramiz
+                if bot_member.status in ["administrator", "creator"]:
+                    group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
+                    print(f"[DEBUG] O'z kanal status: {group_member.status}")
+                    # Faqat left statusida qo'shilmagan deb hisoblaymiz
+                    # kicked statusini ham inobatga olmaymiz (ba'zan xato status qaytaradi)
+                    if group_member.status == "left":
+                        group_not_joined = True
+                else:
+                    print(f"[DEBUG] Bot o'z kanalda admin emas, tekshirmaslik")
+            except Exception as e:
+                print(f"[DEBUG] O'z kanal exception: {e}")
+                # Exception bo'lsa, vazifa yuborishga ruxsat beramiz
+                group_not_joined = False
         else:
             group_not_joined = False
             
-        # Umumiy guruhga qo'shilganmi
+        # Umumiy kanalga qo'shilganmi
         try:
-            general_member = await bot.get_chat_member(GENERAL_GROUP_ID, telegram_id)
-            if general_member.status in ["left", "kicked"]:
-                general_not_joined = True
-        except:
-            general_not_joined = True
+            # Avval botning o'zi admin ekanligini tekshiramiz
+            bot_info = await bot.get_me()
+            bot_member = await bot.get_chat_member(GENERAL_CHANNEL_ID, bot_info.id)
+            
+            # Bot admin bo'lsa, user statusini tekshiramiz
+            if bot_member.status in ["administrator", "creator"]:
+                general_member = await bot.get_chat_member(GENERAL_CHANNEL_ID, telegram_id)
+                print(f"[DEBUG] Umumiy kanal status: {general_member.status}")
+                # Faqat left statusida qo'shilmagan deb hisoblaymiz
+                # kicked statusini ham inobatga olmaymiz (ba'zan xato status qaytaradi)
+                if general_member.status == "left":
+                    general_not_joined = True
+            else:
+                print(f"[DEBUG] Bot umumiy kanalda admin emas, tekshirmaslik")
+        except Exception as e:
+            print(f"[DEBUG] Umumiy kanal exception: {e}")
+            # Exception bo'lsa, vazifa yuborishga ruxsat beramiz
+            general_not_joined = False
         
-        # Agar qo'shilmagan bo'lsa, yangi 1 martalik linklar yaratamiz
+        print(f"[DEBUG] group_not_joined={group_not_joined}, general_not_joined={general_not_joined}")
+        
+        # Agar qo'shilmagan bo'lsa, approval linklar beramiz
         if group_not_joined or general_not_joined:
-            msg = "❌ Siz quyidagi guruhlarga qo'shilmagansiz:\n\n"
+            msg = "❌ Siz quyidagi kanallarga qo'shilmagansiz:\n\n"
             
-            if group_not_joined and group_obj and group_obj.get("telegram_group_id"):
-                try:
-                    # Yangi 1 martalik link
-                    group_invite = await bot.create_chat_invite_link(
-                        chat_id=group_obj.get("telegram_group_id"),
-                        member_limit=1
-                    )
-                    msg += f"🔹 O'z guruhingiz: {group_invite.invite_link}\n"
-                except:
-                    if group_obj.get("invite_link"):
-                        msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
-            elif group_not_joined and group_obj:
-                if group_obj.get("invite_link"):
-                    msg += f"🔹 O'z guruhingiz: {group_obj.get('invite_link')}\n"
+            # O'z kanali linki
+            if group_not_joined and group_obj and group_obj.get("invite_link"):
+                msg += f"🔹 O'z kanalingiz: {group_obj.get('invite_link')}\n"
+                msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
             
+            # Umumiy kanal linki
             if general_not_joined:
-                try:
-                    # Kanal yoki guruh
-                    is_channel = False
-                    try:
-                        chat_info = await bot.get_chat(GENERAL_GROUP_ID)
-                        is_channel = chat_info.type == "channel"
-                    except:
-                        pass
-
-                    if is_channel:
-                        # Kanal - primary link
-                        try:
-                            primary_link = await bot.export_chat_invite_link(chat_id=GENERAL_GROUP_ID)
-                            msg += f"🔹 Umumiy kanal: {primary_link}\n"
-                        except:
-                            # Fallback
-                            msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
-                    else:
-                        # Supergroup - 1 martalik
-                        general_invite = await bot.create_chat_invite_link(
-                            chat_id=GENERAL_GROUP_ID,
-                            member_limit=1
-                        )
-                        msg += f"🔹 Umumiy guruh: {general_invite.invite_link}\n"
-                except:
-                    msg += f"🔹 Umumiy kanal: {GENERAL_GROUP_INVITE_LINK}\n"
+                msg += f"🔹 Umumiy kanal: {GENERAL_CHANNEL_INVITE_LINK}\n"
+                msg += f"   (So'rov yuboring, admin tasdiqlaydi)\n"
             
-            msg += "\n⚠️ Iltimos, guruhlarga qo'shiling va qayta urinib ko'ring."
+            msg += "\n⚠️ Iltimos, kanallarga qo'shiling va qayta urinib ko'ring."
             
             await message.answer(msg)
             return
