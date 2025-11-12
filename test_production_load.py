@@ -1,7 +1,7 @@
 """
 Production Load Test - PostgreSQL + DRF + aiogram
-Real server: 1 CPU, 1GB RAM, 20GB NVME, 200Mb/s
-Target: 500-1000 concurrent users
+Real server: 2 CPU cores, 2GB RAM, 40GB NVME, 200Mb/s TAS-IX + 200Mb/s Internet
+Target: 1000-2000 concurrent users
 """
 import os
 import sys
@@ -169,7 +169,7 @@ def test_concurrent_api_requests(num_requests=100):
     asyncio.run(run_concurrent_requests(num_requests))
 
 
-def test_user_registration_load(num_users=100):
+def test_user_registration_load(num_users=1500):
     """Simulate user registration load"""
     print_header(f"USER REGISTRATION LOAD TEST - {num_users} users")
     
@@ -309,31 +309,33 @@ def performance_recommendations():
     
     stats = get_system_stats()
     
-    print("🎯 Sizning server (1 CPU, 1GB RAM) uchun tavsiyalar:\n")
+    print("🎯 Sizning server (2 CPU cores, 2GB RAM) uchun tavsiyalar:\n")
     
     print("1️⃣  **Gunicorn Configuration:**")
-    print("   workers = 2  # (2 * CPU_cores) + 1 = 3, lekin RAM cheklangan")
+    print("   workers = 5  # (2 * CPU_cores) + 1 = 5")
     print("   worker_class = 'gevent'  # Async workers")
     print("   worker_connections = 1000")
     print("   max_requests = 1000")
     print("   max_requests_jitter = 100")
     print("   timeout = 30")
     
-    print("\n2️⃣  **PostgreSQL tuning (1GB RAM):**")
-    print("   shared_buffers = 256MB")
-    print("   effective_cache_size = 768MB")
-    print("   maintenance_work_mem = 64MB")
-    print("   work_mem = 4MB")
-    print("   max_connections = 100")
+    print("\n2️⃣  **PostgreSQL tuning (2GB RAM):**")
+    print("   shared_buffers = 512MB")
+    print("   effective_cache_size = 1536MB")
+    print("   maintenance_work_mem = 128MB")
+    print("   work_mem = 8MB")
+    print("   max_connections = 200")
+    print("   checkpoint_completion_target = 0.9")
     
     print("\n3️⃣  **Nginx:**")
-    print("   worker_processes = 1")
-    print("   worker_connections = 1024")
+    print("   worker_processes = 2  # CPU cores")
+    print("   worker_connections = 2048")
     print("   keepalive_timeout = 65")
     print("   gzip on")
+    print("   gzip_comp_level = 5")
     
     print("\n4️⃣  **Redis (caching):**")
-    print("   maxmemory = 128MB")
+    print("   maxmemory = 256MB")
     print("   maxmemory-policy = allkeys-lru")
     
     print("\n5️⃣  **Django settings:**")
@@ -343,27 +345,36 @@ def performance_recommendations():
     print("   SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'")
     
     print("\n📊 Expected Performance (optimized):")
-    print("   • 500 concurrent users: ✅ Yaxshi")
-    print("   • 1000 concurrent users: ⚠️  Maksimal load")
-    print("   • API throughput: ~200-300 req/sec")
-    print("   • Database queries: ~500-700 queries/sec")
+    print("   • 1000 concurrent users: ✅ Yaxshi")
+    print("   • 2000 concurrent users: ✅ Yetarli (monitoring bilan)")
+    print("   • 3000+ concurrent users: ⚠️  Maksimal load")
+    print("   • API throughput: ~500-800 req/sec")
+    print("   • Database queries: ~1000-1500 queries/sec")
     
     print("\n⚠️  RAM bo'yicha limitlar:")
-    if stats['ram'] > 80:
-        print("   ❌ CRITICAL: RAM 80% dan oshdi!")
-        print("   Tavsiya: Swap file yaratish (2GB) yoki RAM oshirish")
-    elif stats['ram'] > 60:
-        print("   ⚠️  WARNING: RAM 60% dan oshdi")
+    if stats['ram'] > 85:
+        print("   ❌ CRITICAL: RAM 85% dan oshdi!")
+        print("   Tavsiya: Swap file yaratish (4GB) yoki RAM oshirish")
+    elif stats['ram'] > 70:
+        print("   ⚠️  WARNING: RAM 70% dan oshdi")
         print("   Monitoring kerak")
     else:
         print("   ✅ RAM yetarli")
+    
+    print("\n💡 2GB RAM bilan:")
+    print("   • Django + Bot: ~400-500MB")
+    print("   • PostgreSQL: ~512MB (shared_buffers)")
+    print("   • Redis: ~256MB")
+    print("   • System: ~300-400MB")
+    print("   • Available: ~600-800MB (cache va buffer uchun)")
 
 
 def main():
     """Main test menu"""
     print_header("PRODUCTION LOAD TESTING")
-    print(f"🖥️  Server: 1 CPU, 1GB RAM, 20GB NVME, 200Mb/s")
-    print(f"🎯 Target: 500-1000 concurrent users")
+    print(f"🖥️  Server: 2 CPU cores, 2GB RAM, 40GB NVME")
+    print(f"🌐 Network: 200Mb/s TAS-IX + 200Mb/s Internet")
+    print(f"🎯 Target: 1000-2000 concurrent users")
     print(f"⏰ Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     print("\n📊 Hozirgi system stats:")
@@ -376,7 +387,7 @@ def main():
         print("1. Database performance test")
         print("2. API concurrent requests (100 req)")
         print("3. API concurrent requests (500 req)")
-        print("4. User registration load (100 users)")
+        print("4. User registration load (1500 users)")
         print("5. User registration load (500 users)")
         print("6. Mixed load test (60 seconds)")
         print("7. System stats")
@@ -399,7 +410,7 @@ def main():
             input("\nDavom etish uchun Enter...")
             test_concurrent_api_requests(500)
         elif choice == '4':
-            test_user_registration_load(100)
+            test_user_registration_load(1500)
         elif choice == '5':
             test_user_registration_load(500)
         elif choice == '6':
@@ -415,7 +426,7 @@ def main():
             choice = input("API test o'tkazilsinmi? (y/n): ")
             if choice.lower() == 'y':
                 test_concurrent_api_requests(100)
-            test_user_registration_load(100)
+            test_user_registration_load(1500)
             test_mixed_load(60)
             performance_recommendations()
         elif choice == '0':
