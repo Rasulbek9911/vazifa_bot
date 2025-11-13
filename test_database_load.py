@@ -86,7 +86,7 @@ def test_query_performance(group):
     count = Student.objects.filter(group=group).count()
     elapsed = time.time() - start
     print(f"   Result: {count} students")
-    print(f"   Time: {elapsed*1000:.2f} ms")
+    print(f"   Time: {elapsed*1000:.2f} ms")        
     
     # Test 2: List query
     print("\n2️⃣  List query (first 100):")
