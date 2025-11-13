@@ -1,6 +1,7 @@
 """
-User registration flow: start command, invite code validation, full name processing
-Both channels now use approval links (no one-time links)
+User registration flow: start command, full name processing
+No invite code required - direct registration
+Both channels use approval links
 """
 from aiogram import types
 import aiohttp
@@ -11,14 +12,11 @@ from states.register_state import RegisterState
 from keyboards.default.vazifa_keyboard import vazifa_key
 
 
-# General channel/group ID is configured in data.config
-
-
-# --- START with Invite Code ---
+# --- START - Direct Registration (No Invite Code) ---
 @dp.message_handler(commands=["start"], state="*")
 async def cmd_start(message: types.Message, state: FSMContext):
     """
-    /start yoki /start abc12345 (invite code bilan deep linking)
+    /start - to'g'ridan-to'g'ri ro'yxatdan o'tish (invite code yo'q)
     """
     # Avval state ni tozalaymiz
     current_state = await state.get_state()
@@ -27,10 +25,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
             await state.finish()
         except Exception as e:
             pass
-        
-    
-    # Deep linking - invite code bilan kelganmi?
-    args = message.get_args()
     
     # Admin bo'lsa, oddiy salom xabari
     if str(message.from_user.id) in ADMINS:
@@ -48,95 +42,21 @@ async def cmd_start(message: types.Message, state: FSMContext):
                 )
                 return
     
-    # Agar invite code bilan kelgan bo'lsa
-    if args:
-        # Deep linking - validatsiya keyinroq (process_fish da)
-        await state.update_data(invite_code=args, validated=False)
-        await message.answer(
-            "Assalomu alaykum! 👋\n\n"
-            f"Invite code qabul qilindi: <code>{args}</code>\n\n"
-            "Endi ro'yxatdan o'tish uchun F.I.Sh kiriting:",
-            parse_mode="HTML"
-        )
-        await RegisterState.full_name.set()
-    else:
-        # Invite code yo'q - so'raymiz
-        await message.answer(
-            "Assalomu alaykum! 👋\n\n"
-            "Ro'yxatdan o'tish uchun invite code kiriting:\n\n"
-            "💡 Invite code yo'qmi? Admin bilan bog'laning."
-        )
-        await RegisterState.invite_code.set()
+    # Ro'yxatdan o'tish jarayonini boshlash
+    await message.answer(
+        "Assalomu alaykum! 👋\n\n"
+        "Ro'yxatdan o'tish uchun F.I.Sh kiriting:"
+    )
+    await RegisterState.full_name.set()
 
 
-# Invite code qabul qilish (agar deep linking bo'lmasa)
-@dp.message_handler(state=RegisterState.invite_code)
-async def process_invite_code(message: types.Message, state: FSMContext):
-    invite_code = message.text.strip()
-    
-    # Invite code ni tekshirish
-    async with aiohttp.ClientSession() as session:
-        payload = {
-            "code": invite_code,
-            "user_id": str(message.from_user.id)
-        }
-        async with session.post(f"{API_BASE_URL}/invites/validate/", json=payload) as resp:
-            if resp.status == 200:
-                await state.update_data(invite_code=invite_code, validated=True)
-                await message.answer(
-                    "✅ Invite code qabul qilindi!\n\n"
-                    "Endi F.I.Sh kiriting:"
-                )
-                await RegisterState.full_name.set()
-            else:
-                error_data = await resp.json()
-                error_msg = error_data.get("error", "Noto'g'ri invite code")
-                await message.answer(
-                    f"❌ {error_msg}\n\n"
-                    "Iltimos, qaytadan to'g'ri invite code kiriting:"
-                )
-                return
-
-
-# F.I.Sh qabul qilish
+# F.I.Sh qabul qilish va ro'yxatdan o'tkazish
 @dp.message_handler(state=RegisterState.full_name)
 async def process_fish(message: types.Message, state: FSMContext):
+    """F.I.Sh qabul qilish va avtomatik ro'yxatdan o'tkazish"""
     await state.update_data(full_name=message.text)
-    
-    # Invite code mavjudligini tekshiramiz
     data = await state.get_data()
-    invite_code = data.get("invite_code")
     
-    if not invite_code:
-        await message.answer("❌ Xatolik: Invite code topilmadi. Iltimos, /start dan qayta boshlang.")
-        try:
-            await state.finish()
-        except Exception:
-            pass
-        return
-    
-    # Invite code ni validatsiya qilamiz (agar deep linking bo'lsa)
-    if "invite_code" in data and not data.get("validated"):
-        async with aiohttp.ClientSession() as session:
-            payload = {
-                "code": invite_code,
-                "user_id": str(message.from_user.id)
-            }
-            async with session.post(f"{API_BASE_URL}/invites/validate/", json=payload) as resp:
-                if resp.status != 200:
-                    error_data = await resp.json()
-                    error_msg = error_data.get("error", "Noto'g'ri invite code")
-                    await message.answer(
-                        f"❌ {error_msg}\n\n"
-                        "Iltimos, /start dan qayta boshlang."
-                    )
-                    try:
-                        await state.finish()
-                    except Exception:
-                        pass
-                    return
-                await state.update_data(validated=True)
-
     # Kanallarni va ularning a'zolar sonini olish
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
