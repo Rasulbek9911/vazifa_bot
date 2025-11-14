@@ -5,15 +5,7 @@ env = Env()
 env.read_env()
 
 # .env fayl ichidan quyidagilarni o'qiymiz
-BOT_TOKEN = env.str("BOT_TOKEN")  # Bot toekn
+BOT_TOKEN = env.str("BOT_TOKEN")  # Bot token
 ADMINS = env.list("ADMINS")  # adminlar ro'yxati
 IP = env.str("ip")  # Xosting ip manzili
 API_BASE_URL = env.str("API_BASE_URL")  # API bazaviy URL
-
-# Umumiy kanal (birinchi kanal) - approval link
-GENERAL_CHANNEL_ID = env.str("GENERAL_CHANNEL_ID", default="-1003295943458")
-GENERAL_CHANNEL_INVITE_LINK = env.str("GENERAL_CHANNEL_INVITE_LINK", default="https://t.me/+Pa-WbbL1s0c3NmYy")
-
-# Eski nomlar (backward compatibility)
-GENERAL_GROUP_ID = GENERAL_CHANNEL_ID
-GENERAL_GROUP_INVITE_LINK = GENERAL_CHANNEL_INVITE_LINK
