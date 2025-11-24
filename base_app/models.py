@@ -25,29 +25,45 @@ class Student(models.Model):
 class Topic(models.Model):
     title = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=False,null=True, blank=True)
+    is_active = models.BooleanField(default=False, null=True, blank=True)
+    
+    # Test uchun to'g'ri javoblar (JSON format: {"1": "abc", "2": "bcd", ...})
+    correct_answers = models.JSONField(null=True, blank=True, default=dict)
 
     def __str__(self):
         return self.title
 
 
 class Task(models.Model):
+    TASK_TYPE_CHOICES = [
+        ('test', 'Test'),
+        ('assignment', 'Maxsus topshiriq'),
+    ]
+    
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name="tasks")
     topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name="tasks")
-    # Telegram file_id yoki URL
+    task_type = models.CharField(
+        max_length=20, choices=TASK_TYPE_CHOICES, default='test')
+    
+    # Maxsus topshiriq uchun - fayl
     file_link = models.TextField(null=True, blank=True)
+    
+    # Test uchun - test kodi va javoblar
+    test_code = models.CharField(max_length=50, null=True, blank=True)  # Masalan: "+", "*", "A"
+    test_answers = models.CharField(max_length=255, null=True, blank=True)  # Masalan: "abc", "1a2c3b"
+    
     grade = models.PositiveSmallIntegerField(
         null=True, blank=True)  # Baho (3,4,5)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # bitta student bitta mavzuga faqat bitta vazifa topshira oladi
-        unique_together = ("student", "topic")
+        # bitta student bitta mavzuga har xil turdagi vazifa topshira oladi
+        unique_together = ("student", "topic", "task_type")
 
     def __str__(self):
-        return f"{self.student.full_name} → {self.topic.title} ({self.grade or 'Baholanmagan'})"
+        return f"{self.student.full_name} → {self.topic.title} ({self.get_task_type_display()}) ({self.grade or 'Baholanmagan'})"
 
 
 class InviteCode(models.Model):

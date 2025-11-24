@@ -271,8 +271,7 @@ async def send_weekly_reports():
                         ("weekly_report.pdf", pdf_bytes),
                         caption=f"📊 {g['name']} guruhining haftalik hisobot"
                     )
-                else:
-                    await bot.send_message(chat_id, "❌ Reportni olishda xatolik yuz berdi")
+                # 404 yoki xatolik bo'lsa, guruhga hech narsa yubormaymiz
                     
 
 #--- Vazifa topshirmaganlarga eslatma ---

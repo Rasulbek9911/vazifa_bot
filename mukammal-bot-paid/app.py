@@ -4,7 +4,7 @@ from loader import dp
 import middlewares, filters, handlers
 from utils.notify_admins import on_startup_notify
 from utils.set_bot_commands import set_default_commands
-from handlers.users.start import send_weekly_reports, send_unsubmitted_warnings
+from handlers.users.scheduled_tasks import send_weekly_reports, send_unsubmitted_warnings
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import aiohttp
 
@@ -30,10 +30,10 @@ async def on_startup(dispatcher):
     # Scheduler sozlash
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     # Har dushanba ertalab 9:00 da
-    scheduler.add_job(send_weekly_reports, "cron", day_of_week="mon", hour=9, minute=0)
-    # scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
-    scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
-    # scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=2)
+    # scheduler.add_job(send_weekly_reports, "cron", day_of_week="mon", hour=9, minute=0)
+    scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
+    # scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
+    scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=2)
     scheduler.start()
 
 

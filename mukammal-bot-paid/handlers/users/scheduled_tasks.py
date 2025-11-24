@@ -11,11 +11,12 @@ from utils.safe_send_message import safe_send_message
 
 # --- Haftalik report ---
 async def send_weekly_reports():
-    """Har hafta guruh bo'yicha PDF report yuborish"""
+    """Har hafta guruh bo'yicha PDF report yuborish (faqat active mavzu bo'lsa)"""
     async with aiohttp.ClientSession() as session:
         # Guruhlarni olib kelamiz
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
             groups = await resp.json()
+        
         for g in groups:
             chat_id = g.get("telegram_group_id")
             group_id = g["id"]
@@ -24,6 +25,7 @@ async def send_weekly_reports():
                 continue  # telegram_group_id yo'q bo'lsa tashlab ketamiz
 
             # PDF reportni olib kelamiz
+            # Server o'zi active mavzularni tekshiradi va 404 qaytaradi
             async with session.get(f"{API_BASE_URL}/reports/{group_id}/weekly/pdf/") as resp:
                 if resp.status == 200:
                     pdf_bytes = await resp.read()
@@ -32,8 +34,7 @@ async def send_weekly_reports():
                         ("weekly_report.pdf", pdf_bytes),
                         caption=f"📊 {g['name']} guruhining haftalik hisobot"
                     )
-                else:
-                    await bot.send_message(chat_id, "❌ Reportni olishda xatolik yuz berdi")
+                # 404 yoki xatolik bo'lsa, guruhga hech narsa yubormaymiz
                     
 
 # --- Vazifa topshirmaganlarga eslatma ---

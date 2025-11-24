@@ -104,13 +104,17 @@ class TopicsListView(APIView):
 
 class TaskSubmitView(APIView):
     """
-    Student vazifa yuboradi (telegram_id, topic_id, file_link)
+    Student vazifa yuboradi (telegram_id, topic_id, task_type, file_link/test_code/test_answers, grade)
     """
 
     def post(self, request):
         telegram_id = request.data.get("student_id")   # bu aslida telegram_id
         topic_id = request.data.get("topic_id")
+        task_type = request.data.get("task_type", "test")
         file_link = request.data.get("file_link")
+        test_code = request.data.get("test_code")
+        test_answers = request.data.get("test_answers")
+        grade = request.data.get("grade")
 
         # Studentni telegram_id orqali topamiz
         try:
@@ -119,11 +123,23 @@ class TaskSubmitView(APIView):
             return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
         # Serializerga model PKlarini beramiz
-        serializer = TaskSerializer(data={
+        data = {
             "student_id": student.id,   # PK kerak
             "topic_id": topic_id,
-            "file_link": file_link
-        })
+            "task_type": task_type,
+        }
+        
+        # Optional fields
+        if file_link:
+            data["file_link"] = file_link
+        if test_code:
+            data["test_code"] = test_code
+        if test_answers:
+            data["test_answers"] = test_answers
+        if grade is not None:
+            data["grade"] = grade
+        
+        serializer = TaskSerializer(data=data)
 
         if serializer.is_valid():
             task = serializer.save()
@@ -187,23 +203,58 @@ class WeeklyReportPDFView(APIView):
         except Group.DoesNotExist:
             return HttpResponse("Group not found", status=404)
 
-        start_date = now() - timedelta(days=7)
         students = group.students.all()
-        topics = Topic.objects.all()
+        
+        # FAQAT active mavzularni olish (vaqt chegarasiz - barcha vazifalar)
+        topics = Topic.objects.filter(is_active=True)
+        
+        # Agar active mavzu yo'q bo'lsa, PDF yaratmaymiz
+        if not topics.exists():
+            return HttpResponse("No active topics", status=404)
 
-        # Jadval sarlavhalari
-        data = [["Talaba"] + [t.title for t in topics]]
+        # Jadval sarlavhalari - har bir mavzu uchun turi ko'rsatiladi
+        header = ["Talaba"]
+        for t in topics:
+            # Mavzu turini aniqlash (correct_answers bor bo'lsa Test, yo'q bo'lsa Maxsus)
+            topic_type = "📝Test" if t.correct_answers else "📋Maxsus"
+            header.append(f"{t.title}\n({topic_type})")
+        header.append("O'rtacha")
+        data = [header]
 
-        # Studentlar uchun qatordan-qatordan to‘ldirish
+        # Studentlar uchun qatordan-qatordan to'ldirish
+        student_rows = []
         for student in students:
             row = [student.full_name]
+            grades = []
             for topic in topics:
+                # Mavzu turiga mos task_type ni qidiramiz
+                task_type = 'test' if topic.correct_answers else 'assignment'
+                
+                # Vaqt chegarasiz - barcha vazifalarni ko'ramiz
                 task = Task.objects.filter(
                     student=student,
                     topic=topic,
-                    submitted_at__gte=start_date
+                    task_type=task_type
                 ).first()
-                row.append(task.grade if task and task.grade else "—")
+                grade = task.grade if task and task.grade else None
+                row.append(grade if grade else "—")
+                if grade:
+                    grades.append(grade)
+            
+            # O'rtacha bahoni hisoblash
+            if grades:
+                average = sum(grades) / len(grades)
+                row.append(f"{average:.1f}")
+                student_rows.append((row, average))
+            else:
+                row.append("—")
+                student_rows.append((row, 0))  # Bahosi yo'q bo'lsa 0
+        
+        # O'rtacha bo'yicha tartiblash (eng yuqoridan pastga)
+        student_rows.sort(key=lambda x: x[1], reverse=True)
+        
+        # Faqat qatorlarni qo'shamiz (o'rtacha qiymatini emas)
+        for row, _ in student_rows:
             data.append(row)
 
         # PDF response

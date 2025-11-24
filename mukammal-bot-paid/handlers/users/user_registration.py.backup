@@ -1,0 +1,155 @@
+"""
+User registration flow: start command, full name processing
+No invite code required - direct registration
+Single group with approval link (50 user limit, excluding admins/owners/bots)
+"""
+from aiogram import types
+import aiohttp
+from aiogram.dispatcher import FSMContext
+from data.config import ADMINS, API_BASE_URL
+from loader import dp, bot
+from states.register_state import RegisterState
+from keyboards.default.vazifa_keyboard import vazifa_key
+
+
+# --- START - Direct Registration (No Invite Code) ---
+@dp.message_handler(commands=["start"], state="*")
+async def cmd_start(message: types.Message, state: FSMContext):
+    """
+    /start - to'g'ridan-to'g'ri ro'yxatdan o'tish (invite code yo'q)
+    """
+    # Avval state ni tozalaymiz
+    current_state = await state.get_state()
+    if current_state:
+        try:
+            await state.finish()
+        except Exception as e:
+            pass
+    
+    # Admin bo'lsa, oddiy salom xabari
+    if str(message.from_user.id) in ADMINS:
+        await message.answer("👋 Admin salom!")
+        return
+    
+    # Student allaqachon ro'yxatdan o'tganmi tekshiramiz
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/students/{message.from_user.id}/") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                await message.answer(
+                    f"👋 Salom, {data['full_name']}!\nSiz allaqachon ro'yxatdan o'tgansiz, vazifalarni yuborishingiz mumkin.",
+                    reply_markup=vazifa_key
+                )
+                return
+    
+    # Ro'yxatdan o'tish jarayonini boshlash
+    await message.answer(
+        "Assalomu alaykum! 👋\n\n"
+        "Ro'yxatdan o'tish uchun Ism familiyangizni kiriting: \n(Misol: Fayziyev Aslbek)"
+    )
+    await RegisterState.full_name.set()
+
+
+# F.I.Sh qabul qilish va ro'yxatdan o'tkazish
+@dp.message_handler(state=RegisterState.full_name)
+async def process_fish(message: types.Message, state: FSMContext):
+    """F.I.Sh qabul qilish va avtomatik ro'yxatdan o'tkazish"""
+    await state.update_data(full_name=message.text)
+    data = await state.get_data()
+    
+    # Barcha guruhlarni olish va bo'sh guruhni topish
+    # Guruh linkini tekshirish - approval link
+    if not group_obj:
+        await message.answer("❌ Guruh topilmadi. Admin bilan bog'laning.")
+        try:
+            await state.finish()
+        except Exception as e:
+            pass
+        return
+
+    group_invite_link = group_obj.get("invite_link")
+    group_telegram_id = group_obj.get("telegram_group_id")
+
+    # Agar link yo'q yoki noto'g'ri bo'lsa, bot o'zi yangi link yaratadi (agar admin bo'lsa)
+    if not group_invite_link or not group_telegram_id:
+        await message.answer("❌ Diqqat: Guruh uchun link o'rnatilmagan. Admin bilan bog'laning.")
+        admin_msg = (
+            "🚨 Diqqat: Guruh uchun link o'rnatilmagan!\n\n"
+            f"Guruh nomi: {group_obj['name']}\n"
+            f"Guruh ID: {group_telegram_id or 'N/A'}\n"
+        )
+        for admin_id in ADMINS:
+            try:
+                await bot.send_message(int(admin_id), admin_msg)
+            except Exception:
+                pass
+        try:
+            await state.finish()
+        except Exception:
+            pass
+        return
+
+    # Bot admin bo'lsa, yangi invite link yaratadi
+    try:
+        # Bot guruhda admin ekanligini tekshirish
+        bot_info = await bot.get_me()
+        bot_member = await bot.get_chat_member(group_telegram_id, bot_info.id)
+        if bot_member.status in ["administrator", "creator"]:
+            try:
+                invite_link_obj = await bot.create_chat_invite_link(
+                    group_telegram_id,
+                    member_limit=1
+                )
+                group_invite_link = invite_link_obj.invite_link
+                # Databazaga yangi linkni saqlash
+                async with aiohttp.ClientSession() as session:
+                    update_payload = {"invite_link": group_invite_link}
+                    try:
+                        async with session.patch(
+                            f"{API_BASE_URL}/groups/{selected_group}/",
+                            json=update_payload
+                        ) as resp:
+                            pass
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+    except Exception as e:
+        pass
+
+    # Userga link va ko'rsatma beramiz
+    group_name = group_obj["name"]
+    msg = f"✅ Guruh topildi!\n\n"
+    msg += f"👥 Guruh: {group_name}\n"
+    msg += f"👤 Hozirgi a'zolar: {real_member_count}/50\n\n"
+    msg += "📚 Guruhga qo'shiling:\n"
+    msg += f"🔗 {group_invite_link}\n"
+    msg += "   (Guruhga qo'shilgach, shu oynani yopib qayta /start bosing)\n\n"
+    msg += "⚠️ Vazifa yuborishdan oldin guruhga qo'shilganingizni tekshiramiz!\n"
+    await message.answer(msg, reply_markup=None, parse_mode="HTML")
+
+    # User guruhga qo'shilganini avtomatik tekshirish va DBga yozish
+    try:
+        member = await bot.get_chat_member(group_telegram_id, message.from_user.id)
+        if member.status in ["member", "administrator", "creator"]:
+            payload = {
+                "telegram_id": str(message.from_user.id),
+                "full_name": data["full_name"],
+                "group_id": selected_group
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
+                    if resp.status == 201:
+                        await message.answer("✅ Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi vazifa yuborishingiz mumkin.", reply_markup=vazifa_key)
+                    else:
+                        await message.answer("❌ Ro'yxatdan o'tishda xatolik bo'ldi.")
+            await state.finish()
+        else:
+            await message.answer("❌ Guruhga qo'shilmagansiz. Avval guruhga qo'shiling va /start ni qayta bosing.")
+    except Exception:
+        await message.answer("❌ Guruhga qo'shilmagansiz. Avval guruhga qo'shiling va /start ni qayta bosing.")
+        await state.finish()
+                    await message.answer(msg, reply_markup=None, parse_mode="HTML")
+                    await RegisterState.group.set()
+
+
