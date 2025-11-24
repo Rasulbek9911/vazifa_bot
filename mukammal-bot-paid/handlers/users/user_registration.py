@@ -211,10 +211,10 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # Har bir guruhni tekshirib, bo'sh guruhni topamiz
+        # Barcha guruhlarni tekshirib, eng ko'p to'lganini topish
         selected_group = None
         group_obj = None
-        real_member_count = 0
+        real_member_count = -1  # Eng ko'p to'lganini topish uchun
         
         for grp in groups:
             grp_id = grp["id"]
@@ -248,12 +248,12 @@ async def process_fish(message: types.Message, state: FSMContext):
                     # Xatolik bo'lsa, DB dan foydalanamiz
                     member_count = len(students_in_db)
             
-            # 50 dan kam bo'lsa, bu guruhni tanlaymiz
-            if member_count < 50:
+            # 50 dan kam va hozirgi eng ko'p to'lgandan ko'proq bo'lsa
+            if member_count < 50 and member_count > real_member_count:
                 selected_group = grp_id
                 group_obj = grp
                 real_member_count = member_count
-                break
+                # break ni OLIB TASHLADIK - barcha guruhlarni tekshirish uchun
         
         # Agar hech bir bo'sh guruh topilmasa
         if selected_group is None:
