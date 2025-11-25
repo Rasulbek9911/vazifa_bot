@@ -225,15 +225,34 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # Guruhlarni ID bo'yicha tartiblash (1-guruh, 2-guruh, 3-guruh...)
-        groups.sort(key=lambda x: x['id'])
+        # 1-KURS (milliy_sert) guruhlarini filtrlash va ID bo'yicha tartiblash
+        course1_groups = [g for g in groups if g.get('course_type') == 'milliy_sert' and not g.get('is_full')]
+        course1_groups.sort(key=lambda x: x['id'])
+        
+        # 2-KURS (attestatsiya) guruhlarini filtrlash va ID bo'yicha tartiblash
+        course2_groups = [g for g in groups if g.get('course_type') == 'attestatsiya' and not g.get('is_full')]
+        course2_groups.sort(key=lambda x: x['id'])
+        
+        # Avval 1-kursni to'ldiramiz, keyin 2-kursga o'tamiz
+        all_available_groups = course1_groups + course2_groups
+        
+        if not all_available_groups:
+            await message.answer(
+                "❌ Barcha guruhlar to'lgan!\n\n"
+                "Admin bilan bog'laning."
+            )
+            try:
+                await state.finish()
+            except (KeyError, Exception):
+                pass
+            return
         
         # Birinchi bo'sh guruhni topish (ketma-ket to'ldirish)
         selected_group = None
         group_obj = None
         min_member_count = 0
         
-        for grp in groups:
+        for grp in all_available_groups:
             grp_id = grp["id"]
             grp_telegram_id = grp.get("telegram_group_id")
             
@@ -257,6 +276,16 @@ async def process_fish(message: types.Message, state: FSMContext):
                     group_obj = grp
                     min_member_count = regular_members
                     break  # Birinchi bo'sh guruhni topganimizdan keyin to'xtaymiz
+                else:
+                    # Guruh to'lgan, is_full=True qilamiz
+                    try:
+                        async with aiohttp.ClientSession() as session_update:
+                            await session_update.patch(
+                                f"{API_BASE_URL}/groups/{grp_id}/",
+                                json={"is_full": True}
+                            )
+                    except:
+                        pass
             except Exception as e:
                 continue
         
