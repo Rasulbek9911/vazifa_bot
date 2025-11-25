@@ -59,7 +59,7 @@ async def set_grade(callback: types.CallbackQuery):
                 await callback.answer("❌ Xatolik yuz berdi", show_alert=True)
 
 
-@dp.message_handler(commands=["topics"])
+@dp.message_handler(commands=["topics"], user_id=ADMINS)
 async def show_all_topics(message: types.Message):
     import html
     from base_app.models import Topic

@@ -1,4 +1,5 @@
 
+
 from reportlab.lib.pagesizes import A4, landscape
 from django.http import HttpResponse
 from django.utils.timezone import now, timedelta
@@ -100,6 +101,34 @@ class TopicsListView(APIView):
         topics = Topic.objects.all()
         serializer = TopicSerializer(topics, many=True)
         return Response(serializer.data)
+
+class TopicDetailView(APIView):
+    """
+    Bitta mavzu detail (GET)
+    """
+    def get(self, request, pk):
+        try:
+            topic = Topic.objects.get(pk=pk)
+        except Topic.DoesNotExist:
+            return Response({"error": "Mavzu topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+        from .serializers import TopicSerializer
+        serializer = TopicSerializer(topic)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        try:
+            topic = Topic.objects.get(pk=pk)
+        except Topic.DoesNotExist:
+            return Response({"error": "Mavzu topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        correct_answers = request.data.get("correct_answers")
+        if correct_answers is not None:
+            topic.correct_answers = correct_answers
+            topic.save()
+            from .serializers import TopicSerializer
+            serializer = TopicSerializer(topic)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"error": "correct_answers kerak"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TaskSubmitView(APIView):

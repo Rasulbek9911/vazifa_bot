@@ -5,7 +5,7 @@ Single group with approval link (50 user limit, excluding admins/owners/bots)
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters import Text, Command
 from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from states.task_state import TaskState
@@ -442,4 +442,135 @@ async def process_file(message: types.Message, state: FSMContext):
     try:
         await state.finish()
     except:
+        pass
+
+
+# --- ADMIN TEST QO'SHISH ---
+@dp.message_handler(Command("addtest"), user_id=ADMINS)
+async def admin_add_test_start(message: types.Message, state: FSMContext):
+    # Faqat adminlar
+    try:
+        await state.finish()
+    except Exception:
+        pass
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/topics/") as resp:
+            topics = await resp.json()
+    if not topics:
+        await message.answer("❌ Mavzular topilmadi.")
+        return
+    kb = types.InlineKeyboardMarkup()
+    for t in topics:
+        kb.add(types.InlineKeyboardButton(text=t["title"], callback_data=f"addtest_topic_{t['id']}"))
+    await message.answer("📝 Test qo'shmoqchi bo'lgan mavzuni tanlang:", reply_markup=kb)
+    await state.set_state("addtest_topic")
+
+@dp.callback_query_handler(lambda c: c.data.startswith("addtest_topic_"), state="addtest_topic")
+async def admin_add_test_topic(callback: types.CallbackQuery, state: FSMContext):
+    topic_id = int(callback.data.split("_")[-1])
+    await state.update_data(topic_id=topic_id)
+    await callback.message.answer("Test kodi (masalan: 1, A, +) ni kiriting:")
+    await state.set_state("addtest_code")
+    await callback.answer()
+
+@dp.message_handler(state="addtest_code", user_id=ADMINS)
+async def admin_add_test_code(message: types.Message, state: FSMContext):
+    test_code = message.text.strip()
+    data = await state.get_data()
+    topic_id = data["topic_id"]
+    
+    # Avval mavzudan eski testlarni tekshiramiz
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp:
+            if resp.status != 200:
+                await message.answer("❌ Mavzu topilmadi!")
+                try:
+                    await state.finish()
+                except KeyError:
+                    pass
+                return
+            topic = await resp.json()
+        
+        correct_answers = topic.get("correct_answers") or {}
+        
+        # Agar bu test kodi allaqachon mavjud bo'lsa, ogohlantirish
+        if test_code in correct_answers:
+            await state.update_data(test_code=test_code, overwrite_warning=True)
+            await message.answer(
+                f"⚠️ Diqqat! Bu mavzuda '{test_code}' test kodi allaqachon mavjud:\n"
+                f"Eski javob: {correct_answers[test_code]}\n\n"
+                f"Yangi javobni kiritishda davom etsangiz, eski test o'chiriladi va yangi test qo'shiladi.\n\n"
+                f"Yangi javobni kiriting yoki /cancel ni bosib bekor qiling:"
+            )
+            await state.set_state("addtest_answer")
+            return
+    
+    await state.update_data(test_code=test_code)
+    await message.answer(
+        "To'g'ri javobni kiriting.\n"
+        "\n"
+        "Formatlar:\n"
+        "1) Harflar ketma-ketligi: abcd\n"
+        "   (Masalan: abcd - 4 ta savolga 4 ta harf)\n"
+        "\n"
+        "2) Raqam-harf juftligi: 1a2b3c4d\n"
+        "   (Masalan: 1a2b3c4d - har bir savol raqam bilan, javobi harf bilan)\n"
+        "\n"
+        "Ikkala formatdan birini tanlab, to'g'ri javoblarni kiriting."
+    )
+    await state.set_state("addtest_answer")
+
+@dp.message_handler(state="addtest_answer", user_id=ADMINS)
+async def admin_add_test_answer(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    topic_id = data["topic_id"]
+    test_code = data["test_code"]
+    correct_answer = message.text.strip()
+    overwrite_warning = data.get("overwrite_warning", False)
+    
+    # API orqali correct_answers ni yangilash
+    async with aiohttp.ClientSession() as session:
+        # Avval eski correct_answers ni olish
+        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp:
+            if resp.status != 200:
+                await message.answer("❌ Mavzu topilmadi!")
+                try:
+                    await state.finish()
+                except KeyError:
+                    pass
+                return
+            topic = await resp.json()
+        
+        correct_answers = topic.get("correct_answers") or {}
+        
+        # Agar overwrite_warning bo'lsa, eski testni o'chiramiz
+        if overwrite_warning:
+            old_answer = correct_answers.get(test_code, "N/A")
+            correct_answers[test_code] = correct_answer
+            
+            # PATCH request
+            async with session.patch(f"{API_BASE_URL}/topics/{topic_id}/", json={"correct_answers": correct_answers}) as resp2:
+                if resp2.status == 200:
+                    await message.answer(
+                        f"✅ Test yangilandi!\n\n"
+                        f"Test kodi: {test_code}\n"
+                        f"Eski javob: {old_answer}\n"
+                        f"Yangi javob: {correct_answer}"
+                    )
+                else:
+                    await message.answer("❌ Test qo'shishda xatolik!")
+        else:
+            # Oddiy qo'shish
+            correct_answers[test_code] = correct_answer
+            
+            # PATCH request
+            async with session.patch(f"{API_BASE_URL}/topics/{topic_id}/", json={"correct_answers": correct_answers}) as resp2:
+                if resp2.status == 200:
+                    await message.answer(f"✅ Test qo'shildi: {test_code} → {correct_answer}")
+                else:
+                    await message.answer("❌ Test qo'shishda xatolik!")
+    
+    try:
+        await state.finish()
+    except KeyError:
         pass
