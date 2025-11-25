@@ -321,22 +321,25 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         user_answer = test_answers.lower()
         
         # Format bo'yicha parsing
-        # Admin formati: "abc" yoki "1a2b3c"
-        # User javoblari: "abc" yoki "1a2b3c"
+        # Admin formati: "abc" yoki "1a2b3c" yoki "10a11b12c"
+        # User javoblari: "abc" yoki "1a2b3c" yoki "10a11b12c"
         
-        # Agar admin javobida raqam-harf formatida bo'lsa (1a2b3c), parse qilamiz
+        # Agar admin javobida raqam-harf formatida bo'lsa (1a2b3c yoki 10a11b12c), parse qilamiz
         correct_dict = {}
         if any(c.isdigit() for c in correct):
-            # Format: 1a2b3c
+            # Format: 1a2b3c yoki 10a11b12c
             i = 0
             while i < len(correct):
                 if correct[i].isdigit():
-                    question_num = correct[i]
-                    if i + 1 < len(correct) and correct[i + 1].isalpha():
-                        answer = correct[i + 1]
+                    # Ko'p raqamli savollarni to'plash (10, 11, 12, ...)
+                    question_num = ''
+                    while i < len(correct) and correct[i].isdigit():
+                        question_num += correct[i]
+                        i += 1
+                    # Keyingi harf javob
+                    if i < len(correct) and correct[i].isalpha():
+                        answer = correct[i]
                         correct_dict[question_num] = answer
-                        i += 2
-                    else:
                         i += 1
                 else:
                     i += 1
@@ -349,16 +352,19 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         # User javoblarini parse qilish
         user_dict = {}
         if any(c.isdigit() for c in user_answer):
-            # Format: 1a2b3c
+            # Format: 1a2b3c yoki 10a11b12c
             i = 0
             while i < len(user_answer):
                 if user_answer[i].isdigit():
-                    question_num = user_answer[i]
-                    if i + 1 < len(user_answer) and user_answer[i + 1].isalpha():
-                        answer = user_answer[i + 1]
+                    # Ko'p raqamli savollarni to'plash (10, 11, 12, ...)
+                    question_num = ''
+                    while i < len(user_answer) and user_answer[i].isdigit():
+                        question_num += user_answer[i]
+                        i += 1
+                    # Keyingi harf javob
+                    if i < len(user_answer) and user_answer[i].isalpha():
+                        answer = user_answer[i]
                         user_dict[question_num] = answer
-                        i += 2
-                    else:
                         i += 1
                 else:
                     i += 1
