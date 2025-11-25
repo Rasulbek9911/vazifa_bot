@@ -401,23 +401,21 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             else:
                 result_text += f"{q_num}. ❌ {user_ans.upper()} (To'g'ri: {correct_ans.upper()})\n"
         
-        # Foiz va baho
+        # Foiz hisoblab userga ko'rsatish (baho ko'rsatmaslik)
         percentage = (correct_count / total_count * 100) if total_count > 0 else 0
-        grade = int(percentage / 20)  # 5 ball tizimi
         
-        result_text += f"\n📈 Natija: {correct_count}/{total_count} ({percentage:.1f}%)\n"
-        result_text += f"⭐ Baho: {grade}"
+        result_text += f"\n📈 Natija: {correct_count}/{total_count} ({percentage:.1f}%)"
         
         await message.answer(result_text, reply_markup=vazifa_key)
         
-        # DBga saqlash - natija bilan
+        # DBga saqlash - grade qismiga to'g'ri javoblar soni
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
             "test_code": test_code,
             "test_answers": test_answers,
-            "grade": grade
+            "grade": correct_count  # To'g'ri javoblar soni
         }
     else:
         # To'g'ri javoblar mavjud emas - oddiy saqlash
