@@ -9,6 +9,7 @@ from loader import dp, bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
+from states.broadcast_state import BroadcastState
 
 
 # --- Baho qo'yish ---
@@ -118,3 +119,76 @@ async def activate_topic(message: types.Message):
 
     for student in students:
         await safe_send_message(student.telegram_id, notify_text)
+
+
+# --- Barcha userlarga xabar yuborish ---
+@dp.message_handler(commands=["broadcast"], user_id=ADMINS)
+async def start_broadcast(message: types.Message):
+    """Admin barcha userlarga xabar yuborish uchun"""
+    await message.answer(
+        "📢 Barcha userlarga yubormoqchi bo'lgan xabaringizni yuboring:\n\n"
+        "⚠️ Xabar matn, rasm, video yoki hujjat bo'lishi mumkin.\n"
+        "Bekor qilish uchun: /cancel"
+    )
+    await BroadcastState.message.set()
+
+
+@dp.message_handler(state=BroadcastState.message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
+async def process_broadcast_message(message: types.Message, state: FSMContext):
+    """Broadcast xabarini qabul qilish va yuborish"""
+    from base_app.models import Student
+    
+    # Barcha studentlarni olish
+    students = await sync_to_async(list)(Student.objects.all())
+    
+    if not students:
+        await message.answer("❌ Hech qanday student topilmadi.")
+        try:
+            await state.finish()
+        except KeyError:
+            pass
+        return
+    
+    await message.answer(f"📤 Xabar {len(students)} ta userga yuborilmoqda...")
+    
+    success_count = 0
+    fail_count = 0
+    
+    for student in students:
+        try:
+            # Message turini aniqlash va copy qilish
+            await message.copy_to(student.telegram_id)
+            success_count += 1
+        except Exception as e:
+            fail_count += 1
+            print(f"Failed to send to {student.telegram_id}: {e}")
+    
+    # Natijani ko'rsatish
+    result_text = (
+        f"✅ Xabar yuborish tugadi!\n\n"
+        f"📊 Natija:\n"
+        f"✅ Muvaffaqiyatli: {success_count}\n"
+        f"❌ Xato: {fail_count}\n"
+        f"📝 Jami: {len(students)}"
+    )
+    
+    await message.answer(result_text)
+    try:
+        await state.finish()
+    except KeyError:
+        pass
+
+
+@dp.message_handler(commands=["cancel"], state="*", user_id=ADMINS)
+async def cancel_broadcast(message: types.Message, state: FSMContext):
+    """Broadcast jarayonini bekor qilish"""
+    current_state = await state.get_state()
+    if current_state is None:
+        await message.answer("❌ Hech qanday jarayon yo'q.")
+        return
+    
+    try:
+        await state.finish()
+    except KeyError:
+        pass
+    await message.answer("✅ Jarayon bekor qilindi.")
