@@ -43,10 +43,24 @@ class StudentIsRegisteredView(APIView):
 
 class StudentRegisterView(APIView):
     """
-    Student ro‘yxatdan o‘tadi (telegram_id + full_name + group_id)
+    Student ro'yxatdan o'tadi (telegram_id + full_name + group_id)
+    Agar student allaqachon ro'yxatdan o'tgan bo'lsa, xatolik beradi
     """
 
     def post(self, request):
+        telegram_id = request.data.get("telegram_id")
+        
+        # Agar student allaqachon ro'yxatdan o'tgan bo'lsa, xatolik beramiz
+        if telegram_id:
+            try:
+                student = Student.objects.get(telegram_id=telegram_id)
+                return Response(
+                    {"error": f"Siz allaqachon {student.full_name} ismi bilan ro'yxatdan o'tgansiz"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except Student.DoesNotExist:
+                pass
+        
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
             student = serializer.save()

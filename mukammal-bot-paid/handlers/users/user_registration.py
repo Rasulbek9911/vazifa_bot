@@ -71,6 +71,23 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                         except (KeyError, Exception):
                                             pass
                                         return
+                                    elif resp2.status == 400:
+                                        error_data = await resp2.json()
+                                        error_msg = error_data.get("error", "Ro'yxatdan o'tishda xatolik bo'ldi")
+                                        await message.answer(f"⚠️ {error_msg}")
+                                        try:
+                                            await state.finish()
+                                        except (KeyError, Exception):
+                                            pass
+                                        return
+                                            f"Endi vazifa yuborishingiz mumkin.",
+                                            reply_markup=vazifa_key
+                                        )
+                                        try:
+                                            await state.finish()
+                                        except (KeyError, Exception):
+                                            pass
+                                        return
                     except Exception:
                         pass
             
@@ -189,6 +206,10 @@ async def process_fish(message: types.Message, state: FSMContext):
                         f"Endi vazifa yuborishingiz mumkin.",
                         reply_markup=vazifa_key
                     )
+                elif resp.status == 400:
+                    error_data = await resp.json()
+                    error_msg = error_data.get("error", "Ro'yxatdan o'tishda xatolik bo'ldi")
+                    await message.answer(f"⚠️ {error_msg}")
                 else:
                     await message.answer("❌ Ro'yxatdan o'tishda xatolik bo'ldi.")
         
