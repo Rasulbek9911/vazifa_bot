@@ -80,14 +80,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                         except (KeyError, Exception):
                                             pass
                                         return
-                                            f"Endi vazifa yuborishingiz mumkin.",
-                                            reply_markup=vazifa_key
-                                        )
-                                        try:
-                                            await state.finish()
-                                        except (KeyError, Exception):
-                                            pass
-                                        return
+                                       
                     except Exception:
                         pass
             
@@ -232,49 +225,40 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # Barcha guruhlarni tekshirib, eng ko'p to'lganini topish
+        # Guruhlarni ID bo'yicha tartiblash (1-guruh, 2-guruh, 3-guruh...)
+        groups.sort(key=lambda x: x['id'])
+        
+        # Birinchi bo'sh guruhni topish (ketma-ket to'ldirish)
         selected_group = None
         group_obj = None
-        real_member_count = -1  # Eng ko'p to'lganini topish uchun
+        min_member_count = 0
         
         for grp in groups:
             grp_id = grp["id"]
             grp_telegram_id = grp.get("telegram_group_id")
             
-            # Database dan studentlar sonini tekshirish
-            async with session.get(f"{API_BASE_URL}/students/?group_id={grp_id}") as resp2:
-                students_in_db = await resp2.json()
+            if not grp_telegram_id:
+                continue  # Telegram ID bo'lmasa, o'tkazib yuboramiz
             
-            # Agar Telegram group ID bo'lsa, haqiqiy a'zolar sonini tekshiramiz
-            # Faqat oddiy userlarni sanaymiz (adminlar, ownerlar, botlar emas)
-            member_count = len(students_in_db)  # Default: DB dan
-            
-            if grp_telegram_id:
-                try:
-                    # Guruh a'zolarini olish
-                    chat_members_count = await bot.get_chat_members_count(grp_telegram_id)
-                    
-                    # Adminlar, ownerlar va botlarni sanash
-                    non_user_count = 0
-                    try:
-                        # Chat administratorlarini olish
-                        admins = await bot.get_chat_administrators(grp_telegram_id)
-                        non_user_count = len(admins)  # Adminlar va ownerlar
-                    except Exception:
-                        non_user_count = 3  # Default: ~3 admin
-                    
-                    # Haqiqiy user soni = Jami a'zolar - Adminlar/Ownerlar/Botlar
-                    member_count = max(0, chat_members_count - non_user_count)
-                except Exception:
-                    # Xatolik bo'lsa, DB dan foydalanamiz
-                    member_count = len(students_in_db)
-            
-            # 50 dan kam va hozirgi eng ko'p to'lgandan ko'proq bo'lsa
-            if member_count < 50 and member_count > real_member_count:
-                selected_group = grp_id
-                group_obj = grp
-                real_member_count = member_count
-                # break ni OLIB TASHLADIK - barcha guruhlarni tekshirish uchun
+            try:
+                # Guruh a'zolari sonini tekshirish
+                chat_members_count = await bot.get_chat_member_count(grp_telegram_id)
+                
+                # Adminlar sonini hisoblash
+                admins = await bot.get_chat_administrators(grp_telegram_id)
+                admin_count = len(admins)
+                
+                # Oddiy a'zolar soni (adminlardan tashqari)
+                regular_members = chat_members_count - admin_count
+                
+                # Birinchi bo'sh guruhni topamiz (50 dan kam bo'lishi kerak)
+                if regular_members < 50:
+                    selected_group = grp_id
+                    group_obj = grp
+                    min_member_count = regular_members
+                    break  # Birinchi bo'sh guruhni topganimizdan keyin to'xtaymiz
+            except Exception as e:
+                continue
         
         # Agar hech bir bo'sh guruh topilmasa
         if selected_group is None:
@@ -319,12 +303,96 @@ async def process_fish(message: types.Message, state: FSMContext):
             pass
         return
 
-    # Bot admin bo'lsa, yangi invite link yaratadi
+    # Bot admin bo'lsa, avval guruh a'zolari sonini tekshiramiz
     try:
         bot_info = await bot.get_me()
         bot_member = await bot.get_chat_member(group_telegram_id, bot_info.id)
         
         if bot_member.status in ["administrator", "creator"]:
+            # Guruh a'zolari sonini tekshirish (adminlardan tashqari)
+            try:
+                chat_members_count = await bot.get_chat_member_count(group_telegram_id)
+                
+                # Adminlar sonini hisoblash
+                admins = await bot.get_chat_administrators(group_telegram_id)
+                admin_count = len(admins)
+                
+                # Oddiy a'zolar soni (adminlardan tashqari)
+                regular_members = chat_members_count - admin_count
+                
+                print(f"📊 Guruh statistikasi: Jami={chat_members_count}, Adminlar={admin_count}, Oddiy a'zolar={regular_members}")
+                
+                # Agar 50 dan oshgan bo'lsa, keyingi guruhni topamiz
+                if regular_members >= 50:
+                    # Barcha guruhlarni tekshirib, bo'sh guruhni topamiz
+                    next_group = None
+                    async with aiohttp.ClientSession() as session3:
+                        async with session3.get(f"{API_BASE_URL}/groups/") as resp:
+                            all_groups = await resp.json()
+                    
+                    for grp in all_groups:
+                        if grp.get("telegram_group_id"):
+                            try:
+                                grp_count = await bot.get_chat_member_count(grp["telegram_group_id"])
+                                grp_admins = await bot.get_chat_administrators(grp["telegram_group_id"])
+                                grp_regular = grp_count - len(grp_admins)
+                                
+                                if grp_regular < 50:
+                                    next_group = grp
+                                    break
+                            except Exception as e:
+                                continue
+                    
+                    if next_group:
+                        # Keyingi guruhga o'tkazamiz
+                        await message.answer(
+                            f"⚠️ Tanlagan guruhingiz to'lgan ({regular_members}/50)!\n\n"
+                            f"✅ Sizni '{next_group['name']}' guruhiga o'tkazyapmiz.\n\n"
+                            f"Davom etamizmi?"
+                        )
+                        
+                        # State ni yangilaymiz
+                        await state.update_data(group_id=next_group["id"])
+                        selected_group = next_group["id"]
+                        group_telegram_id = next_group["telegram_group_id"]
+                        
+                        # Yangi guruh uchun link yaratamiz
+                        # (pastda yana tekshiriladi, shuning uchun return qilmaymiz)
+                    else:
+                        # Hech qanday bo'sh guruh yo'q
+                        await message.answer(
+                            f"❌ Kechirasiz, barcha guruhlar to'lgan!\n\n"
+                            f"Iltimos, admin bilan bog'laning."
+                        )
+                        try:
+                            await state.finish()
+                        except:
+                            pass
+                        return
+            except Exception as e:
+                pass
+            
+            # Yangi guruh uchun yana bir marta a'zolar sonini tekshiramiz
+            try:
+                chat_members_count = await bot.get_chat_member_count(group_telegram_id)
+                admins = await bot.get_chat_administrators(group_telegram_id)
+                admin_count = len(admins)
+                regular_members = chat_members_count - admin_count
+                
+                if regular_members >= 50:
+                    await message.answer(
+                        f"❌ Kechirasiz, bu guruh ham to'lgan!\n\n"
+                        f"Iltimos, admin bilan bog'laning."
+                    )
+                    try:
+                        await state.finish()
+                    except:
+                        pass
+                    return
+            except Exception as e:
+                pass
+            
+            # Guruh to'lmagan bo'lsa, 1 martalik link yaratamiz
             try:
                 invite_link_obj = await bot.create_chat_invite_link(
                     group_telegram_id,
@@ -351,7 +419,7 @@ async def process_fish(message: types.Message, state: FSMContext):
     group_name = group_obj["name"]
     msg = f"✅ Guruh topildi!\n\n"
     msg += f"👥 Guruh: {group_name}\n"
-    msg += f"👤 Hozirgi a'zolar: {real_member_count}/50\n\n"
+    msg += f"👤 Hozirgi a'zolar: {min_member_count}/50\n\n"
     msg += "📚 Guruhga qo'shiling:\n"
     msg += f"🔗 {group_invite_link}\n\n"
     msg += "⚠️ Guruhga qo'shilgandan so'ng /start ni qayta bosing!\n"

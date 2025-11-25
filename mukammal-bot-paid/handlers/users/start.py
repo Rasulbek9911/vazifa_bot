@@ -76,12 +76,60 @@ async def send_task(message: types.Message):
             
             if group_not_joined and group_obj and group_obj.get("telegram_group_id"):
                 try:
-                    # Yangi 1 martalik link yaratish
-                    group_invite = await bot.create_chat_invite_link(
-                        chat_id=group_obj.get("telegram_group_id"),
-                        member_limit=1
-                    )
-                    msg += f"🔹 O'z guruhingiz: {group_invite.invite_link}\n"
+                    # Avval guruh a'zolari sonini tekshiramiz
+                    chat_members_count = await bot.get_chat_member_count(group_obj.get("telegram_group_id"))
+                    admins = await bot.get_chat_administrators(group_obj.get("telegram_group_id"))
+                    admin_count = len(admins)
+                    regular_members = chat_members_count - admin_count
+                    
+                    print(f"📊 Guruh '{group_obj.get('name')}' statistikasi: Jami={chat_members_count}, Adminlar={admin_count}, Oddiy a'zolar={regular_members}")
+                    
+                    # Agar 50 dan oshgan bo'lsa, keyingi guruhni topamiz
+                    if regular_members >= 50:
+                        print(f"⚠️ Guruh to'lgan ({regular_members}/50), keyingi guruhni qidiryapmiz...")
+                        msg += f"⚠️ Guruh '{group_obj.get('name')}' to'lgan ({regular_members}/50)!\n\n"
+                        
+                        # Barcha guruhlarni tekshirib, bo'sh guruhni topamiz
+                        next_group = None
+                        for grp in groups:
+                            if grp["id"] != group_obj["id"] and grp.get("telegram_group_id"):
+                                try:
+                                    grp_count = await bot.get_chat_member_count(grp["telegram_group_id"])
+                                    grp_admins = await bot.get_chat_administrators(grp["telegram_group_id"])
+                                    grp_regular = grp_count - len(grp_admins)
+                                    
+                                    print(f"  Guruh '{grp['name']}': {grp_regular}/50")
+                                    
+                                    if grp_regular < 50:
+                                        next_group = grp
+                                        print(f"✅ Bo'sh guruh topildi: {grp['name']}")
+                                        break
+                                except Exception as e:
+                                    print(f"  Guruh '{grp['name']}' tekshiruvida xatolik: {e}")
+                                    continue
+                        
+                        if next_group:
+                            # Keyingi guruhga link beramiz
+                            try:
+                                next_invite = await bot.create_chat_invite_link(
+                                    chat_id=next_group["telegram_group_id"],
+                                    member_limit=1
+                                )
+                                msg += f"✅ Bo'sh guruh topildi: '{next_group['name']}'\n"
+                                msg += f"🔹 Yangi guruh linki: {next_invite.invite_link}\n"
+                                msg += f"   (Ushbu guruhga o'tib, vazifa yuborishingiz mumkin)\n\n"
+                            except Exception as e:
+                                print(f"Keyingi guruh uchun link yaratishda xatolik: {e}")
+                                msg += f"❌ Keyingi guruh uchun link yaratib bo'lmadi.\n\n"
+                        else:
+                            msg += f"❌ Barcha guruhlar to'lgan! Admin bilan bog'laning.\n\n"
+                    else:
+                        # Guruh to'lmagan bo'lsa, 1 martalik link yaratamiz
+                        group_invite = await bot.create_chat_invite_link(
+                            chat_id=group_obj.get("telegram_group_id"),
+                            member_limit=1
+                        )
+                        msg += f"🔹 O'z guruhingiz ({regular_members}/50): {group_invite.invite_link}\n"
                 except Exception as e:
                     print(f"O'z guruhi uchun link yaratishda xatolik (chat_id={group_obj.get('telegram_group_id')}): {e}")
                     if group_obj.get("invite_link"):
