@@ -10,6 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
 from states.broadcast_state import BroadcastState
+from filters.is_private import IsPrivate
 
 
 # --- Baho qo'yish ---
@@ -60,7 +61,7 @@ async def set_grade(callback: types.CallbackQuery):
                 await callback.answer("❌ Xatolik yuz berdi", show_alert=True)
 
 
-@dp.message_handler(commands=["topics"], user_id=ADMINS)
+@dp.message_handler(IsPrivate(), commands=["topics"], user_id=ADMINS)
 async def show_all_topics(message: types.Message):
     import html
     from base_app.models import Topic
@@ -97,7 +98,7 @@ async def show_all_topics(message: types.Message):
     await message.answer(text, parse_mode="HTML")
 
 
-@dp.message_handler(commands=["activate"])
+@dp.message_handler(IsPrivate(), commands=["activate"])
 async def activate_topic(message: types.Message):
     from base_app.models import Topic, Student
 
@@ -138,7 +139,7 @@ async def activate_topic(message: types.Message):
 
 
 # --- Barcha userlarga xabar yuborish ---
-@dp.message_handler(commands=["broadcast"], user_id=ADMINS)
+@dp.message_handler(IsPrivate(), commands=["broadcast"], user_id=ADMINS)
 async def start_broadcast(message: types.Message):
     """Admin barcha userlarga xabar yuborish uchun"""
     await message.answer(
@@ -149,7 +150,7 @@ async def start_broadcast(message: types.Message):
     await BroadcastState.message.set()
 
 
-@dp.message_handler(state=BroadcastState.message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
+@dp.message_handler(IsPrivate(), state=BroadcastState.message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
 async def process_broadcast_message(message: types.Message, state: FSMContext):
     """Broadcast xabarini qabul qilish va yuborish"""
     from base_app.models import Student
@@ -195,7 +196,7 @@ async def process_broadcast_message(message: types.Message, state: FSMContext):
         pass
 
 
-@dp.message_handler(commands=["cancel"], state="*", user_id=ADMINS)
+@dp.message_handler(IsPrivate(), commands=["cancel"], state="*", user_id=ADMINS)
 async def cancel_broadcast(message: types.Message, state: FSMContext):
     """Broadcast jarayonini bekor qilish"""
     current_state = await state.get_state()

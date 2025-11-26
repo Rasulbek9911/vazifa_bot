@@ -10,10 +10,11 @@ from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from states.register_state import RegisterState
 from keyboards.default.vazifa_keyboard import vazifa_key
+from filters.is_private import IsPrivate
 
 
 # --- START - Direct Registration (No Invite Code) ---
-@dp.message_handler(commands=["start"], state="*")
+@dp.message_handler(IsPrivate(), commands=["start"], state="*")
 async def cmd_start(message: types.Message, state: FSMContext):
     """
     /start - to'g'ridan-to'g'ri ro'yxatdan o'tish (invite code yo'q)
@@ -173,7 +174,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 
 # F.I.Sh qabul qilish va ro'yxatdan o'tkazish
-@dp.message_handler(state=RegisterState.full_name)
+@dp.message_handler(IsPrivate(), state=RegisterState.full_name)
 async def process_fish(message: types.Message, state: FSMContext):
     """F.I.Sh qabul qilish va avtomatik ro'yxatdan o'tkazish"""
     await state.update_data(full_name=message.text)
@@ -402,7 +403,7 @@ async def process_fish(message: types.Message, state: FSMContext):
                 admin_count = len(admins)
                 regular_members = chat_members_count - admin_count
                 
-                if regular_members >= 50:
+                if regular_members >= 200:
                     await message.answer(
                         f"❌ Kechirasiz, bu guruh ham to'lgan!\n\n"
                         f"Iltimos, admin bilan bog'laning."
