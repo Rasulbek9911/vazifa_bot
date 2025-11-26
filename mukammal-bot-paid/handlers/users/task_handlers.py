@@ -11,18 +11,19 @@ from loader import dp, bot
 from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import vazifa_key
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from filters.is_private import IsPrivate
 
 
 # General channel/group ID is configured in data.config
 
 
-@dp.message_handler(Text(equals="📝 Test yuborish"))
+@dp.message_handler(IsPrivate(), Text(equals="📝 Test yuborish"))
 async def send_test(message: types.Message, state: FSMContext):
     await state.update_data(task_type="test")
     # ✨ YANGI: Avvali course_type tanlash
     await _ask_course_type(message, state, "📝 Test")
 
-@dp.message_handler(Text(equals="📋 Maxsus topshiriq yuborish"))
+@dp.message_handler(IsPrivate(), Text(equals="📋 Maxsus topshiriq yuborish"))
 async def send_assignment(message: types.Message, state: FSMContext):
     await state.update_data(task_type="assignment")
     # ✨ YANGI: Avvali course_type tanlash
@@ -531,7 +532,7 @@ async def process_file(message: types.Message, state: FSMContext):
 
 
 # --- ADMIN TEST QO'SHISH ---
-@dp.message_handler(Command("addtest"), user_id=ADMINS)
+@dp.message_handler(IsPrivate(), Command("addtest"), user_id=ADMINS)
 async def admin_add_test_start(message: types.Message, state: FSMContext):
     # Faqat adminlar
     try:
@@ -558,7 +559,7 @@ async def admin_add_test_topic(callback: types.CallbackQuery, state: FSMContext)
     await state.set_state("addtest_code")
     await callback.answer()
 
-@dp.message_handler(state="addtest_code", user_id=ADMINS)
+@dp.message_handler(IsPrivate(), state="addtest_code", user_id=ADMINS)
 async def admin_add_test_code(message: types.Message, state: FSMContext):
     test_code = message.text.strip()
     data = await state.get_data()
@@ -615,7 +616,7 @@ async def admin_add_test_code(message: types.Message, state: FSMContext):
     )
     await state.set_state("addtest_answer")
 
-@dp.message_handler(state="addtest_answer", user_id=ADMINS)
+@dp.message_handler(IsPrivate(), state="addtest_answer", user_id=ADMINS)
 async def admin_add_test_answer(message: types.Message, state: FSMContext):
     data = await state.get_data()
     topic_id = data["topic_id"]
