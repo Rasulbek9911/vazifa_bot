@@ -19,14 +19,17 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 @dp.message_handler(Text(equals="📝 Test yuborish"))
 async def send_test(message: types.Message, state: FSMContext):
     await state.update_data(task_type="test")
-    await _send_task_common(message, state, "📝 Test")
+    # ✨ YANGI: Avvali course_type tanlash
+    await _ask_course_type(message, state, "📝 Test")
 
 @dp.message_handler(Text(equals="📋 Maxsus topshiriq yuborish"))
 async def send_assignment(message: types.Message, state: FSMContext):
     await state.update_data(task_type="assignment")
-    await _send_task_common(message, state, "📋 Maxsus topshiriq")
+    # ✨ YANGI: Avvali course_type tanlash
+    await _ask_course_type(message, state, "📋 Maxsus topshiriq")
 
-async def _send_task_common(message: types.Message, state: FSMContext, task_name: str):
+async def _ask_course_type(message: types.Message, state: FSMContext, task_name: str):
+    """Course type (milliy_sert / attestatsiya) tanlash"""
     telegram_id = message.from_user.id
     
     # Adminlarni tekshirish - adminlar vazifa yubormaydi
@@ -52,109 +55,107 @@ async def _send_task_common(message: types.Message, state: FSMContext, task_name
                     "📝 /start ni bosib qayta ro'yxatdan o'ting."
                 )
                 return
-            
-        # Guruh ma'lumotlarini olish
+        
+        # Guruh ma'lumotlarini olish va course_type aniqla
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
             groups = await resp.json()
             
         group_obj = next((g for g in groups if g["id"] == group_id), None)
+        student_course_type = group_obj.get("course_type") if group_obj else None
         
-        # Guruhga qo'shilganligini tekshirish
-        # Faqat "member", "administrator" yoki "creator" bo'lsa vazifa yuborishi mumkin
-        group_not_joined = True  # Default: qo'shilmagan
+        if not student_course_type:
+            await message.answer("❌ Sizning kurs turi aniqlanmadi!")
+            return
+    
+    # Course type ma'lumotini saqla va davom et
+    await state.update_data(
+        student_data=student_data,
+        student_course_type=student_course_type,
+        group_obj=group_obj
+    )
+    
+    # Guruhga qo'shilganligini tekshirish
+    await _check_group_and_send_topics(message, state, task_name)
+
+async def _check_group_and_send_topics(message: types.Message, state: FSMContext, task_name: str):
+    """Guruhga qo'shilganligini tekshir va mavzularni yuborish"""
+    telegram_id = message.from_user.id
+    data = await state.get_data()
+    
+    student_data = data.get("student_data", {})
+    group_id = student_data.get("group", {}).get("id")
+    group_obj = data.get("group_obj", {})
+    student_course_type = data.get("student_course_type", "milliy_sert")
+    
+    # Guruhga qo'shilganligini tekshirish
+    group_not_joined = True
+    
+    if group_obj and group_obj.get("telegram_group_id"):
+        try:
+            bot_info = await bot.get_me()
+            bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
+            
+            if bot_member.status in ["administrator", "creator"]:
+                group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
+                if group_member.status in ["member", "administrator", "creator"]:
+                    group_not_joined = False
+        except Exception as e:
+            print(f"❌ Guruh membership tekshiruvida xatolik: {e}")
+    
+    if group_not_joined:
+        msg = "❌ Siz guruhga qo'shilmagansiz!\n\n"
         
-        # Guruhga qo'shilganmi tekshirish
         if group_obj and group_obj.get("telegram_group_id"):
+            user_status = None
             try:
-                # Avval botning o'zi admin ekanligini tekshiramiz
                 bot_info = await bot.get_me()
                 bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
                 
-                # Bot admin bo'lsa, user statusini tekshiramiz
                 if bot_member.status in ["administrator", "creator"]:
-                    group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                    
-                    # Faqat member, administrator yoki creator bo'lsa qo'shilgan hisoblanadi
-                    if group_member.status in ["member", "administrator", "creator"]:
-                        group_not_joined = False
-                    # left, kicked, restricted - qo'shilmagan (lekin link beramiz)
-                    else:
-                        group_not_joined = True
-                else:
-                    # Bot admin bo'lmasa ham, user qo'shilmagan deb hisoblaymiz
-                    group_not_joined = True
-            except Exception as e:
-                # Exception bo'lsa, xatolik haqida ma'lumot beramiz
-                print(f"❌ Guruh membership tekshiruvida xatolik: {e}")
-                # Exception bo'lsa ham, user qo'shilmagan deb hisoblaymiz (xavfsizlik uchun)
-                group_not_joined = True
-        else:
-            group_not_joined = True
-        
-        # Agar qo'shilmagan bo'lsa, link beramiz (kicked bo'lsa ham qayta qo'shilishi mumkin)
-        if group_not_joined:
-            msg = "❌ Siz guruhga qo'shilmagansiz!\n\n"
+                    user_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
+                    user_status = user_member.status
+            except Exception:
+                pass
             
-            # Guruh linki - kicked bo'lsa adminlarga xabar beramiz
-            if group_obj and group_obj.get("telegram_group_id"):
-                # Avval user statusini aniqlaymiz
-                user_status = None
-                try:
-                    bot_info = await bot.get_me()
-                    bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
-                    
-                    if bot_member.status in ["administrator", "creator"]:
-                        user_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                        user_status = user_member.status
-                except Exception as e:
-                    pass
+            if user_status == "kicked":
+                msg += "⚠️ Siz guruhdan chiqarilgansiz.\n"
+                msg += "📞 Admin bilan bog'lanib, qayta qo'shilishni so'rang.\n\n"
                 
-                # Agar kicked bo'lsa, adminlarga xabar beramiz
-                if user_status == "kicked":
-                    msg += "⚠️ Siz guruhdan chiqarilgansiz.\n"
-                    msg += "📞 Admin bilan bog'lanib, qayta qo'shilishni so'rang.\n\n"
-                    
-                    # Adminlarga xabar
-                    admin_msg = (
-                        f"🔔 Kicked user qayta guruhga qo'shilmoqchi:\n\n"
-                        f"👤 User: {message.from_user.full_name}\n"
-                        f"🆔 ID: {telegram_id}\n"
-                        f"📱 Username: @{message.from_user.username or 'N/A'}\n\n"
-                        f"🔗 Guruh: {group_obj['name']}\n\n"
-                        f"⚠️ Iltimos, userni guruhga qayta qo'shing (unban + invite)."
-                    )
-                    for admin_id in ADMINS:
-                        try:
-                            await bot.send_message(int(admin_id), admin_msg)
-                        except Exception:
-                            pass
-                else:
-                    # Left yoki boshqa status - oddiy link beramiz
-                    if group_obj.get("invite_link"):
-                        msg += f"🔗 Guruh: {group_obj.get('invite_link')}\n"
-                        msg += f"   (Qo'shilish uchun bosing)\n\n"
-            
-            msg += "⚠️ Guruhga qo'shilgandan keyin vazifa yuborishingiz mumkin.\n"
-            
-            await message.answer(msg)
-            return
-
+                admin_msg = (
+                    f"🔔 Kicked user qayta guruhga qo'shilmoqchi:\n\n"
+                    f"👤 User: {message.from_user.full_name}\n"
+                    f"🆔 ID: {telegram_id}\n"
+                    f"📱 Username: @{message.from_user.username or 'N/A'}\n\n"
+                    f"🔗 Guruh: {group_obj['name']}\n\n"
+                    f"⚠️ Iltimos, userni guruhga qayta qo'shing (unban + invite)."
+                )
+                for admin_id in ADMINS:
+                    try:
+                        await bot.send_message(int(admin_id), admin_msg)
+                    except Exception:
+                        pass
+            else:
+                if group_obj.get("invite_link"):
+                    msg += f"🔗 Guruh: {group_obj.get('invite_link')}\n"
+                    msg += f"   (Qo'shilish uchun bosing)\n\n"
+        
+        msg += "⚠️ Guruhga qo'shilgandan keyin vazifa yuborishingiz mumkin.\n"
+        await message.answer(msg)
+        return
+    
+    # 1️⃣ Mavzularni olish va filterlash
     async with aiohttp.ClientSession() as session:
-        # 1️⃣ Barcha active mavzular
         async with session.get(f"{API_BASE_URL}/topics/") as resp:
             topics = await resp.json()
         
-        # Studentning guruh kurs turini olamiz
-        student_course_type = student_data.get("group", {}).get("course_type")
-        
-        # Faqat active va o'sha kurs uchun bo'lgan mavzularni olamiz
+        # Faqat active va studentning kurs uchun bo'lgan mavzularni olamiz
         active_topics = [
             t for t in topics 
             if t.get("is_active", False) and t.get("course_type") == student_course_type
         ]
         
         if not active_topics:
-            await message.answer("❌ Hozirda sizning kurs uchun active mavzu yo'q!")
+            await message.answer(f"❌ Hozirda sizning kurs uchun active mavzu yo'q!")
             return
 
         # 2️⃣ Student yuborgan vazifalar
@@ -162,21 +163,22 @@ async def _send_task_common(message: types.Message, state: FSMContext, task_name
             submitted_tasks = await resp.json()
     
     # Hozirgi vazifa turini olamiz
-    data = await state.get_data()
-    current_task_type = data.get("task_type", "test")
+    task_type = data.get("task_type", "test")
 
-    # 3️⃣ Faqat shu task_type uchun yuborilgan mavzularni filter qilamiz
+    # 3️⃣ Faqat shu task_type va kurs uchun yuborilgan mavzularni filter qilamiz
     submitted_topic_ids = {
         task["topic"]["id"] 
         for task in submitted_tasks 
-        if task.get("task_type") == current_task_type
+        if task.get("task_type") == task_type and task.get("course_type") == student_course_type
     }
 
     # 4️⃣ Faqat yubormagan active mavzularni filter qilamiz
     available_topics = [t for t in active_topics if t["id"] not in submitted_topic_ids]
 
     if not available_topics:
-        await message.answer(f"✅ Siz barcha active mavzular uchun {task_name} yuborgansiz!")
+        course_name = "Milliy Sertifikat" if student_course_type == "milliy_sert" else "Attestatsiya"
+        task_name_lower = "test" if task_type == "test" else "maxsus topshiriq"
+        await message.answer(f"✅ Siz {course_name} uchun barcha active mavzular uchun {task_name_lower} yuborgansiz!")
         return
 
     kb = types.InlineKeyboardMarkup()
@@ -185,7 +187,7 @@ async def _send_task_common(message: types.Message, state: FSMContext, task_name
             text=t["title"], callback_data=f"topic_{t['id']}"
         ))
 
-    await message.answer(f"📚 {task_name} uchun mavzuni tanlang:", reply_markup=kb)
+    await message.answer(f"📚 {task_type} uchun mavzuni tanlang:", reply_markup=kb)
     await TaskState.topic.set()
     
 
@@ -315,6 +317,24 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             
             correct_answers = current_topic.get('correct_answers') or {}
     
+    # ✨ YANGI: Agar correct_answers mavjud bo'lsa, test kodi tekshiriladi
+    if correct_answers:
+        if test_code not in correct_answers:
+            # Mavzuning barcha test kodlarini ko'rsatish
+            topic_title = current_topic.get('title', 'Mavzu')
+            all_test_codes = ", ".join(sorted(correct_answers.keys()))
+            first_test_code = list(correct_answers.keys())[0] if correct_answers else "N/A"
+            await message.answer(
+                f"❌ Test kodi xato!\n\n"
+                f"📚 Siz tanlagan mavzu: {topic_title}\n"
+                f"✅ Test kodlari: {all_test_codes}\n\n"
+                f"Format: test_kodi-javoblar\n"
+                f"Misol: {first_test_code}-abc\n\n"
+                f"Iltimos, to'g'ri formatda qayta yuboring:"
+            )
+            # State'da qolamiz - user qayta kiritishi mumkin
+            return
+    
     # Test javoblarini tekshirish
     if correct_answers and test_code in correct_answers:
         correct = correct_answers[test_code].lower()
@@ -413,6 +433,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
+            "course_type": data.get("student_course_type", "milliy_sert"),
             "test_code": test_code,
             "test_answers": test_answers,
             "grade": correct_count  # To'g'ri javoblar soni
@@ -425,6 +446,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
+            "course_type": data.get("student_course_type", "milliy_sert"),
             "test_code": test_code,
             "test_answers": test_answers
         }
@@ -462,6 +484,7 @@ async def process_file(message: types.Message, state: FSMContext):
         "student_id": message.from_user.id,  # telegram_id
         "topic_id": topic_id,
         "task_type": task_type,
+        "course_type": data.get("student_course_type", "milliy_sert"),
         "file_link": file_id
     }
 

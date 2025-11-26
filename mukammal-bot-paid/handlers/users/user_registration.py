@@ -225,15 +225,28 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # Guruhlarni ID bo'yicha tartiblash (1-guruh, 2-guruh, 3-guruh...)
-        groups.sort(key=lambda x: x['id'])
+        # ✨ YANGI: Barcha is_full=False guruhlarni ID bo'yicha tartiblash
+        # Course_type'dan qat'i nazar, eng kichik ID dan boshlab to'ldirish
+        all_available_groups = [g for g in groups if not g.get('is_full')]
+        all_available_groups.sort(key=lambda x: x['id'])
+        
+        if not all_available_groups:
+            await message.answer(
+                "❌ Barcha guruhlar to'lgan!\n\n"
+                "Admin bilan bog'laning."
+            )
+            try:
+                await state.finish()
+            except (KeyError, Exception):
+                pass
+            return
         
         # Birinchi bo'sh guruhni topish (ketma-ket to'ldirish)
         selected_group = None
         group_obj = None
         min_member_count = 0
         
-        for grp in groups:
+        for grp in all_available_groups:
             grp_id = grp["id"]
             grp_telegram_id = grp.get("telegram_group_id")
             
@@ -257,6 +270,16 @@ async def process_fish(message: types.Message, state: FSMContext):
                     group_obj = grp
                     min_member_count = regular_members
                     break  # Birinchi bo'sh guruhni topganimizdan keyin to'xtaymiz
+                else:
+                    # Guruh to'lgan, is_full=True qilamiz
+                    try:
+                        async with aiohttp.ClientSession() as session_update:
+                            await session_update.patch(
+                                f"{API_BASE_URL}/groups/{grp_id}/",
+                                json={"is_full": True}
+                            )
+                    except:
+                        pass
             except Exception as e:
                 continue
         

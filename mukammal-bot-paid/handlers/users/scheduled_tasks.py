@@ -41,16 +41,39 @@ async def send_weekly_reports():
 async def send_unsubmitted_warnings():
     """Active mavzular bo'yicha vazifa topshirmagan studentlarga eslatma yuborish"""
     from base_app.models import Student, Topic, Task
-    active_topics = await sync_to_async(list)(Topic.objects.filter(is_active=True))
     students = await sync_to_async(list)(Student.objects.all())
 
     for student in students:
-        submitted = await sync_to_async(list)(
-            Task.objects.filter(student=student, topic__in=active_topics)
+        # ✨ YANGI: Studentning guruh course_type'ini aniqlaymiz
+        student_group = await sync_to_async(lambda: student.group)()
+        if not student_group:
+            continue
+        
+        student_course_type = student_group.course_type
+        
+        # Faqat student kursiga mos active mavzularni olamiz
+        active_topics = await sync_to_async(list)(
+            Topic.objects.filter(is_active=True, course_type=student_course_type)
         )
-        submitted_topic_ids = [t.topic_id for t in submitted]
-
-        unsubmitted = [t for t in active_topics if t.id not in submitted_topic_ids]
+        
+        # ✨ YANGI: Har bir mavzu uchun test YOKI maxsus topshiriq yuborilganini tekshiramiz
+        unsubmitted = []
+        for topic in active_topics:
+            # Mavzu turini aniqlaymiz (correct_answers bor bo'lsa Test, yo'q bo'lsa Maxsus)
+            expected_task_type = 'test' if topic.correct_answers else 'assignment'
+            
+            # Student o'sha mavzu va task_type uchun vazifa yuborgan-yubormaganini tekshiramiz
+            task_exists = await sync_to_async(
+                Task.objects.filter(
+                    student=student,
+                    topic=topic,
+                    task_type=expected_task_type,
+                    course_type=student_course_type
+                ).exists
+            )()
+            
+            if not task_exists:
+                unsubmitted.append(topic)
 
         if unsubmitted:
             msg = f"⚠️ Siz {len(unsubmitted)} ta mavzu bo'yicha vazifa topshirmagansiz!\n"

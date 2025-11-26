@@ -3,13 +3,28 @@ import uuid
 
 
 class Group(models.Model):
+    COURSE_CHOICES = [
+        ('milliy_sert', 'Milliy sertifikat'),
+        ('attestatsiya', 'Attestatsiya'),
+    ]
+    
     name = models.CharField(max_length=100, unique=True)
+    course_type = models.CharField(
+        max_length=20, 
+        choices=COURSE_CHOICES, 
+        default='milliy_sert',
+        help_text="Guruh qaysi kurs uchun"
+    )
     telegram_group_id = models.CharField(
         max_length=50, unique=True, null=True, blank=True, default=None)
     invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
+    is_full = models.BooleanField(
+        default=True, 
+        help_text="Guruh to'lganmi (50/50)"
+    )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_course_type_display()})"
 
 
 class Student(models.Model):
@@ -23,15 +38,26 @@ class Student(models.Model):
 
 
 class Topic(models.Model):
+    COURSE_CHOICES = [
+        ('milliy_sert', 'Milliy sertifikat'),
+        ('attestatsiya', 'Attestatsiya'),
+    ]
+    
     title = models.CharField(max_length=255, unique=True)
+    course_type = models.CharField(
+        max_length=20, 
+        choices=COURSE_CHOICES, 
+        default='milliy_sert',
+        help_text="Mavzu qaysi kurs uchun"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=False, null=True, blank=True)
     
-    # Test uchun to'g'ri javoblar (JSON format: {"1": "abc", "2": "bcd", ...})
+    # Test uchun to'g'ri javoblar (JSON format: {"test_code": "+", "answers": "abc"})
     correct_answers = models.JSONField(null=True, blank=True, default=dict)
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.get_course_type_display()})"
 
 
 class Task(models.Model):
@@ -40,12 +66,19 @@ class Task(models.Model):
         ('assignment', 'Maxsus topshiriq'),
     ]
     
+    COURSE_CHOICES = [
+        ('milliy_sert', 'Milliy Sertifikat'),
+        ('attestatsiya', 'Attestatsiya'),
+    ]
+    
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name="tasks")
     topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name="tasks")
     task_type = models.CharField(
         max_length=20, choices=TASK_TYPE_CHOICES, default='test')
+    course_type = models.CharField(
+        max_length=20, choices=COURSE_CHOICES, default='milliy_sert')
     
     # Maxsus topshiriq uchun - fayl
     file_link = models.TextField(null=True, blank=True)
