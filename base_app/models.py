@@ -66,12 +66,19 @@ class Task(models.Model):
         ('assignment', 'Maxsus topshiriq'),
     ]
     
+    COURSE_CHOICES = [
+        ('milliy_sert', 'Milliy Sertifikat'),
+        ('attestatsiya', 'Attestatsiya'),
+    ]
+    
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name="tasks")
     topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name="tasks")
     task_type = models.CharField(
         max_length=20, choices=TASK_TYPE_CHOICES, default='test')
+    course_type = models.CharField(
+        max_length=20, choices=COURSE_CHOICES, default='milliy_sert')
     
     # Maxsus topshiriq uchun - fayl
     file_link = models.TextField(null=True, blank=True)

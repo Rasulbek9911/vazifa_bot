@@ -70,13 +70,29 @@ async def show_all_topics(message: types.Message):
         await message.answer("❌ Hozircha mavzular mavjud emas.")
         return
 
+    # ✨ YANGI: Course_type bo'yicha grouping
+    milliy_sert_topics = [t for t in topics if t.course_type == 'milliy_sert']
+    attestatsiya_topics = [t for t in topics if t.course_type == 'attestatsiya']
+    
     text = "📌 Barcha mavzular:\n\n"
-    for t in topics:
-        status = "✅ Active" if t.is_active else "❌ Inactive"
-        title = html.escape(t.title)  # xavfli belgilarni qochirdik
-        text += f"<b>{t.id}.</b> {title} — {status}\n"
+    
+    if milliy_sert_topics:
+        text += "🔹 <b>Milliy Sertifikat</b>:\n"
+        for t in milliy_sert_topics:
+            status = "✅ Active" if t.is_active else "❌ Inactive"
+            title = html.escape(t.title)
+            text += f"  <b>{t.id}.</b> {title} — {status}\n"
+        text += "\n"
+    
+    if attestatsiya_topics:
+        text += "🔹 <b>Attestatsiya</b>:\n"
+        for t in attestatsiya_topics:
+            status = "✅ Active" if t.is_active else "❌ Inactive"
+            title = html.escape(t.title)
+            text += f"  <b>{t.id}.</b> {title} — {status}\n"
+        text += "\n"
 
-    text += "\n🔹 Biror mavzuni active qilish uchun: <code>/activate &lt;id&gt;</code>"
+    text += "🔹 Biror mavzuni active qilish uchun: <code>/activate &lt;id&gt;</code>"
 
     await message.answer(text, parse_mode="HTML")
 

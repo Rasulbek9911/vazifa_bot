@@ -147,13 +147,14 @@ class TopicDetailView(APIView):
 
 class TaskSubmitView(APIView):
     """
-    Student vazifa yuboradi (telegram_id, topic_id, task_type, file_link/test_code/test_answers, grade)
+    Student vazifa yuboradi (telegram_id, topic_id, task_type, course_type, file_link/test_code/test_answers, grade)
     """
 
     def post(self, request):
         telegram_id = request.data.get("student_id")   # bu aslida telegram_id
         topic_id = request.data.get("topic_id")
         task_type = request.data.get("task_type", "test")
+        course_type = request.data.get("course_type", "milliy_sert")
         file_link = request.data.get("file_link")
         test_code = request.data.get("test_code")
         test_answers = request.data.get("test_answers")
@@ -170,6 +171,7 @@ class TaskSubmitView(APIView):
             "student_id": student.id,   # PK kerak
             "topic_id": topic_id,
             "task_type": task_type,
+            "course_type": course_type,
         }
         
         # Optional fields
@@ -248,8 +250,9 @@ class WeeklyReportPDFView(APIView):
 
         students = group.students.all()
         
-        # FAQAT active mavzularni olish (vaqt chegarasiz - barcha vazifalar)
-        topics = Topic.objects.filter(is_active=True)
+        # ✨ YANGI: Guruhning course_type'iga mos mavzularni olamiz
+        group_course_type = group.course_type
+        topics = Topic.objects.filter(is_active=True, course_type=group_course_type)
         
         # Agar active mavzu yo'q bo'lsa, PDF yaratmaymiz
         if not topics.exists():
@@ -273,16 +276,22 @@ class WeeklyReportPDFView(APIView):
                 # Mavzu turiga mos task_type ni qidiramiz
                 task_type = 'test' if topic.correct_answers else 'assignment'
                 
-                # Vaqt chegarasiz - barcha vazifalarni ko'ramiz
+                # ✨ YANGI: course_type ham filter qilamiz
                 task = Task.objects.filter(
                     student=student,
                     topic=topic,
-                    task_type=task_type
+                    task_type=task_type,
+                    course_type=group_course_type
                 ).first()
-                grade = task.grade if task and task.grade else None
-                row.append(grade if grade else "—")
-                if grade:
-                    grades.append(grade)
+                
+                # ✨ YANGI: Bajarilmagan topshiriq 0 deb hisoblanadi
+                if task and task.grade is not None:
+                    grade = task.grade
+                else:
+                    grade = 0  # Bajarilmagan yoki baholanmagan = 0
+                
+                row.append(grade if grade > 0 else "—")
+                grades.append(grade)  # O'rtacha uchun 0 ni ham qo'shamiz
             
             # O'rtacha bahoni hisoblash
             if grades:

@@ -225,16 +225,10 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # 1-KURS (milliy_sert) guruhlarini filtrlash va ID bo'yicha tartiblash
-        course1_groups = [g for g in groups if g.get('course_type') == 'milliy_sert' and not g.get('is_full')]
-        course1_groups.sort(key=lambda x: x['id'])
-        
-        # 2-KURS (attestatsiya) guruhlarini filtrlash va ID bo'yicha tartiblash
-        course2_groups = [g for g in groups if g.get('course_type') == 'attestatsiya' and not g.get('is_full')]
-        course2_groups.sort(key=lambda x: x['id'])
-        
-        # Avval 1-kursni to'ldiramiz, keyin 2-kursga o'tamiz
-        all_available_groups = course1_groups + course2_groups
+        # ✨ YANGI: Barcha is_full=False guruhlarni ID bo'yicha tartiblash
+        # Course_type'dan qat'i nazar, eng kichik ID dan boshlab to'ldirish
+        all_available_groups = [g for g in groups if not g.get('is_full')]
+        all_available_groups.sort(key=lambda x: x['id'])
         
         if not all_available_groups:
             await message.answer(

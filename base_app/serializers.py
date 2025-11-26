@@ -46,6 +46,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "student", "student_id",
             "topic", "topic_id",
             "task_type",
+            "course_type",
             "file_link", 
             "test_code", "test_answers",
             "grade", "submitted_at"
