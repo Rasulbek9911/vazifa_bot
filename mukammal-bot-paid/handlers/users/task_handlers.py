@@ -317,6 +317,24 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             
             correct_answers = current_topic.get('correct_answers') or {}
     
+    # ✨ YANGI: Agar correct_answers mavjud bo'lsa, test kodi tekshiriladi
+    if correct_answers:
+        if test_code not in correct_answers:
+            # Mavzuning barcha test kodlarini ko'rsatish
+            topic_title = current_topic.get('title', 'Mavzu')
+            all_test_codes = ", ".join(sorted(correct_answers.keys()))
+            first_test_code = list(correct_answers.keys())[0] if correct_answers else "N/A"
+            await message.answer(
+                f"❌ Test kodi xato!\n\n"
+                f"📚 Siz tanlagan mavzu: {topic_title}\n"
+                f"✅ Test kodlari: {all_test_codes}\n\n"
+                f"Format: test_kodi-javoblar\n"
+                f"Misol: {first_test_code}-abc\n\n"
+                f"Iltimos, to'g'ri formatda qayta yuboring:"
+            )
+            # State'da qolamiz - user qayta kiritishi mumkin
+            return
+    
     # Test javoblarini tekshirish
     if correct_answers and test_code in correct_answers:
         correct = correct_answers[test_code].lower()

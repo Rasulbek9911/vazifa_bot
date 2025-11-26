@@ -53,7 +53,7 @@ class Topic(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=False, null=True, blank=True)
     
-    # Test uchun to'g'ri javoblar (JSON format: {"1": "abc", "2": "bcd", ...})
+    # Test uchun to'g'ri javoblar (JSON format: {"test_code": "+", "answers": "abc"})
     correct_answers = models.JSONField(null=True, blank=True, default=dict)
 
     def __str__(self):
