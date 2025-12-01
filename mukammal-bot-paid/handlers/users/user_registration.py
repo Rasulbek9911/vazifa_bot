@@ -75,15 +75,43 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                     elif resp2.status == 400:
                                         error_data = await resp2.json()
                                         error_msg = error_data.get("error", "Ro'yxatdan o'tishda xatolik bo'ldi")
-                                        await message.answer(f"⚠️ {error_msg}")
+                                        
+                                        # Agar user allaqachon ro'yxatdan o'tgan bo'lsa
+                                        if "allaqachon ro'yxatdan o'tgan" in error_msg.lower() or "already exists" in error_msg.lower():
+                                            await message.answer(
+                                                f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
+                                                f"👥 Guruh: {data.get('group_name')}\n\n"
+                                                f"Endi vazifa yuborishingiz mumkin.",
+                                                reply_markup=vazifa_key
+                                            )
+                                        else:
+                                            await message.answer(f"⚠️ {error_msg}")
+                                        
                                         try:
                                             await state.finish()
                                         except (KeyError, Exception):
                                             pass
                                         return
                                        
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        # Agar bot chat membershipni tekshira olmasa (masalan, bot admin emas)
+                        # DBda user borligini tekshiramiz
+                        async with aiohttp.ClientSession() as check_session:
+                            async with check_session.get(f"{API_BASE_URL}/students/{user_id}/") as check_resp:
+                                if check_resp.status == 200:
+                                    # User allaqachon DBda bor
+                                    student_info = await check_resp.json()
+                                    await message.answer(
+                                        f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
+                                        f"👥 Guruh: {student_info.get('group', {}).get('name', 'N/A')}\n\n"
+                                        f"Endi vazifa yuborishingiz mumkin.",
+                                        reply_markup=vazifa_key
+                                    )
+                                    try:
+                                        await state.finish()
+                                    except (KeyError, Exception):
+                                        pass
+                                    return
             
             # Agar hali qo'shilmagan bo'lsa, eslatma beramiz
             await message.answer(
