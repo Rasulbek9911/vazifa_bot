@@ -4,7 +4,7 @@ Admin-specific handlers: topic management, grading
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
-from data.config import ADMINS, API_BASE_URL
+from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
 from loader import dp, bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
@@ -16,8 +16,9 @@ from filters.is_private import IsPrivate
 # --- Baho qo'yish ---
 @dp.callback_query_handler(lambda c: c.data.startswith("grade_"))
 async def set_grade(callback: types.CallbackQuery):
-    # Only admins are allowed to grade
-    if str(callback.from_user.id) not in ADMINS:
+    # Milliy va Attestatsiya adminlari baho qo'yishi mumkin
+    allowed_admins = ADMINS + [MILLIY_ADMIN, ATTESTATSIYA_ADMIN]
+    if str(callback.from_user.id) not in allowed_admins:
         await callback.answer("❌ Sizda baho qo'yish huquqi yo'q.", show_alert=True)
         return
     _, task_id, grade = callback.data.split("_")

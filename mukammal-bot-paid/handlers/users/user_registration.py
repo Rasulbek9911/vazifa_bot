@@ -1,7 +1,7 @@
 """
 User registration flow: start command, full name processing
 No invite code required - direct registration
-Single group with approval link (50 user limit, excluding admins/owners/bots)
+Single group with approval link (200 user limit, excluding admins/owners/bots)
 """
 from aiogram import types
 import aiohttp
@@ -90,6 +90,11 @@ async def cmd_start(message: types.Message, state: FSMContext):
                 "⚠️ Siz hali guruhga qo'shilmagansiz!\n\n"
                 "Avval guruh linkini bosib qo'shiling, keyin /start ni qayta bosing."
             )
+            # State ni tozalaymiz, chunki guruhga qo'shilmagan
+            try:
+                await state.finish()
+            except (KeyError, Exception):
+                pass
             return
     except Exception:
         pass
@@ -226,14 +231,14 @@ async def process_fish(message: types.Message, state: FSMContext):
                 pass
             return
         
-        # ✨ YANGI: Barcha is_full=False guruhlarni ID bo'yicha tartiblash
-        # Course_type'dan qat'i nazar, eng kichik ID dan boshlab to'ldirish
-        all_available_groups = [g for g in groups if not g.get('is_full')]
+        # ✨ YANGI: Faqat milliy_sert kurs turidagi va is_full=False guruhlarni ID bo'yicha tartiblash
+        # Course_type='milliy_sert' va is_full=False, eng kichik ID dan boshlab to'ldirish
+        all_available_groups = [g for g in groups if not g.get('is_full') and g.get('course_type') == 'milliy_sert']
         all_available_groups.sort(key=lambda x: x['id'])
         
         if not all_available_groups:
             await message.answer(
-                "❌ Barcha guruhlar to'lgan!\n\n"
+                "❌ Barcha Milliy Sertifikat guruhlari to'lgan!\n\n"
                 "Admin bilan bog'laning."
             )
             try:
@@ -265,8 +270,8 @@ async def process_fish(message: types.Message, state: FSMContext):
                 # Oddiy a'zolar soni (adminlardan tashqari)
                 regular_members = chat_members_count - admin_count
                 
-                # Birinchi bo'sh guruhni topamiz (50 dan kam bo'lishi kerak)
-                if regular_members < 50:
+                # Birinchi bo'sh guruhni topamiz (200 dan kam bo'lishi kerak)
+                if regular_members < 200:
                     selected_group = grp_id
                     group_obj = grp
                     min_member_count = regular_members
@@ -287,7 +292,7 @@ async def process_fish(message: types.Message, state: FSMContext):
         # Agar hech bir bo'sh guruh topilmasa
         if selected_group is None:
             await message.answer(
-                "❌ Barcha guruhlar to'lgan (50/50).\n\n"
+                "❌ Barcha guruhlar to'lgan (200/200).\n\n"
                 "Admin bilan bog'laning."
             )
             try:
@@ -346,8 +351,8 @@ async def process_fish(message: types.Message, state: FSMContext):
                 
                 print(f"📊 Guruh statistikasi: Jami={chat_members_count}, Adminlar={admin_count}, Oddiy a'zolar={regular_members}")
                 
-                # Agar 50 dan oshgan bo'lsa, keyingi guruhni topamiz
-                if regular_members >= 50:
+                # Agar 200 dan oshgan bo'lsa, keyingi guruhni topamiz
+                if regular_members >= 200:
                     # Barcha guruhlarni tekshirib, bo'sh guruhni topamiz
                     next_group = None
                     async with aiohttp.ClientSession() as session3:
@@ -361,7 +366,7 @@ async def process_fish(message: types.Message, state: FSMContext):
                                 grp_admins = await bot.get_chat_administrators(grp["telegram_group_id"])
                                 grp_regular = grp_count - len(grp_admins)
                                 
-                                if grp_regular < 50:
+                                if grp_regular < 200:
                                     next_group = grp
                                     break
                             except Exception as e:
@@ -370,7 +375,7 @@ async def process_fish(message: types.Message, state: FSMContext):
                     if next_group:
                         # Keyingi guruhga o'tkazamiz
                         await message.answer(
-                            f"⚠️ Tanlagan guruhingiz to'lgan ({regular_members}/50)!\n\n"
+                            f"⚠️ Tanlagan guruhingiz to'lgan ({regular_members}/200)!\n\n"
                             f"✅ Sizni '{next_group['name']}' guruhiga o'tkazyapmiz.\n\n"
                             f"Davom etamizmi?"
                         )
@@ -443,7 +448,7 @@ async def process_fish(message: types.Message, state: FSMContext):
     group_name = group_obj["name"]
     msg = f"✅ Guruh topildi!\n\n"
     msg += f"👥 Guruh: {group_name}\n"
-    msg += f"👤 Hozirgi a'zolar: {min_member_count}/50\n\n"
+    msg += f"👤 Hozirgi a'zolar: {min_member_count}/200\n\n"
     msg += "📚 Guruhga qo'shiling:\n"
     msg += f"🔗 {group_invite_link}\n\n"
     msg += "⚠️ Guruhga qo'shilgandan so'ng /start ni qayta bosing!\n"
