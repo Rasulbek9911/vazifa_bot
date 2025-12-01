@@ -20,7 +20,7 @@ class Group(models.Model):
     invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
     is_full = models.BooleanField(
         default=True, 
-        help_text="Guruh to'lganmi (50/50)"
+        help_text="Guruh to'lganmi (200/200)"
     )
 
     def __str__(self):

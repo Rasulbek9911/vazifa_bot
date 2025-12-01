@@ -1,12 +1,12 @@
 """
 Task submission handlers: task sending, topic selection, file upload
-Single group with approval link (50 user limit, excluding admins/owners/bots)
+Single group with approval link (200 user limit, excluding admins/owners/bots)
 """
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text, Command
-from data.config import ADMINS, API_BASE_URL
+from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
 from loader import dp, bot
 from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import vazifa_key
@@ -516,11 +516,14 @@ async def process_file(message: types.Message, state: FSMContext):
                     f"📚 Mavzu: {topic_title}\n"
                 )
 
+                # ✨ Kurs turiga qarab to'g'ri adminga yuborish
+                student_course_type = payload.get("course_type", "milliy_sert")
+                target_admin = MILLIY_ADMIN if student_course_type == "milliy_sert" else ATTESTATSIYA_ADMIN
     
                 if file_type == "document":
-                    await bot.send_document(ADMINS[0], file_id, caption=caption, reply_markup=kb)
+                    await bot.send_document(target_admin, file_id, caption=caption, reply_markup=kb)
                 else:
-                    await bot.send_photo(ADMINS[0], file_id, caption=caption, reply_markup=kb)
+                    await bot.send_photo(target_admin, file_id, caption=caption, reply_markup=kb)
 
             else:
                 await message.answer("❌ Vazifa yuborishda xatolik bo'ldi.")
