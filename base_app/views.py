@@ -4,7 +4,10 @@ from reportlab.lib.pagesizes import A4, landscape
 from django.http import HttpResponse
 from django.utils.timezone import now, timedelta
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -313,6 +316,18 @@ class WeeklyReportPDFView(APIView):
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="weekly_report_{group.name}.pdf"'
 
+        # Kiril harflarini qo'llab-quvvatlaydigan font
+        try:
+            # DejaVu Sans font (ko'pchilik Linux sistemalarida mavjud)
+            pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+            pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
+            font_name = 'DejaVuSans'
+            font_name_bold = 'DejaVuSans-Bold'
+        except:
+            # Agar font topilmasa, standart fontni ishlat
+            font_name = 'Helvetica'
+            font_name_bold = 'Helvetica-Bold'
+
         doc = SimpleDocTemplate(response, pagesize=landscape(A4))
         table = Table(data, repeatRows=1)
 
@@ -320,7 +335,8 @@ class WeeklyReportPDFView(APIView):
             ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
+            ("FONTNAME", (0, 1), (-1, -1), font_name),
             ("FONTSIZE", (0, 0), (-1, -1), 9),
             ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
