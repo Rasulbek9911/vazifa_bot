@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    
+    <p>Siz {{ queryset|length }} ta taskni tanladingiz. Necha ball ayirmoqchisiz?</p>
+    
+    <fieldset class="module aligned">
+        {{ form.as_p }}
+    </fieldset>
+    
+    <input type="hidden" name="action" value="subtract_custom_points_from_tests" />
+    
+    {% for obj in queryset %}
+        <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}" />
+    {% endfor %}
+    
+    <div class="submit-row">
+        <input type="submit" name="apply" value="Ball ayirish" class="default" />
+        <a href="{{ request.get_full_path }}" class="button cancel-link">Bekor qilish</a>
+    </div>
+</form>
+{% endblock %}
