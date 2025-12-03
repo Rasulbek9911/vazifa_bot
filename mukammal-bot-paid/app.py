@@ -36,7 +36,7 @@ async def on_startup(dispatcher):
     scheduler.add_job(send_weekly_reports, "cron", day_of_week="tue", hour=23, minute=0)
     
     # Har 3 kunda 1 marta eslatma
-    # scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
+    scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
     
     # TEST rejimi (faqat test paytida yoqing):
     # scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
