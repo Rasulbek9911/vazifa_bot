@@ -6,6 +6,9 @@ vazifa_key = ReplyKeyboardMarkup(
             KeyboardButton(text='📝 Test yuborish'),
             KeyboardButton(text='📋 Maxsus topshiriq yuborish'),
         ],
+        [
+            KeyboardButton(text='👤 Profil'),
+        ],
     ],
     resize_keyboard=True
 )

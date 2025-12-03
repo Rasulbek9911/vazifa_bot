@@ -3,7 +3,7 @@ from .views import (
      StudentRegisterView, StudentChangeGroupView, TaskSubmitView,
      StudentIsRegisteredView, GroupsListView, TopicsListView, TopicDetailView,
      TaskListView, TaskUpdateView, WeeklyReportPDFView, StudentListView,
-     CreateInviteCodeView, ValidateInviteCodeView
+     CreateInviteCodeView, ValidateInviteCodeView, StudentUpdateNameView
 )
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
      path("students/register/", StudentRegisterView.as_view(), name="student-register"),
      path("students/<int:pk>/", StudentIsRegisteredView.as_view(), name="student-detail"),
      path("students/<int:pk>/change-group/", StudentChangeGroupView.as_view(), name="student-change-group"),
+     path("students/<int:pk>/update_name/", StudentUpdateNameView.as_view(), name="student-update-name"),
      path("students/", StudentListView.as_view(), name="student-list"),
 
      # Group and topic-related URLs

@@ -6,11 +6,13 @@ Single group with approval link (200 user limit, excluding admins/owners/bots)
 from aiogram import types
 import aiohttp
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from states.register_state import RegisterState
 from keyboards.default.vazifa_keyboard import vazifa_key
 from filters.is_private import IsPrivate
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 # --- START - Direct Registration (No Invite Code) ---
@@ -155,8 +157,13 @@ async def cmd_start(message: types.Message, state: FSMContext):
                             
                             # Agar guruhda bo'lsa, vazifa keyboard beramiz
                             if member.status in ["member", "administrator", "creator"]:
+                                group_name = data.get('group', {}).get('name', 'N/A')
                                 await message.answer(
-                                    f"👋 Salom, {data['full_name']}!\nSiz allaqachon ro'yxatdan o'tgansiz, vazifalarni yuborishingiz mumkin.",
+                                    f"👋 Salom, {data['full_name']}!\n\n"
+                                    f"📊 Sizning ma'lumotlaringiz:\n"
+                                    f"👤 Ism: {data['full_name']}\n"
+                                    f"👥 Guruh: {group_name}\n\n"
+                                    f"Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
                                     reply_markup=vazifa_key
                                 )
                                 return
@@ -492,4 +499,93 @@ async def process_fish(message: types.Message, state: FSMContext):
         group_name=group_name,
         user_id=message.from_user.id
     )
-    # State ni finish qilmaymiz - bu orqali user link olganini bilamiz
+
+
+# --- PROFILE HANDLER - View and Change Name ---
+@dp.message_handler(IsPrivate(), Text(equals="👤 Profil"), state="*")
+async def show_profile(message: types.Message, state: FSMContext):
+    """Show user profile and option to change name"""
+    telegram_id = message.from_user.id
+    
+    # Stateni tozalash
+    try:
+        await state.finish()
+    except (KeyError, Exception):
+        pass
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/students/{telegram_id}/") as resp:
+            if resp.status != 200:
+                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
+                return
+            
+            student_data = await resp.json()
+            full_name = student_data.get("full_name", "N/A")
+            group_name = student_data.get("group", {}).get("name", "N/A")
+            course_type = student_data.get("group", {}).get("course_type", "N/A")
+            course_display = "Milliy sertifikat" if course_type == "milliy_sert" else "Attestatsiya"
+            
+            # Profile ma'lumotlarini ko'rsatish
+            profile_text = (
+                f"📋 <b>Profil ma'lumotlari</b>\n\n"
+                f"👤 <b>Ism:</b> {full_name}\n"
+                f"👥 <b>Guruh:</b> {group_name}\n"
+                f"📚 <b>Kurs:</b> {course_display}\n\n"
+                f"Ismingizni o'zgartirish uchun pastdagi tugmani bosing."
+            )
+            
+            # Inline keyboard for name change
+            keyboard = InlineKeyboardMarkup(row_width=1)
+            keyboard.add(
+                InlineKeyboardButton(text="✏️ Ismni o'zgartirish", callback_data="change_name")
+            )
+            
+            await message.answer(profile_text, parse_mode="HTML", reply_markup=keyboard)
+
+
+@dp.callback_query_handler(Text(equals="change_name"), state="*")
+async def request_name_change(callback: types.CallbackQuery, state: FSMContext):
+    """Request new name from user"""
+    await callback.answer()
+    
+    await callback.message.answer(
+        "✏️ Yangi ism familiyangizni kiriting:\n"
+        "(Misol: Fayziyev Aslbek)\n\n"
+        "Bekor qilish uchun /start ni bosing."
+    )
+    
+    await RegisterState.change_name.set()
+
+
+@dp.message_handler(IsPrivate(), state=RegisterState.change_name)
+async def process_name_change(message: types.Message, state: FSMContext):
+    """Process the new name and update in database"""
+    new_name = message.text.strip()
+    telegram_id = message.from_user.id
+    
+    # Validate name
+    if len(new_name) < 3:
+        await message.answer("❌ Ism juda qisqa. Qaytadan kiriting:")
+        return
+    
+    if len(new_name) > 100:
+        await message.answer("❌ Ism juda uzun. Qaytadan kiriting:")
+        return
+    
+    # Update name in database
+    async with aiohttp.ClientSession() as session:
+        payload = {"full_name": new_name}
+        async with session.patch(f"{API_BASE_URL}/students/{telegram_id}/update_name/", json=payload) as resp:
+            if resp.status == 200:
+                await message.answer(
+                    f"✅ Ismingiz muvaffaqiyatli o'zgartirildi!\n\n"
+                    f"👤 Yangi ism: {new_name}\n\n"
+                    f"Davom etish uchun /start ni bosing.",
+                    reply_markup=vazifa_key
+                )
+                await state.finish()
+            else:
+                error_data = await resp.json() if resp.content_type == 'application/json' else {}
+                error_msg = error_data.get("error", "Ismni o'zgartirishda xatolik yuz berdi")
+                await message.answer(f"❌ {error_msg}")
+                await state.finish()

@@ -90,6 +90,35 @@ class StudentChangeGroupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class StudentUpdateNameView(APIView):
+    """
+    Student ismini o'zgartiradi (telegram_id orqali)
+    PATCH /api/students/{telegram_id}/update_name/
+    Body: {"full_name": "Yangi Ism"}
+    """
+
+    def patch(self, request, pk):
+        telegram_id = pk
+        new_name = request.data.get("full_name", "").strip()
+        
+        if not new_name:
+            return Response({"error": "Ism kiritilmagan"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(new_name) < 3:
+            return Response({"error": "Ism juda qisqa"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(new_name) > 100:
+            return Response({"error": "Ism juda uzun"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            student = Student.objects.get(telegram_id=telegram_id)
+            student.full_name = new_name
+            student.save()
+            return Response(StudentSerializer(student).data, status=status.HTTP_200_OK)
+        except Student.DoesNotExist:
+            return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+
 class GroupsListView(APIView):
     """
     Guruhlar ro‘yxatini qaytaradi
