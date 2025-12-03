@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.template.response import TemplateResponse
 from django import forms
 from .models import Group, Student, Topic, Task
 
@@ -82,7 +83,7 @@ class TaskAdmin(admin.ModelAdmin):
             'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
         }
         
-        return admin.helpers.render(
+        return TemplateResponse(
             request,
             'admin/add_points_confirmation.html',
             context
@@ -159,7 +160,7 @@ class TopicAdmin(admin.ModelAdmin):
             'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
         }
         
-        return admin.helpers.render(
+        return TemplateResponse(
             request,
             'admin/add_points_to_topic_confirmation.html',
             context
