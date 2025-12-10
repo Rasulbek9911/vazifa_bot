@@ -31,9 +31,9 @@ async def on_startup(dispatcher):
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
     
     # PRODUCTION rejimi:
-    # Har dushanba ertalab 9:00 da haftalik report
-    # scheduler.add_job(send_weekly_reports, "cron", day_of_week="mon", hour=9, minute=0)
-    scheduler.add_job(send_weekly_reports, "cron", day_of_week="tue", hour=23, minute=0)
+    # Haftada 2 marta: chorshanba va yakshanba 13:00 da haftalik report
+    # scheduler.add_job(send_weekly_reports, "cron", day_of_week="wed", hour=13, minute=0)
+    # scheduler.add_job(send_weekly_reports, "cron", day_of_week="sun", hour=13, minute=0)
     
     # Har 3 kunda 1 marta eslatma
     scheduler.add_job(send_unsubmitted_warnings, "interval", days=3)
