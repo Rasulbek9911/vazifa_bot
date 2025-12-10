@@ -290,25 +290,54 @@ class WeeklyReportPDFView(APIView):
         if not topics.exists():
             return HttpResponse("No active topics", status=404)
 
-        # Jadval sarlavhalari - har bir mavzu uchun turi ko'rsatiladi
-        header = ["Talaba"]
+        # Stillar
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        styles = getSampleStyleSheet()
+        
+        # Ism ustuni uchun stil
+        name_style = ParagraphStyle(
+            'NameStyle',
+            parent=styles['Normal'],
+            fontSize=8,
+            leading=10,
+            alignment=TA_LEFT,
+            wordWrap='CJK'
+        )
+        
+        # Vertikal mavzu sarlavhasi uchun stil
+        vertical_style = ParagraphStyle(
+            'VerticalStyle',
+            parent=styles['Normal'],
+            fontSize=7,
+            leading=8,
+            alignment=TA_CENTER,
+        )
+        
+        # Jadval sarlavhalari - mavzularni vertikal qilamiz
+        header = [Paragraph("<b>Talaba</b>", styles['Heading4'])]
+        
         for t in topics:
-            # Mavzu turini aniqlash (correct_answers bor bo'lsa Test, yo'q bo'lsa Maxsus)
-            topic_type = "📝Test" if t.correct_answers else "📋Maxsus"
-            header.append(f"{t.title}\n({topic_type})")
-        header.append("O'rtacha")
+            # Mavzu nomini vertikal qilish - har bir belgini yangi qatorda
+            topic_type = "📝" if t.correct_answers else "📋"
+            # Har bir belgini <br/> bilan ajratamiz
+            vertical_text = "<br/>".join(list(t.title))
+            vertical_text += f"<br/><font size='5'>{topic_type}</font>"
+            header.append(Paragraph(vertical_text, vertical_style))
+        
+        header.append(Paragraph("<b>O'rtacha</b>", styles['Heading4']))
         data = [header]
 
         # Studentlar uchun qatordan-qatordan to'ldirish
         student_rows = []
         for student in students:
-            row = [student.full_name]
+            # Ismni Paragraph sifatida qo'shamiz - avtomatik word wrap
+            row = [Paragraph(student.full_name, name_style)]
             grades = []
+            
             for topic in topics:
-                # Mavzu turiga mos task_type ni qidiramiz
                 task_type = 'test' if topic.correct_answers else 'assignment'
                 
-                # ✨ YANGI: course_type ham filter qilamiz
                 task = Task.objects.filter(
                     student=student,
                     topic=topic,
@@ -316,14 +345,13 @@ class WeeklyReportPDFView(APIView):
                     course_type=group_course_type
                 ).first()
                 
-                # ✨ YANGI: Bajarilmagan topshiriq 0 deb hisoblanadi
                 if task and task.grade is not None:
                     grade = task.grade
                 else:
-                    grade = 0  # Bajarilmagan yoki baholanmagan = 0
+                    grade = 0
                 
-                row.append(grade if grade > 0 else "—")
-                grades.append(grade)  # O'rtacha uchun 0 ni ham qo'shamiz
+                row.append(str(grade) if grade > 0 else "—")
+                grades.append(grade)
             
             # O'rtacha bahoni hisoblash
             if grades:
@@ -332,12 +360,12 @@ class WeeklyReportPDFView(APIView):
                 student_rows.append((row, average))
             else:
                 row.append("—")
-                student_rows.append((row, 0))  # Bahosi yo'q bo'lsa 0
+                student_rows.append((row, 0))
         
-        # O'rtacha bo'yicha tartiblash (eng yuqoridan pastga)
+        # O'rtacha bo'yicha kamayish tartibida sort
         student_rows.sort(key=lambda x: x[1], reverse=True)
         
-        # Faqat qatorlarni qo'shamiz (o'rtacha qiymatini emas)
+        # Qatorlarni qo'shamiz
         for row, _ in student_rows:
             data.append(row)
 
@@ -357,18 +385,44 @@ class WeeklyReportPDFView(APIView):
             font_name = 'Helvetica'
             font_name_bold = 'Helvetica-Bold'
 
-        doc = SimpleDocTemplate(response, pagesize=landscape(A4))
-        table = Table(data, repeatRows=1)
+        doc = SimpleDocTemplate(response, pagesize=landscape(A4), 
+                                leftMargin=20, rightMargin=20, 
+                                topMargin=20, bottomMargin=20)
+        
+        # Sahifa o'lchamlari
+        page_width = landscape(A4)[0] - 40  # minus margins
+        
+        # Ustun kengliklarini hisoblash
+        name_col_width = 150  # Ism ustuni uchun keng joy
+        num_topics = len(topics)
+        
+        # Qolgan joy mavzular va o'rtacha uchun
+        remaining = page_width - name_col_width
+        topic_col_width = remaining / (num_topics + 1)  # +1 o'rtacha uchun
+        
+        # Agar mavzular juda ko'p bo'lsa, har bir mavzu uchun minimal 25 point
+        topic_col_width = max(topic_col_width, 25)
+        
+        col_widths = [name_col_width]  # Ism
+        col_widths.extend([topic_col_width] * num_topics)  # Mavzular
+        col_widths.append(topic_col_width)  # O'rtacha
+        
+        table = Table(data, colWidths=col_widths, repeatRows=1)
 
         style = TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("ALIGN", (0, 1), (0, -1), "LEFT"),  # Ism ustuni chapga
+            ("ALIGN", (1, 0), (-1, -1), "CENTER"),  # Qolgan hamma markazga
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Vertikal o'rtaga
             ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
             ("FONTNAME", (0, 1), (-1, -1), font_name),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
             ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
         ])
         table.setStyle(style)
 
