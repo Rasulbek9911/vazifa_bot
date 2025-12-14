@@ -262,13 +262,23 @@ async def topic_selected_for_update(callback: types.CallbackQuery, state: FSMCon
     # Hozirgi javoblarni ko'rsatamiz
     current_code = list(topic.correct_answers.keys())[0]
     current_answers = topic.correct_answers[current_code]
-    answer_count = len(current_answers)
+    
+    # Javoblar sonini to'g'ri hisoblash (ikki formatni qo'llab-quvvatlash)
+    import re
+    if re.match(r'^[abcd]+$', current_answers):
+        # Format 1: faqat harflar (abc = 3 ta)
+        answer_count = len(current_answers)
+    else:
+        # Format 2: raqam+harf (1a2b3c = 3 ta)
+        answer_count = len(re.findall(r'\d+[abcd]', current_answers))
     
     await callback.message.edit_text(
         f"📝 Mavzu: {topic.title}\n"
         f"🔤 Hozirgi test kodi: {current_code}\n"
         f"✅ Hozirgi to'g'ri javoblar ({answer_count} ta): {current_answers}\n\n"
-        f"Yangi to'g'ri javoblarni yuboring ({answer_count} ta harf, masalan: abcdabcdabcd...)\n\n"
+        f"Yangi to'g'ri javoblarni yuboring ({answer_count} ta javob):\n"
+        f"• Faqat harflar: abc, abcd...\n"
+        f"• Raqam+harf: 1a2b3c, 1a2c3d...\n\n"
         f"❌ Bekor qilish uchun /cancel"
     )
     
