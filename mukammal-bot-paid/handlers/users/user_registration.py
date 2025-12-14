@@ -10,7 +10,7 @@ from aiogram.dispatcher.filters import Text
 from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from states.register_state import RegisterState
-from keyboards.default.vazifa_keyboard import vazifa_key
+from keyboards.default.vazifa_keyboard import vazifa_key, admin_key
 from filters.is_private import IsPrivate
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -21,6 +21,19 @@ async def cmd_start(message: types.Message, state: FSMContext):
     """
     /start - to'g'ridan-to'g'ri ro'yxatdan o'tish (invite code yo'q)
     """
+    # Admin bo'lsa, to'g'ridan-to'g'ri admin panel ko'rsatamiz
+    if str(message.from_user.id) in ADMINS:
+        await message.answer(
+            "👋 Salom, Admin!\n\n"
+            "Admin funksiyalaridan foydalanishingiz mumkin.",
+            reply_markup=admin_key
+        )
+        try:
+            await state.finish()
+        except (KeyError, Exception):
+            pass
+        return
+    
     # Avval har qanday holatda bo'lsa ham, pending_registration ni tekshiramiz
     try:
         data = await state.get_data()
@@ -63,11 +76,13 @@ async def cmd_start(message: types.Message, state: FSMContext):
                             async with aiohttp.ClientSession() as session2:
                                 async with session2.post(f"{API_BASE_URL}/students/register/", json=payload) as resp2:
                                     if resp2.status == 201:
+                                        # Admin yoki oddiy user ekanligini tekshiramiz
+                                        keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
                                         await message.answer(
                                             f"✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!\n\n"
                                             f"👥 Guruh: {data.get('group_name')}\n\n"
                                             f"Endi vazifa yuborishingiz mumkin.",
-                                            reply_markup=vazifa_key
+                                            reply_markup=keyboard
                                         )
                                         try:
                                             await state.finish()
@@ -80,11 +95,12 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                         
                                         # Agar user allaqachon ro'yxatdan o'tgan bo'lsa
                                         if "allaqachon ro'yxatdan o'tgan" in error_msg.lower() or "already exists" in error_msg.lower():
+                                            keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
                                             await message.answer(
                                                 f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
                                                 f"👥 Guruh: {data.get('group_name')}\n\n"
                                                 f"Endi vazifa yuborishingiz mumkin.",
-                                                reply_markup=vazifa_key
+                                                reply_markup=keyboard
                                             )
                                         else:
                                             await message.answer(f"⚠️ {error_msg}")
@@ -103,11 +119,12 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                 if check_resp.status == 200:
                                     # User allaqachon DBda bor
                                     student_info = await check_resp.json()
+                                    keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
                                     await message.answer(
                                         f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
                                         f"👥 Guruh: {student_info.get('group', {}).get('name', 'N/A')}\n\n"
                                         f"Endi vazifa yuborishingiz mumkin.",
-                                        reply_markup=vazifa_key
+                                        reply_markup=keyboard
                                     )
                                     try:
                                         await state.finish()
@@ -128,11 +145,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
             return
     except Exception:
         pass
-    
-    # Admin bo'lsa, oddiy salom xabari
-    if str(message.from_user.id) in ADMINS:
-        await message.answer("👋 Admin salom!")
-        return
     
     # Student allaqachon ro'yxatdan o'tganmi tekshiramiz
     async with aiohttp.ClientSession() as session:
@@ -158,13 +170,15 @@ async def cmd_start(message: types.Message, state: FSMContext):
                             # Agar guruhda bo'lsa, vazifa keyboard beramiz
                             if member.status in ["member", "administrator", "creator"]:
                                 group_name = data.get('group', {}).get('name', 'N/A')
+                                telegram_id = message.from_user.id
+                                keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
                                 await message.answer(
                                     f"👋 Salom, {data['full_name']}!\n\n"
                                     f"📊 Sizning ma'lumotlaringiz:\n"
                                     f"👤 Ism: {data['full_name']}\n"
                                     f"👥 Guruh: {group_name}\n\n"
                                     f"Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
-                                    reply_markup=vazifa_key
+                                    reply_markup=keyboard
                                 )
                                 return
                         except Exception:
@@ -217,6 +231,15 @@ async def cmd_start(message: types.Message, state: FSMContext):
 @dp.message_handler(IsPrivate(), state=RegisterState.full_name)
 async def process_fish(message: types.Message, state: FSMContext):
     """F.I.Sh qabul qilish va avtomatik ro'yxatdan o'tkazish"""
+    # Admin bo'lsa, ro'yxatdan o'tkazmaymiz
+    if str(message.from_user.id) in ADMINS:
+        await message.answer(
+            "❌ Admin sifatida siz ro'yxatdan o'tishingiz shart emas.",
+            reply_markup=admin_key
+        )
+        await state.finish()
+        return
+    
     await state.update_data(full_name=message.text)
     data = await state.get_data()
     
@@ -577,11 +600,12 @@ async def process_name_change(message: types.Message, state: FSMContext):
         payload = {"full_name": new_name}
         async with session.patch(f"{API_BASE_URL}/students/{telegram_id}/update_name/", json=payload) as resp:
             if resp.status == 200:
+                keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
                 await message.answer(
                     f"✅ Ismingiz muvaffaqiyatli o'zgartirildi!\n\n"
                     f"👤 Yangi ism: {new_name}\n\n"
                     f"Davom etish uchun /start ni bosing.",
-                    reply_markup=vazifa_key
+                    reply_markup=keyboard
                 )
                 await state.finish()
             else:

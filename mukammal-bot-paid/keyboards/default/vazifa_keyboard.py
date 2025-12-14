@@ -12,3 +12,14 @@ vazifa_key = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+admin_key = ReplyKeyboardMarkup(
+    keyboard = [
+        
+        [
+            KeyboardButton(text='🔧 Test javoblarini o\'zgartirish'),
+        ]
+     
+    ],
+    resize_keyboard=True
+)
