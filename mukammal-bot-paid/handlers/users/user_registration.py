@@ -407,7 +407,6 @@ async def process_fish(message: types.Message, state: FSMContext):
                 # Oddiy a'zolar soni (adminlardan tashqari)
                 regular_members = chat_members_count - admin_count
                 
-                print(f"📊 Guruh statistikasi: Jami={chat_members_count}, Adminlar={admin_count}, Oddiy a'zolar={regular_members}")
                 
                 # Agar 200 dan oshgan bo'lsa, keyingi guruhni topamiz
                 if regular_members >= 200:

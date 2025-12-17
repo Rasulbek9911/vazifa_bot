@@ -4,6 +4,7 @@ Single group with approval link (200 user limit, excluding admins/owners/bots)
 """
 from aiogram import types
 import aiohttp
+import re
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text, Command
 from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
@@ -86,7 +87,7 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     student_data = data.get("student_data", {})
     group_id = student_data.get("group", {}).get("id")
     group_obj = data.get("group_obj", {})
-    student_course_type = data.get("student_course_type", "milliy_sert")
+    student_course_type = data.get("student_course_type", "attestatsiya")
     
     # Guruhga qo'shilganligini tekshirish
     group_not_joined = True
@@ -249,11 +250,11 @@ async def process_topic(callback: types.CallbackQuery, state: FSMContext):
             "🔹 Separator: - yoki + yoki *\n"
             "🔹 Javoblar: abc yoki 1a2b3c\n\n"
             "💡 Misol:\n"
-            "• 1-abc (defis bilan)\n"
-            "• 1+1a2b3c (plus bilan)\n"
-            "• A*abcd (yulduzcha bilan)\n"
-            "• +-1a2c3b4d\n\n"
-            "⚠️ Istalgan separatordan foydalaning!"
+            "• 1-abc (har bir harf ketma-ket savol)\n"
+            "• 1+1a2b3c (raqam-harf formati)\n"
+            "• A*1a2c3b4d (istalgan separator)\n\n"
+            "⚠️ Agar bir savolda bir nechta to'g'ri javob bo'lsa,\n"
+            "   birontasini yuboring. Misol: 1ab → 1a yoki 1b"
         )
     else:
         await callback.message.answer("📎 Endi faylni yuboring (rasm yoki hujjat).")
@@ -338,89 +339,63 @@ async def process_test_answers(message: types.Message, state: FSMContext):
     
     # Test javoblarini tekshirish
     if correct_answers and test_code in correct_answers:
+        import re
+        
         correct = correct_answers[test_code].lower()
         user_answer = test_answers.lower()
         
-        # Format bo'yicha parsing
-        # Admin formati: "abc" yoki "1a2b3c" yoki "10a11b12c"
-        # User javoblari: "abc" yoki "1a2b3c" yoki "10a11b12c"
-        
-        # Agar admin javobida raqam-harf formatida bo'lsa (1a2b3c yoki 10a11b12c), parse qilamiz
-        correct_dict = {}
-        if any(c.isdigit() for c in correct):
-            # Format: 1a2b3c yoki 10a11b12c
-            i = 0
-            while i < len(correct):
-                if correct[i].isdigit():
-                    # Ko'p raqamli savollarni to'plash (10, 11, 12, ...)
-                    question_num = ''
-                    while i < len(correct) and correct[i].isdigit():
-                        question_num += correct[i]
-                        i += 1
-                    # Keyingi harf javob
-                    if i < len(correct) and correct[i].isalpha():
-                        answer = correct[i]
-                        correct_dict[question_num] = answer
-                        i += 1
-                else:
-                    i += 1
+        # Parse admin correct answers (supports multi-correct: 1ab2x3abcd)
+        correct_answers_list = []
+        if re.match(r'^[abcdx]+$', correct):
+            # Format 1: abc -> [[a], [b], [c]]
+            correct_answers_list = [[ch] for ch in correct]
         else:
-            # Format: abc (1->a, 2->b, 3->c)
-            for idx, char in enumerate(correct, 1):
-                if char.isalpha():
-                    correct_dict[str(idx)] = char
-        
-        # User javoblarini parse qilish
-        user_dict = {}
-        if any(c.isdigit() for c in user_answer):
-            # Format: 1a2b3c yoki 10a11b12c
-            i = 0
-            while i < len(user_answer):
-                if user_answer[i].isdigit():
-                    # Ko'p raqamli savollarni to'plash (10, 11, 12, ...)
-                    question_num = ''
-                    while i < len(user_answer) and user_answer[i].isdigit():
-                        question_num += user_answer[i]
-                        i += 1
-                    # Keyingi harf javob
-                    if i < len(user_answer) and user_answer[i].isalpha():
-                        answer = user_answer[i]
-                        user_dict[question_num] = answer
-                        i += 1
+            # Format 2: 1a2b3c or 1ab2x3abcd -> [[a], [b], [c]] or [[a,b], [x], [a,b,c,d]]
+            for match in re.finditer(r'\d+([abcdx]+)', correct):
+                answers = match.group(1)
+                if answers == 'x':
+                    correct_answers_list.append(['x'])
                 else:
-                    i += 1
+                    correct_answers_list.append(list(answers))
+        
+        # Parse student answers (single answer per question)
+        student_answers_list = []
+        if re.match(r'^[abcdx]+$', user_answer):
+            # Format 1: abc -> [a, b, c]
+            student_answers_list = list(user_answer)
         else:
-            # Format: abc (1->a, 2->b, 3->c)
-            for idx, char in enumerate(user_answer, 1):
-                if char.isalpha():
-                    user_dict[str(idx)] = char
+            # Format 2: 1a2b3c -> [a, b, c]
+            for match in re.finditer(r'\d+([abcdx])', user_answer):
+                student_answers_list.append(match.group(1))
         
         # Savol sonini tekshirish
-        if len(correct_dict) != len(user_dict):
+        if len(correct_answers_list) != len(student_answers_list):
             await message.answer(
                 f"❌ Javoblar soni noto'g'ri!\n\n"
-                f"Kerakli javoblar soni: {len(correct_dict)}\n"
-                f"Sizning javoblaringiz: {len(user_dict)}\n\n"
+                f"Kerakli javoblar soni: {len(correct_answers_list)}\n"
+                f"Sizning javoblaringiz: {len(student_answers_list)}\n\n"
                 f"Iltimos, to'g'ri formatda qayta yuboring.",
                 reply_markup=vazifa_key
             )
             await state.finish()
             return
         
-        # Har bir javobni tekshirish
+        # Har bir javobni tekshirish (multi-correct support)
         result_text = "📊 Test natijalari:\n\n"
         correct_count = 0
-        total_count = len(correct_dict)
+        total_count = len(correct_answers_list)
         
-        for q_num in sorted(correct_dict.keys(), key=int):
-            correct_ans = correct_dict[q_num]
-            user_ans = user_dict.get(q_num, '')
+        for i in range(total_count):
+            student_ans = student_answers_list[i]
+            correct_ans_list = correct_answers_list[i]
             
-            if correct_ans == user_ans:
-                result_text += f"{q_num}. ✅ {user_ans.upper()}\n"
+            if student_ans in correct_ans_list:
+                result_text += f"{i+1}. ✅ {student_ans.upper()}\n"
                 correct_count += 1
             else:
-                result_text += f"{q_num}. ❌ {user_ans.upper()} (To'g'ri: {correct_ans.upper()})\n"
+                # Show all valid answers
+                valid_answers = '/'.join([a.upper() for a in correct_ans_list])
+                result_text += f"{i+1}. ❌ {student_ans.upper()} (To'g'ri: {valid_answers})\n"
         
         # Foiz hisoblab userga ko'rsatish (baho ko'rsatmaslik)
         percentage = (correct_count / total_count * 100) if total_count > 0 else 0
@@ -600,22 +575,21 @@ async def admin_add_test_code(message: types.Message, state: FSMContext):
         "\n"
         "📝 Formatlar:\n"
         "1️⃣ Oddiy format: abc\n"
-        "   • 1-savol: a\n"
-        "   • 2-savol: b\n"
-        "   • 3-savol: c\n"
+        "   • Har bir harf ketma-ket savol\n"
+        "   • Misol: abcdabcd (8 ta savol)\n"
         "\n"
         "2️⃣ Raqam-harf formati: 1a2b3c\n"
-        "   • 1-savol: a\n"
-        "   • 2-savol: b\n"
-        "   • 3-savol: c\n"
+        "   • Raqam = savol, harf = javob\n"
+        "   • Misol: 1a2c3b4d5a (5 ta savol)\n"
         "\n"
-        "💡 Misol:\n"
-        "• 20 ta savol: abcdabcdabcdabcdabcd\n"
-        "• 5 ta savol: 1a2c3b4d5a\n"
+        "3️⃣ Ko'p to'g'ri javob: 1ab2x3abcd\n"
+        "   • 1ab = 1-savolda a yoki b to'g'ri\n"
+        "   • 2x = 2-savolda to'g'ri javob yo'q\n"
+        "   • 3abcd = 3-savolda a/b/c/d to'g'ri\n"
         "\n"
-        "⚠️ Userlar test yuborishda:\n"
-        "Format: test_kodi-javoblar\n"
-        "Misol: 1-abc yoki 1-1a2b3c"
+        "⚠️ Studentlar bitta javob yuboradi:\n"
+        "• Format: test_kodi-javoblar\n"
+        "• Misol: 1-abc yoki 1-1a2b3c"
     )
     await state.set_state("addtest_answer")
 
