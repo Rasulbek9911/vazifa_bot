@@ -78,7 +78,7 @@ class Task(models.Model):
     task_type = models.CharField(
         max_length=20, choices=TASK_TYPE_CHOICES, default='test')
     course_type = models.CharField(
-        max_length=20, choices=COURSE_CHOICES, default='milliy_sert')
+        max_length=20, choices=COURSE_CHOICES, default='attestatsiya')
     
     # Maxsus topshiriq uchun - fayl
     file_link = models.TextField(null=True, blank=True)

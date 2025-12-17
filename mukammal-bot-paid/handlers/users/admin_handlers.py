@@ -263,14 +263,14 @@ async def topic_selected_for_update(callback: types.CallbackQuery, state: FSMCon
     current_code = list(topic.correct_answers.keys())[0]
     current_answers = topic.correct_answers[current_code]
     
-    # Javoblar sonini to'g'ri hisoblash (ikki formatni qo'llab-quvvatlash)
+    # Javoblar sonini to'g'ri hisoblash (uch formatni qo'llab-quvvatlash)
     import re
     if re.match(r'^[abcd]+$', current_answers):
         # Format 1: faqat harflar (abc = 3 ta)
         answer_count = len(current_answers)
     else:
-        # Format 2: raqam+harf (1a2b3c = 3 ta)
-        answer_count = len(re.findall(r'\d+[abcd]', current_answers))
+        # Format 2: raqam+harf(lar) (1a2b3c = 3 ta, 1ab2x3cd = 3 ta)
+        answer_count = len(re.findall(r'\d+[abcdx]+', current_answers))
     
     await callback.message.edit_text(
         f"📝 Mavzu: {topic.title}\n"
@@ -306,9 +306,10 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     test_code = data['test_code']
     answer_count = data['answer_count']
     
-    # Validatsiya: ikkita formatni qo'llab-quvvatlaymiz
+    # Validatsiya: uchta formatni qo'llab-quvvatlaymiz
     # 1. Faqat harflar: "abc" 
-    # 2. Raqam + harf: "1a2b3c"
+    # 2. Raqam + harf(lar): "1a2b3c" yoki "1ab2x3cd" (bir nechta variant yoki x)
+    # 3. x = hech biri to'g'ri emas
     
     # Formatni aniqlash
     import re
@@ -324,10 +325,12 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             return
         # Format to'g'ri, davom etamiz
     
-    # Format 2: raqam+harf (1a2b3c, 1a2c3d, ...)
-    elif re.match(r'^(\d+[abcd])+$', new_answers):
+    # Format 2: raqam+harf(lar) yoki x (1a2b3c, 1ab2x3cd, ...)
+    # x = hech biri to'g'ri emas
+    # ko'p harflar = bir nechta to'g'ri javob
+    elif re.match(r'^(\d+[abcdx]+)+$', new_answers):
         # Javoblar sonini sanab ko'ramiz
-        questions = re.findall(r'\d+[abcd]', new_answers)
+        questions = re.findall(r'\d+[abcdx]+', new_answers)
         if len(questions) != answer_count:
             await message.answer(
                 f"❌ Xato! To'g'ri javoblar {answer_count} ta bo'lishi kerak.\n"
@@ -339,10 +342,14 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     
     else:
         await message.answer(
-            "❌ Xato format! Ikki xil formatdan foydalaning:\n\n"
+            "❌ Xato format! Uch xil formatdan foydalaning:\n\n"
             "1️⃣ Faqat harflar: abc, abcd, ...\n"
-            "2️⃣ Raqam + harf: 1a2b3c, 1a2c3d, ...\n\n"
-            "Faqat a, b, c, d harflaridan foydalaning.\n"
+            "2️⃣ Raqam + harf: 1a2b3c, 1a2c3d, ...\n"
+            "3️⃣ Ko'p variant: 1ab2x3abcd\n"
+            "   • 1ab = 1-savol: a yoki b to'g'ri\n"
+            "   • 2x = 2-savol: hech biri to'g'ri emas\n"
+            "   • 3abcd = 3-savol: hammasi to'g'ri\n\n"
+            "Faqat a, b, c, d, x harflaridan foydalaning.\n"
             "Qaytadan yuboring yoki /cancel"
         )
         return
@@ -364,14 +371,23 @@ async def process_new_answers(message: types.Message, state: FSMContext):
         f"✅ Yangi: {new_answers}"
     )
     
-    # Yangi javoblarni faqat harflarga aylantirish (ikki formatni qo'llab-quvvatlash uchun)
+    # Yangi javoblarni parse qilish (uch formatni qo'llab-quvvatlash)
     import re
     if re.match(r'^[abcd]+$', new_answers):
-        # Format 1: faqat harflar
-        correct_answers_list = list(new_answers)
+        # Format 1: faqat harflar (abc) -> har biri bitta to'g'ri javob
+        correct_answers_list = [[ch] for ch in new_answers]
     else:
-        # Format 2: raqam+harf - faqat harflarni ajratib olamiz
-        correct_answers_list = [m[1] for m in re.finditer(r'\d+([abcd])', new_answers)]
+        # Format 2: raqam+harf(lar) (1a2b3c yoki 1ab2x3cd)
+        # Har bir savolning to'g'ri javoblarini list qilib olamiz
+        correct_answers_list = []
+        for match in re.finditer(r'\d+([abcdx]+)', new_answers):
+            answers = match.group(1)
+            if answers == 'x':
+                # 'x' = hech biri to'g'ri emas
+                correct_answers_list.append(['x'])
+            else:
+                # Ko'p variant (ab, abcd, ...)
+                correct_answers_list.append(list(answers))
     
     # Barcha bu mavzu bo'yicha test topshirgan studentlarning natijasini qayta hisoblaymiz
     tasks = await sync_to_async(list)(
@@ -382,20 +398,44 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     grade_changes = []  # Baho o'zgarishlarini saqlaymiz
     
     for task in tasks:
-        # Student javoblarini ham faqat harflarga aylantirish
+        # Student javoblarini parse qilish
         student_answers = task.test_answers.lower()
-        if re.match(r'^[abcd]+$', student_answers):
+        student_answers_list = []
+        
+        if re.match(r'^[abcdx]+$', student_answers):
+            # Format 1: faqat harflar (abc -> [a, b, c])
             student_answers_list = list(student_answers)
         else:
-            student_answers_list = [m[1] for m in re.finditer(r'\d+([abcd])', student_answers)]
+            # Format 2: raqam+harf (1a2b3c -> [a, b, c])
+            # Student har bir savol uchun BITTA harf yuboradi
+            for match in re.finditer(r'\d+([abcdx])', student_answers):
+                student_answers_list.append(match.group(1))
         
         # Uzunliklarni tekshirish
         if not student_answers_list or len(student_answers_list) != answer_count:
             continue
             
         # Yangi bahoni hisoblaymiz
+        # Student javobi to'g'ri javoblar ro'yxatida bo'lsa 1 ball
         old_grade = task.grade
-        correct_count = sum(1 for i in range(answer_count) if student_answers_list[i] == correct_answers_list[i])
+        correct_count = 0
+        bonus_for_x = 0  # Agar admin 'x' qo'shgan bo'lsa, studentga bonus
+        
+        for i in range(answer_count):
+            student_ans = student_answers_list[i]
+            correct_ans_list = correct_answers_list[i]
+            
+            # Agar admin 'x' deb belgilagan bo'lsa (to'g'ri javob yo'q)
+            if correct_ans_list == ['x'] and student_ans != 'x':
+                # Student 'x' yozmagan, lekin admin 'x' deb belgilagan
+                # Bu student aybdor emas - test xato bo'lgan
+                # Studentga bonus ball beramiz
+                bonus_for_x += 1
+                correct_count += 1
+            # Oddiy holat: student javobi to'g'ri javoblar ichida bormi?
+            elif student_ans in correct_ans_list:
+                correct_count += 1
+        
         new_grade = correct_count
         
         if old_grade != new_grade:
@@ -418,6 +458,10 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             
             # Studentga xabar yuboramiz
             change_symbol = "📈" if diff > 0 else "📉"
+            bonus_msg = ""
+            if bonus_for_x > 0:
+                bonus_msg = f"\n\n🎁 Bonus: {bonus_for_x} ta savolda to'g'ri javob yo'q edi (admin test xatosini tuzatdi)"
+            
             await safe_send_message(
                 student_telegram_id,
                 f"{change_symbol} Test natijangiz o'zgardi!\n\n"
@@ -425,6 +469,7 @@ async def process_new_answers(message: types.Message, state: FSMContext):
                 f"❌ Eski baho: {old_grade}\n"
                 f"✅ Yangi baho: {new_grade}\n"
                 f"{'➕' if diff > 0 else '➖'} Farq: {abs(diff)} ball"
+                f"{bonus_msg}"
             )
     
     # Adminga statistika

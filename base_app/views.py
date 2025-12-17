@@ -144,7 +144,7 @@ class TopicsListView(APIView):
         from .models import Topic
         from .serializers import TopicSerializer
 
-        topics = Topic.objects.all()
+        topics = Topic.objects.all().order_by('id')
         serializer = TopicSerializer(topics, many=True)
         return Response(serializer.data)
 
