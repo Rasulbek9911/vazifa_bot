@@ -316,9 +316,10 @@ class TopicAdmin(admin.ModelAdmin):
                 else:
                     student_info['topics'][topic_id] = None
             
-            # O'rtacha ball
-            if student_info['total_tasks'] > 0:
-                student_info['avg_grade'] = round(student_info['total_score'] / student_info['total_tasks'], 2)
+            # O'rtacha ball - barcha active mavzular soniga bo'lish
+            total_topics_count = len(topic_ids)  # Barcha active mavzular soni
+            if total_topics_count > 0:
+                student_info['avg_grade'] = round(student_info['total_score'] / total_topics_count, 2)
             else:
                 student_info['avg_grade'] = 0
             
