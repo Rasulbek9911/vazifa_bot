@@ -404,12 +404,15 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         
         await message.answer(result_text, reply_markup=vazifa_key)
         
+        # Topic'dan course_type ni olamiz (ishonchli)
+        topic_course_type = current_topic.get("course_type", "attestatsiya")
+        
         # DBga saqlash - grade qismiga to'g'ri javoblar soni
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
-            "course_type": data.get("student_course_type", "milliy_sert"),
+            "course_type": topic_course_type,
             "test_code": test_code,
             "test_answers": test_answers,
             "grade": correct_count  # To'g'ri javoblar soni
@@ -418,11 +421,14 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         # To'g'ri javoblar mavjud emas - oddiy saqlash
         await message.answer("✅ 📝 Test javoblari yuborildi! Admin tekshiradi.", reply_markup=vazifa_key)
         
+        # Topic'dan course_type ni olamiz (ishonchli)
+        topic_course_type = current_topic.get("course_type", "attestatsiya")
+        
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
-            "course_type": data.get("student_course_type", "milliy_sert"),
+            "course_type": topic_course_type,
             "test_code": test_code,
             "test_answers": test_answers
         }
@@ -431,7 +437,14 @@ async def process_test_answers(message: types.Message, state: FSMContext):
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/tasks/submit/", json=payload) as resp:
             if resp.status != 201:
-                await message.answer("❌ Test javoblarini saqlashda xatolik!")
+                error_text = await resp.text()
+                print(f"❌ Test saqlashda xatolik. Status: {resp.status}, Error: {error_text}")
+                print(f"Payload: {payload}")
+                await message.answer(
+                    f"❌ Test javoblarini saqlashda xatolik!\n\n"
+                    f"Status: {resp.status}\n"
+                    f"Iltimos, admin bilan bog'laning."
+                )
     
     await state.finish()
 
@@ -456,11 +469,20 @@ async def process_file(message: types.Message, state: FSMContext):
         file_id = message.photo[-1].file_id
         file_type = "photo"
 
+    # Topic'dan course_type ni olamiz
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp_topic:
+            if resp_topic.status == 200:
+                topic_data = await resp_topic.json()
+                topic_course_type = topic_data.get("course_type", "attestatsiya")
+            else:
+                topic_course_type = "attestatsiya"  # Default
+
     payload = {
         "student_id": message.from_user.id,  # telegram_id
         "topic_id": topic_id,
         "task_type": task_type,
-        "course_type": data.get("student_course_type", "milliy_sert"),
+        "course_type": topic_course_type,
         "file_link": file_id
     }
 
