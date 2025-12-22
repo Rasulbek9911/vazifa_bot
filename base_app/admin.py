@@ -283,47 +283,49 @@ class TopicAdmin(admin.ModelAdmin):
         topic_ids = [topic.id for topic in queryset]
         topics_dict = {topic.id: topic for topic in queryset}
         
-        # Studentlarni olish
-        students_data = {}
-        students = Student.objects.filter(
-            tasks__topic_id__in=topic_ids,
-            tasks__task_type='test',
-            tasks__course_type=course_type
-        ).distinct()
+        # OPTIMIZATSIYA: Barcha tasklarni bir marta olish
+        all_tasks = Task.objects.filter(
+            topic_id__in=topic_ids,
+            task_type='test',
+            course_type=course_type,
+            grade__isnull=False
+        ).select_related('student', 'student__group').order_by('student_id', 'topic_id')
         
-        for student in students:
-            student_info = {
-                'student': student,
-                'topics': {},
-                'total_score': 0,
-                'total_tasks': 0,
-            }
+        # Tasklarni student va topic bo'yicha guruhlash
+        students_data = {}
+        
+        for task in all_tasks:
+            student_id = task.student.id
+            topic_id = task.topic_id
             
-            # Har bir topic bo'yicha natijalarni yig'ish
+            if student_id not in students_data:
+                students_data[student_id] = {
+                    'student': task.student,
+                    'topics': {},
+                    'total_score': 0,
+                    'total_tasks': 0,
+                }
+            
+            # Har bir student+topic kombinatsiyasi uchun faqat birinchi taskni olish
+            if topic_id not in students_data[student_id]['topics']:
+                students_data[student_id]['topics'][topic_id] = task.grade
+                students_data[student_id]['total_score'] += task.grade
+                students_data[student_id]['total_tasks'] += 1
+        
+        # Har bir studentga barcha topiklarni qo'shish (topshirmagan topiklar None bo'ladi)
+        total_topics_count = len(topic_ids)
+        for student_id in students_data:
             for topic_id in topic_ids:
-                task = Task.objects.filter(
-                    student=student,
-                    topic_id=topic_id,
-                    task_type='test',
-                    course_type=course_type,
-                    grade__isnull=False
-                ).first()
-                
-                if task:
-                    student_info['topics'][topic_id] = task.grade
-                    student_info['total_score'] += task.grade
-                    student_info['total_tasks'] += 1
-                else:
-                    student_info['topics'][topic_id] = None
+                if topic_id not in students_data[student_id]['topics']:
+                    students_data[student_id]['topics'][topic_id] = None
             
             # O'rtacha ball - barcha active mavzular soniga bo'lish
-            total_topics_count = len(topic_ids)  # Barcha active mavzular soni
             if total_topics_count > 0:
-                student_info['avg_grade'] = round(student_info['total_score'] / total_topics_count, 2)
+                students_data[student_id]['avg_grade'] = round(
+                    students_data[student_id]['total_score'] / total_topics_count, 2
+                )
             else:
-                student_info['avg_grade'] = 0
-            
-            students_data[student.id] = student_info
+                students_data[student_id]['avg_grade'] = 0
         
         # O'rtacha ball bo'yicha kamayish tartibida saralash
         sorted_students = sorted(
@@ -348,7 +350,7 @@ class TopicAdmin(admin.ModelAdmin):
         for topic_id in topic_ids:
             topic = topics_dict[topic_id]
             header.append(topic.title)
-        header.extend(["O'rtacha ball", 'Topshirgan testlar'])
+        header.extend(["O'rtacha ball", 'Testlar soni'])
         
         writer.writerow(header)
         
