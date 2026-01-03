@@ -49,11 +49,14 @@ class GroupAdmin(admin.ModelAdmin):
         for group in queryset:
             students = Student.objects.filter(group=group)
             
+            # Guruh course_type ga qarab task_type ni aniqlash
+            task_type = 'assignment' if group.course_type == 'milliy_sert' else 'test'
+            
             for student in students:
-                # Student barcha testlari
+                # Student barcha testlari yoki vazifalari
                 tasks = Task.objects.filter(
                     student=student,
-                    task_type='test',
+                    task_type=task_type,
                     grade__isnull=False
                 )
                 
@@ -284,11 +287,14 @@ class TopicAdmin(admin.ModelAdmin):
         topic_ids = [topic.id for topic in all_topics]
         topics_dict = {topic.id: topic for topic in all_topics}
         
+        # Course type ga qarab task_type ni aniqlash
+        # Milliy sert - assignment, Attestatsiya - test
+        task_type = 'assignment' if course_type == 'milliy_sert' else 'test'
+        
         # OPTIMIZATSIYA: Barcha tasklarni bir marta olish
-        # MUHIM: course_type emas, balki topic__course_type orqali filtrlash
         all_tasks = Task.objects.filter(
             topic_id__in=topic_ids,
-            task_type='test',
+            task_type=task_type,
             grade__isnull=False
         ).select_related('student', 'student__group').order_by('student_id', 'topic_id')
         
@@ -335,6 +341,16 @@ class TopicAdmin(admin.ModelAdmin):
             reverse=True
         )
         
+        # Agar hech qanday student topilmasa
+        if not sorted_students:
+            task_type_name = "maxsus topshiriq" if course_type == "milliy_sert" else "test"
+            self.message_user(
+                request,
+                f"⚠️ {course_type} kurs turida {task_type_name} topshirgan studentlar topilmadi!",
+                messages.WARNING
+            )
+            return
+        
         # CSV yaratish
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         course_name = "Milliy_Sertifikat" if course_type == "milliy_sert" else "Attestatsiya"
@@ -351,7 +367,10 @@ class TopicAdmin(admin.ModelAdmin):
         for topic_id in topic_ids:
             topic = topics_dict[topic_id]
             header.append(topic.title)
-        header.extend(["O'rtacha ball", 'Testlar soni'])
+        
+        # Milliy sert uchun "Vazifalar soni", Attestatsiya uchun "Testlar soni"
+        tasks_label = "Vazifalar soni" if course_type == "milliy_sert" else "Testlar soni"
+        header.extend(["O'rtacha ball", tasks_label])
         
         writer.writerow(header)
         
@@ -410,12 +429,14 @@ class TopicAdmin(admin.ModelAdmin):
         # Tanlangan topiklarning ID lari
         topic_ids = list(queryset.values_list('id', flat=True))
         
+        # Course type ga qarab task_type ni aniqlash
+        task_type = 'assignment' if course_type == 'milliy_sert' else 'test'
+        
         # Studentlarni va ularning o'rtacha ballini hisoblash
         students_data = []
         students = Student.objects.filter(
             tasks__topic_id__in=topic_ids,
-            tasks__task_type='test',
-            tasks__course_type=course_type
+            tasks__task_type=task_type
         ).distinct()
         
         for student in students:
@@ -423,8 +444,7 @@ class TopicAdmin(admin.ModelAdmin):
             tasks = Task.objects.filter(
                 student=student,
                 topic_id__in=topic_ids,
-                task_type='test',
-                course_type=course_type,
+                task_type=task_type,
                 grade__isnull=False
             )
             
