@@ -1,0 +1,8982 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-11-25T16:31:14.753Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "1014",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-11-25T16:34:08.641Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "1",
+    "object_repr": "tdfhtf (1014)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-12-02T07:49:15.419Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "2",
+    "object_repr": "раыриааозщао (1014)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Full name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-12-02T07:52:01.876Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "rwe4rwe (Attestatsiya)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-12-02T07:52:23.434Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "1014 (Attestatsiya)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Course type\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-12-02T07:52:27.465Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "rwe4rwe (Attestatsiya)",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-12-02T07:52:57.675Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "rwe4rwe (Attestatsiya)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Correct answers\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2026-01-03T05:18:51.285Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "1-mavzu Milliy (1-dek) (Milliy sertifikat)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2026-01-03T05:18:56.032Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "40",
+    "object_repr": "20-mavzu Milliy (20-dek) (Milliy sertifikat)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2026-01-03T05:19:01.123Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "38",
+    "object_repr": "19-mavzu Milliy (19-dek) (Milliy sertifikat)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2026-01-03T05:19:06.099Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "32",
+    "object_repr": "16-mavzu Milliy (16-dek) (Milliy sertifikat)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Is active\"]}}]"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 2,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 2,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 2,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 2,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 3,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 3,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 3,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 3,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add user",
+    "content_type": 4,
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change user",
+    "content_type": 4,
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete user",
+    "content_type": 4,
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view user",
+    "content_type": 4,
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 5,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 5,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 5,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 5,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 6,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 6,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 6,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 6,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 7,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 7,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 7,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 7,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add topic",
+    "content_type": 8,
+    "codename": "add_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change topic",
+    "content_type": 8,
+    "codename": "change_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete topic",
+    "content_type": 8,
+    "codename": "delete_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view topic",
+    "content_type": 8,
+    "codename": "view_topic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add student",
+    "content_type": 9,
+    "codename": "add_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change student",
+    "content_type": 9,
+    "codename": "change_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete student",
+    "content_type": 9,
+    "codename": "delete_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view student",
+    "content_type": 9,
+    "codename": "view_student"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add task",
+    "content_type": 10,
+    "codename": "add_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change task",
+    "content_type": 10,
+    "codename": "change_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete task",
+    "content_type": 10,
+    "codename": "delete_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view task",
+    "content_type": 10,
+    "codename": "view_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add invite code",
+    "content_type": 11,
+    "codename": "add_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change invite code",
+    "content_type": 11,
+    "codename": "change_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete invite code",
+    "content_type": 11,
+    "codename": "delete_invitecode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view invite code",
+    "content_type": 11,
+    "codename": "view_invitecode"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$KdeeyYMSA190kO0tTvzy7q$JdcuYlA0dKdgXnp9wh+CILGfa/Af/jjQiiHJcdSbH0A=",
+    "last_login": "2026-01-03T05:18:15.605Z",
+    "is_superuser": true,
+    "username": "a",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-11-25T16:30:32.365Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 1,
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 2,
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 3,
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 4,
+  "fields": {
+    "app_label": "auth",
+    "model": "user"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 5,
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 6,
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 7,
+  "fields": {
+    "app_label": "base_app",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 8,
+  "fields": {
+    "app_label": "base_app",
+    "model": "topic"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 9,
+  "fields": {
+    "app_label": "base_app",
+    "model": "student"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 10,
+  "fields": {
+    "app_label": "base_app",
+    "model": "task"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 11,
+  "fields": {
+    "app_label": "base_app",
+    "model": "invitecode"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "7r804s03ucghbclarcauogqwf3k4ejpu",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP_iuZg4KJbdsXvfEGRLatIWG-JkCv17CWRo17vjdjPStk7j1mQZZzZX48zllyXKLymH4CeVR7W5lnWZkz0Se9pm75XlfTvbv8FEbTq2rpfIoesQhRQjiiBygF6BNCmrQ_ABuuSzp0EdDZ6y-CAQNUUG8_kC7MU4gw:1vOJiy:nWjuv4Lf-qmFFRkln8HdZ6SJTwP0bAL61OYh4SmSMMI",
+    "expire_date": "2025-12-10T17:54:40.302Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8dcovo79v8fed23naccw3pruw2ulvy7j",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP_iuZg4KJbdsXvfEGRLatIWG-JkCv17CWRo17vjdjPStk7j1mQZZzZX48zllyXKLymH4CeVR7W5lnWZkz0Se9pm75XlfTvbv8FEbTq2rpfIoesQhRQjiiBygF6BNCmrQ_ABuuSzp0EdDZ6y-CAQNUUG8_kC7MU4gw:1vTLwl:PJ_XG6AZiwCUXDzeagiICYjppRNZ5JtjGW1b-2VIK-I",
+    "expire_date": "2025-12-24T15:17:43.127Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "hg3bh9v5jh9tprbr2j4k7am2og4p7u8q",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP_iuZg4KJbdsXvfEGRLatIWG-JkCv17CWRo17vjdjPStk7j1mQZZzZX48zllyXKLymH4CeVR7W5lnWZkz0Se9pm75XlfTvbv8FEbTq2rpfIoesQhRQjiiBygF6BNCmrQ_ABuuSzp0EdDZ6y-CAQNUUG8_kC7MU4gw:1vbu1S:jII0Eak3A0bU2Cg2tSrFvsG92py9wu0MVz85J-ivjYM",
+    "expire_date": "2026-01-17T05:17:54.215Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "kdxh6ilt4xlwrnmccfz5i66lhoz9n8h8",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP_iuZg4KJbdsXvfEGRLatIWG-JkCv17CWRo17vjdjPStk7j1mQZZzZX48zllyXKLymH4CeVR7W5lnWZkz0Se9pm75XlfTvbv8FEbTq2rpfIoesQhRQjiiBygF6BNCmrQ_ABuuSzp0EdDZ6y-CAQNUUG8_kC7MU4gw:1vNvw8:uqPTuRp8HEhaQkhHp9CZ_TVIvoh3HR4Wi7CieKiV0WY",
+    "expire_date": "2025-12-09T16:30:40.869Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "l2bmvoifppdfjmee50mqln7wmwow5xoe",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP_iuZg4KJbdsXvfEGRLatIWG-JkCv17CWRo17vjdjPStk7j1mQZZzZX48zllyXKLymH4CeVR7W5lnWZkz0Se9pm75XlfTvbv8FEbTq2rpfIoesQhRQjiiBygF6BNCmrQ_ABuuSzp0EdDZ6y-CAQNUUG8_kC7MU4gw:1vbu1n:EosAx-WUdaCTKJZqxySAsIzw46fVGgt61RXtRrjE1Q8",
+    "expire_date": "2026-01-17T05:18:15.607Z"
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 1,
+  "fields": {
+    "name": "1014",
+    "course_type": "attestatsiya",
+    "telegram_group_id": "-1002697907871",
+    "invite_link": "https://t.me/+t7b8SluYYvM2NDZi",
+    "is_full": false
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 2,
+  "fields": {
+    "name": "Test Guruh Milliy A1",
+    "course_type": "milliy_sert",
+    "telegram_group_id": null,
+    "invite_link": null,
+    "is_full": false
+  }
+},
+{
+  "model": "base_app.group",
+  "pk": 3,
+  "fields": {
+    "name": "Test Guruh Attestatsiya B1",
+    "course_type": "attestatsiya",
+    "telegram_group_id": null,
+    "invite_link": null,
+    "is_full": false
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 2,
+  "fields": {
+    "telegram_id": "1062271566",
+    "full_name": "test",
+    "group": 1
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 3,
+  "fields": {
+    "telegram_id": "mock_milliy_100000",
+    "full_name": "Aliyev Jasur",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 4,
+  "fields": {
+    "telegram_id": "mock_milliy_100001",
+    "full_name": "Boboyeva Nilufar",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 5,
+  "fields": {
+    "telegram_id": "mock_milliy_100002",
+    "full_name": "Valijonov Sardor",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 6,
+  "fields": {
+    "telegram_id": "mock_milliy_100003",
+    "full_name": "Gulmirova Dilnoza",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 7,
+  "fields": {
+    "telegram_id": "mock_milliy_100004",
+    "full_name": "Do'stov Kamol",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 8,
+  "fields": {
+    "telegram_id": "mock_milliy_100005",
+    "full_name": "Ergasheva Malika",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 9,
+  "fields": {
+    "telegram_id": "mock_milliy_100006",
+    "full_name": "Ziyodullayev Akbar",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 10,
+  "fields": {
+    "telegram_id": "mock_milliy_100007",
+    "full_name": "Ismoilova Sevara",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 11,
+  "fields": {
+    "telegram_id": "mock_milliy_100008",
+    "full_name": "Karimov Timur",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 12,
+  "fields": {
+    "telegram_id": "mock_milliy_100009",
+    "full_name": "Lutfullayeva Nigora",
+    "group": 2
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 13,
+  "fields": {
+    "telegram_id": "mock_attest_200000",
+    "full_name": "Abdullayev Otabek",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 14,
+  "fields": {
+    "telegram_id": "mock_attest_200001",
+    "full_name": "Bekmurodova Madina",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 15,
+  "fields": {
+    "telegram_id": "mock_attest_200002",
+    "full_name": "Valiyev Nodir",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 16,
+  "fields": {
+    "telegram_id": "mock_attest_200003",
+    "full_name": "Gulyamova Zarina",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 17,
+  "fields": {
+    "telegram_id": "mock_attest_200004",
+    "full_name": "Davronov Eldor",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 18,
+  "fields": {
+    "telegram_id": "mock_attest_200005",
+    "full_name": "Eshonova Feruza",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 19,
+  "fields": {
+    "telegram_id": "mock_attest_200006",
+    "full_name": "Zokirov Sherzod",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 20,
+  "fields": {
+    "telegram_id": "mock_attest_200007",
+    "full_name": "Ibragimova Yulduz",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 21,
+  "fields": {
+    "telegram_id": "mock_attest_200008",
+    "full_name": "Kamolov Umid",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 22,
+  "fields": {
+    "telegram_id": "mock_attest_200009",
+    "full_name": "Latipova Shahzoda",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 23,
+  "fields": {
+    "telegram_id": "mock_attest_200010",
+    "full_name": "Abdullayev Otabek",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 24,
+  "fields": {
+    "telegram_id": "mock_attest_200011",
+    "full_name": "Bekmurodova Madina",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 25,
+  "fields": {
+    "telegram_id": "mock_attest_200012",
+    "full_name": "Valiyev Nodir",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 26,
+  "fields": {
+    "telegram_id": "mock_attest_200013",
+    "full_name": "Gulyamova Zarina",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 27,
+  "fields": {
+    "telegram_id": "mock_attest_200014",
+    "full_name": "Davronov Eldor",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 28,
+  "fields": {
+    "telegram_id": "mock_attest_200015",
+    "full_name": "Eshonova Feruza",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 29,
+  "fields": {
+    "telegram_id": "mock_attest_200016",
+    "full_name": "Zokirov Sherzod",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 30,
+  "fields": {
+    "telegram_id": "mock_attest_200017",
+    "full_name": "Ibragimova Yulduz",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 31,
+  "fields": {
+    "telegram_id": "mock_attest_200018",
+    "full_name": "Kamolov Umid",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.student",
+  "pk": 32,
+  "fields": {
+    "telegram_id": "mock_attest_200019",
+    "full_name": "Latipova Shahzoda",
+    "group": 3
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 1,
+  "fields": {
+    "title": "rwe4rwe",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-02T07:52:01.870Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "1": "1a2c3c"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 2,
+  "fields": {
+    "title": "1-mavzu Milliy (1-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.867Z",
+    "is_active": false,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 3,
+  "fields": {
+    "title": "1-mavzu Attestatsiya (1-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.872Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 4,
+  "fields": {
+    "title": "2-mavzu Milliy (2-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.879Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 5,
+  "fields": {
+    "title": "2-mavzu Attestatsiya (2-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.883Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 6,
+  "fields": {
+    "title": "3-mavzu Milliy (3-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.885Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 7,
+  "fields": {
+    "title": "3-mavzu Attestatsiya (3-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.904Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 8,
+  "fields": {
+    "title": "4-mavzu Milliy (4-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.908Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 9,
+  "fields": {
+    "title": "4-mavzu Attestatsiya (4-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.912Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 10,
+  "fields": {
+    "title": "5-mavzu Milliy (5-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.916Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 11,
+  "fields": {
+    "title": "5-mavzu Attestatsiya (5-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.918Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 12,
+  "fields": {
+    "title": "6-mavzu Milliy (6-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.920Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 13,
+  "fields": {
+    "title": "6-mavzu Attestatsiya (6-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.923Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 14,
+  "fields": {
+    "title": "7-mavzu Milliy (7-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.926Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 15,
+  "fields": {
+    "title": "7-mavzu Attestatsiya (7-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.932Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 16,
+  "fields": {
+    "title": "8-mavzu Milliy (8-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.935Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 17,
+  "fields": {
+    "title": "8-mavzu Attestatsiya (8-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.938Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 18,
+  "fields": {
+    "title": "9-mavzu Milliy (9-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.945Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 19,
+  "fields": {
+    "title": "9-mavzu Attestatsiya (9-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.951Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 20,
+  "fields": {
+    "title": "10-mavzu Milliy (10-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.953Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 21,
+  "fields": {
+    "title": "10-mavzu Attestatsiya (10-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.955Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 22,
+  "fields": {
+    "title": "11-mavzu Milliy (11-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.959Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 23,
+  "fields": {
+    "title": "11-mavzu Attestatsiya (11-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.965Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 24,
+  "fields": {
+    "title": "12-mavzu Milliy (12-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.970Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 25,
+  "fields": {
+    "title": "12-mavzu Attestatsiya (12-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.972Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 26,
+  "fields": {
+    "title": "13-mavzu Milliy (13-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.978Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 27,
+  "fields": {
+    "title": "13-mavzu Attestatsiya (13-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.983Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 28,
+  "fields": {
+    "title": "14-mavzu Milliy (14-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.987Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 29,
+  "fields": {
+    "title": "14-mavzu Attestatsiya (14-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.989Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 30,
+  "fields": {
+    "title": "15-mavzu Milliy (15-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:02.991Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 31,
+  "fields": {
+    "title": "15-mavzu Attestatsiya (15-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:02.996Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 32,
+  "fields": {
+    "title": "16-mavzu Milliy (16-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:03.001Z",
+    "is_active": false,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 33,
+  "fields": {
+    "title": "16-mavzu Attestatsiya (16-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:03.004Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 34,
+  "fields": {
+    "title": "17-mavzu Milliy (17-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:03.006Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 35,
+  "fields": {
+    "title": "17-mavzu Attestatsiya (17-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:03.011Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 36,
+  "fields": {
+    "title": "18-mavzu Milliy (18-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:03.015Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 37,
+  "fields": {
+    "title": "18-mavzu Attestatsiya (18-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:03.020Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 38,
+  "fields": {
+    "title": "19-mavzu Milliy (19-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:03.022Z",
+    "is_active": false,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 39,
+  "fields": {
+    "title": "19-mavzu Attestatsiya (19-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:03.024Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": {
+      "+": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 40,
+  "fields": {
+    "title": "20-mavzu Milliy (20-dek)",
+    "course_type": "milliy_sert",
+    "created_at": "2025-12-10T15:14:03.030Z",
+    "is_active": false,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.topic",
+  "pk": 41,
+  "fields": {
+    "title": "20-mavzu Attestatsiya (20-dek)",
+    "course_type": "attestatsiya",
+    "created_at": "2025-12-10T15:14:03.034Z",
+    "is_active": true,
+    "deadline": null,
+    "correct_answers": null
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 1,
+  "fields": {
+    "student": 2,
+    "topic": 1,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "1",
+    "test_answers": "abc",
+    "grade": 2,
+    "submitted_at": "2025-12-02T07:53:08.005Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 2,
+  "fields": {
+    "student": 3,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.041Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 3,
+  "fields": {
+    "student": 3,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.048Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 4,
+  "fields": {
+    "student": 3,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.053Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 5,
+  "fields": {
+    "student": 3,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.056Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 6,
+  "fields": {
+    "student": 3,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.058Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 7,
+  "fields": {
+    "student": 3,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.063Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 8,
+  "fields": {
+    "student": 3,
+    "topic": 20,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.066Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 9,
+  "fields": {
+    "student": 3,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.070Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 10,
+  "fields": {
+    "student": 3,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.073Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 11,
+  "fields": {
+    "student": 3,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.075Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 12,
+  "fields": {
+    "student": 3,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.077Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 13,
+  "fields": {
+    "student": 3,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.079Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 14,
+  "fields": {
+    "student": 3,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.082Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 15,
+  "fields": {
+    "student": 4,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.084Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 16,
+  "fields": {
+    "student": 4,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.086Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 17,
+  "fields": {
+    "student": 4,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.088Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 18,
+  "fields": {
+    "student": 4,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.091Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 19,
+  "fields": {
+    "student": 4,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.093Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 20,
+  "fields": {
+    "student": 4,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.095Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 21,
+  "fields": {
+    "student": 4,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.098Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 22,
+  "fields": {
+    "student": 4,
+    "topic": 24,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.100Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 23,
+  "fields": {
+    "student": 4,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.105Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 24,
+  "fields": {
+    "student": 4,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.112Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 25,
+  "fields": {
+    "student": 4,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.119Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 26,
+  "fields": {
+    "student": 4,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.126Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 27,
+  "fields": {
+    "student": 4,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.132Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 28,
+  "fields": {
+    "student": 5,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.139Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 29,
+  "fields": {
+    "student": 5,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.145Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 30,
+  "fields": {
+    "student": 5,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.152Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 31,
+  "fields": {
+    "student": 5,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.158Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 32,
+  "fields": {
+    "student": 5,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.165Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 33,
+  "fields": {
+    "student": 5,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.172Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 34,
+  "fields": {
+    "student": 5,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.179Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 35,
+  "fields": {
+    "student": 5,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.184Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 36,
+  "fields": {
+    "student": 5,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.190Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 37,
+  "fields": {
+    "student": 5,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.197Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 38,
+  "fields": {
+    "student": 5,
+    "topic": 24,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.200Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 39,
+  "fields": {
+    "student": 5,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.203Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 40,
+  "fields": {
+    "student": 5,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.206Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 41,
+  "fields": {
+    "student": 5,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.209Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 42,
+  "fields": {
+    "student": 5,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.212Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 43,
+  "fields": {
+    "student": 5,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.215Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 44,
+  "fields": {
+    "student": 5,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.218Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 45,
+  "fields": {
+    "student": 5,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.220Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 46,
+  "fields": {
+    "student": 6,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.223Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 47,
+  "fields": {
+    "student": 6,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.225Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 48,
+  "fields": {
+    "student": 6,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.228Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 49,
+  "fields": {
+    "student": 6,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.231Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 50,
+  "fields": {
+    "student": 6,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.233Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 51,
+  "fields": {
+    "student": 6,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.238Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 52,
+  "fields": {
+    "student": 6,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.241Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 53,
+  "fields": {
+    "student": 6,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.243Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 54,
+  "fields": {
+    "student": 6,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.246Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 55,
+  "fields": {
+    "student": 6,
+    "topic": 24,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.248Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 56,
+  "fields": {
+    "student": 6,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.250Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 57,
+  "fields": {
+    "student": 6,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.254Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 58,
+  "fields": {
+    "student": 6,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.270Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 59,
+  "fields": {
+    "student": 6,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.277Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 60,
+  "fields": {
+    "student": 6,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.284Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 61,
+  "fields": {
+    "student": 6,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.291Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 62,
+  "fields": {
+    "student": 6,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.299Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 63,
+  "fields": {
+    "student": 6,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.306Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 64,
+  "fields": {
+    "student": 7,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.313Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 65,
+  "fields": {
+    "student": 7,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.320Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 66,
+  "fields": {
+    "student": 7,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.327Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 67,
+  "fields": {
+    "student": 7,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.334Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 68,
+  "fields": {
+    "student": 7,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.340Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 69,
+  "fields": {
+    "student": 7,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.347Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 70,
+  "fields": {
+    "student": 7,
+    "topic": 20,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.354Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 71,
+  "fields": {
+    "student": 7,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.361Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 72,
+  "fields": {
+    "student": 7,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.368Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 73,
+  "fields": {
+    "student": 7,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.374Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 74,
+  "fields": {
+    "student": 7,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.381Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 75,
+  "fields": {
+    "student": 8,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.390Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 76,
+  "fields": {
+    "student": 8,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.395Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 77,
+  "fields": {
+    "student": 8,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.400Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 78,
+  "fields": {
+    "student": 8,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.403Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 79,
+  "fields": {
+    "student": 8,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.407Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 80,
+  "fields": {
+    "student": 8,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.410Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 81,
+  "fields": {
+    "student": 8,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.412Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 82,
+  "fields": {
+    "student": 8,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.415Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 83,
+  "fields": {
+    "student": 8,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.418Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 84,
+  "fields": {
+    "student": 8,
+    "topic": 20,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.421Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 85,
+  "fields": {
+    "student": 8,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.424Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 86,
+  "fields": {
+    "student": 8,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.427Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 87,
+  "fields": {
+    "student": 8,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.430Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 88,
+  "fields": {
+    "student": 8,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.433Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 89,
+  "fields": {
+    "student": 8,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.436Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 90,
+  "fields": {
+    "student": 8,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.438Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 91,
+  "fields": {
+    "student": 9,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.441Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 92,
+  "fields": {
+    "student": 9,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.444Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 93,
+  "fields": {
+    "student": 9,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.450Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 94,
+  "fields": {
+    "student": 9,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.456Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 95,
+  "fields": {
+    "student": 9,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.463Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 96,
+  "fields": {
+    "student": 9,
+    "topic": 24,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.470Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 97,
+  "fields": {
+    "student": 9,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.478Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 98,
+  "fields": {
+    "student": 9,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.484Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 99,
+  "fields": {
+    "student": 9,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.492Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 100,
+  "fields": {
+    "student": 9,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.499Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 101,
+  "fields": {
+    "student": 9,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.506Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 102,
+  "fields": {
+    "student": 9,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.513Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 103,
+  "fields": {
+    "student": 9,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.520Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 104,
+  "fields": {
+    "student": 10,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.525Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 105,
+  "fields": {
+    "student": 10,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.529Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 106,
+  "fields": {
+    "student": 10,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.533Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 107,
+  "fields": {
+    "student": 10,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.536Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 108,
+  "fields": {
+    "student": 10,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.539Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 109,
+  "fields": {
+    "student": 10,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.542Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 110,
+  "fields": {
+    "student": 10,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.546Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 111,
+  "fields": {
+    "student": 10,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.549Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 112,
+  "fields": {
+    "student": 10,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.554Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 113,
+  "fields": {
+    "student": 10,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.561Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 114,
+  "fields": {
+    "student": 10,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.567Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 115,
+  "fields": {
+    "student": 10,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.574Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 116,
+  "fields": {
+    "student": 10,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.580Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 117,
+  "fields": {
+    "student": 10,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.585Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 118,
+  "fields": {
+    "student": 10,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.590Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 119,
+  "fields": {
+    "student": 10,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.595Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 120,
+  "fields": {
+    "student": 10,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.599Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 121,
+  "fields": {
+    "student": 11,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.603Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 122,
+  "fields": {
+    "student": 11,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.607Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 123,
+  "fields": {
+    "student": 11,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.611Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 124,
+  "fields": {
+    "student": 11,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.616Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 125,
+  "fields": {
+    "student": 11,
+    "topic": 10,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.621Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 126,
+  "fields": {
+    "student": 11,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.625Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 127,
+  "fields": {
+    "student": 11,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.630Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 128,
+  "fields": {
+    "student": 11,
+    "topic": 16,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.634Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 129,
+  "fields": {
+    "student": 11,
+    "topic": 20,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.638Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 130,
+  "fields": {
+    "student": 11,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.643Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 131,
+  "fields": {
+    "student": 11,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.647Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 132,
+  "fields": {
+    "student": 11,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.652Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 133,
+  "fields": {
+    "student": 11,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.656Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 134,
+  "fields": {
+    "student": 11,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.660Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 135,
+  "fields": {
+    "student": 11,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.664Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 136,
+  "fields": {
+    "student": 11,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.669Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 137,
+  "fields": {
+    "student": 11,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.676Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 138,
+  "fields": {
+    "student": 12,
+    "topic": 2,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.682Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 139,
+  "fields": {
+    "student": 12,
+    "topic": 4,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.689Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 140,
+  "fields": {
+    "student": 12,
+    "topic": 6,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.697Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 141,
+  "fields": {
+    "student": 12,
+    "topic": 8,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.704Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 142,
+  "fields": {
+    "student": 12,
+    "topic": 12,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.711Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 143,
+  "fields": {
+    "student": 12,
+    "topic": 14,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.719Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 144,
+  "fields": {
+    "student": 12,
+    "topic": 18,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.725Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 145,
+  "fields": {
+    "student": 12,
+    "topic": 22,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.729Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 146,
+  "fields": {
+    "student": 12,
+    "topic": 24,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.733Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 147,
+  "fields": {
+    "student": 12,
+    "topic": 26,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.738Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 148,
+  "fields": {
+    "student": 12,
+    "topic": 28,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.742Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 149,
+  "fields": {
+    "student": 12,
+    "topic": 30,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.746Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 150,
+  "fields": {
+    "student": 12,
+    "topic": 32,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.750Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 151,
+  "fields": {
+    "student": 12,
+    "topic": 34,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.754Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 152,
+  "fields": {
+    "student": 12,
+    "topic": 36,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.759Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 153,
+  "fields": {
+    "student": 12,
+    "topic": 38,
+    "task_type": "test",
+    "course_type": "milliy_sert",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.763Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 154,
+  "fields": {
+    "student": 12,
+    "topic": 40,
+    "task_type": "assignment",
+    "course_type": "milliy_sert",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.767Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 155,
+  "fields": {
+    "student": 13,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.771Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 156,
+  "fields": {
+    "student": 13,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.775Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 157,
+  "fields": {
+    "student": 13,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.779Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 158,
+  "fields": {
+    "student": 13,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.783Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 159,
+  "fields": {
+    "student": 13,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:03.787Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 160,
+  "fields": {
+    "student": 13,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.790Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 161,
+  "fields": {
+    "student": 13,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.793Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 162,
+  "fields": {
+    "student": 13,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.796Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 163,
+  "fields": {
+    "student": 13,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.800Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 164,
+  "fields": {
+    "student": 13,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:03.803Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 165,
+  "fields": {
+    "student": 13,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.806Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 166,
+  "fields": {
+    "student": 13,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:03.809Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 167,
+  "fields": {
+    "student": 13,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.812Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 168,
+  "fields": {
+    "student": 13,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.815Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 169,
+  "fields": {
+    "student": 13,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.818Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 170,
+  "fields": {
+    "student": 13,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.821Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 171,
+  "fields": {
+    "student": 13,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:03.824Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 172,
+  "fields": {
+    "student": 13,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.827Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 173,
+  "fields": {
+    "student": 14,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:03.830Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 174,
+  "fields": {
+    "student": 14,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.833Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 175,
+  "fields": {
+    "student": 14,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.837Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 176,
+  "fields": {
+    "student": 14,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.841Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 177,
+  "fields": {
+    "student": 14,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:03.844Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 178,
+  "fields": {
+    "student": 14,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:03.848Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 179,
+  "fields": {
+    "student": 14,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.851Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 180,
+  "fields": {
+    "student": 14,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.855Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 181,
+  "fields": {
+    "student": 14,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:03.860Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 182,
+  "fields": {
+    "student": 14,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.867Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 183,
+  "fields": {
+    "student": 14,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.873Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 184,
+  "fields": {
+    "student": 14,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:03.880Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 185,
+  "fields": {
+    "student": 14,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.887Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 186,
+  "fields": {
+    "student": 14,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:03.893Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 187,
+  "fields": {
+    "student": 14,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.900Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 188,
+  "fields": {
+    "student": 14,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.908Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 189,
+  "fields": {
+    "student": 14,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.914Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 190,
+  "fields": {
+    "student": 15,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.921Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 191,
+  "fields": {
+    "student": 15,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.927Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 192,
+  "fields": {
+    "student": 15,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:03.934Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 193,
+  "fields": {
+    "student": 15,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.939Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 194,
+  "fields": {
+    "student": 15,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.944Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 195,
+  "fields": {
+    "student": 15,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.949Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 196,
+  "fields": {
+    "student": 15,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:03.954Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 197,
+  "fields": {
+    "student": 15,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.958Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 198,
+  "fields": {
+    "student": 15,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:03.962Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 199,
+  "fields": {
+    "student": 15,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:03.966Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 200,
+  "fields": {
+    "student": 15,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:03.971Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 201,
+  "fields": {
+    "student": 15,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:03.975Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 202,
+  "fields": {
+    "student": 15,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:03.980Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 203,
+  "fields": {
+    "student": 15,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:03.985Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 204,
+  "fields": {
+    "student": 15,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:03.990Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 205,
+  "fields": {
+    "student": 16,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:03.994Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 206,
+  "fields": {
+    "student": 16,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:03.999Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 207,
+  "fields": {
+    "student": 16,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:04.004Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 208,
+  "fields": {
+    "student": 16,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:04.009Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 209,
+  "fields": {
+    "student": 16,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:04.014Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 210,
+  "fields": {
+    "student": 16,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:04.020Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 211,
+  "fields": {
+    "student": 16,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:04.025Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 212,
+  "fields": {
+    "student": 16,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:04.030Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 213,
+  "fields": {
+    "student": 16,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.035Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 214,
+  "fields": {
+    "student": 16,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:04.042Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 215,
+  "fields": {
+    "student": 16,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.047Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 216,
+  "fields": {
+    "student": 16,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:04.052Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 217,
+  "fields": {
+    "student": 16,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:04.057Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 218,
+  "fields": {
+    "student": 16,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:04.062Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 219,
+  "fields": {
+    "student": 16,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:04.066Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 220,
+  "fields": {
+    "student": 17,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:04.071Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 221,
+  "fields": {
+    "student": 17,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:04.076Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 222,
+  "fields": {
+    "student": 17,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:04.081Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 223,
+  "fields": {
+    "student": 17,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.085Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 224,
+  "fields": {
+    "student": 17,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:04.091Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 225,
+  "fields": {
+    "student": 17,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.096Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 226,
+  "fields": {
+    "student": 17,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.102Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 227,
+  "fields": {
+    "student": 17,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:04.107Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 228,
+  "fields": {
+    "student": 17,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.112Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 229,
+  "fields": {
+    "student": 17,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.117Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 230,
+  "fields": {
+    "student": 17,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.122Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 231,
+  "fields": {
+    "student": 17,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:04.127Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 232,
+  "fields": {
+    "student": 17,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:04.132Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 233,
+  "fields": {
+    "student": 17,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.138Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 234,
+  "fields": {
+    "student": 17,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:04.143Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 235,
+  "fields": {
+    "student": 17,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.148Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 236,
+  "fields": {
+    "student": 18,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.154Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 237,
+  "fields": {
+    "student": 18,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:04.159Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 238,
+  "fields": {
+    "student": 18,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:04.164Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 239,
+  "fields": {
+    "student": 18,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.170Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 240,
+  "fields": {
+    "student": 18,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:04.175Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 241,
+  "fields": {
+    "student": 18,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:04.180Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 242,
+  "fields": {
+    "student": 18,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.185Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 243,
+  "fields": {
+    "student": 18,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.190Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 244,
+  "fields": {
+    "student": 18,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:04.196Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 245,
+  "fields": {
+    "student": 18,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.200Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 246,
+  "fields": {
+    "student": 18,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.205Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 247,
+  "fields": {
+    "student": 18,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.210Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 248,
+  "fields": {
+    "student": 18,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.215Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 249,
+  "fields": {
+    "student": 18,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:04.220Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 250,
+  "fields": {
+    "student": 18,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:04.225Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 251,
+  "fields": {
+    "student": 19,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:14:04.230Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 252,
+  "fields": {
+    "student": 19,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.235Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 253,
+  "fields": {
+    "student": 19,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.241Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 254,
+  "fields": {
+    "student": 19,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:14:04.247Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 255,
+  "fields": {
+    "student": 19,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:04.253Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 256,
+  "fields": {
+    "student": 19,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.259Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 257,
+  "fields": {
+    "student": 19,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.266Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 258,
+  "fields": {
+    "student": 19,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:04.273Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 259,
+  "fields": {
+    "student": 19,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.280Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 260,
+  "fields": {
+    "student": 19,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:04.286Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 261,
+  "fields": {
+    "student": 19,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.293Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 262,
+  "fields": {
+    "student": 19,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:04.299Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 263,
+  "fields": {
+    "student": 19,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.306Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 264,
+  "fields": {
+    "student": 19,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.313Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 265,
+  "fields": {
+    "student": 19,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.319Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 266,
+  "fields": {
+    "student": 20,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:14:04.326Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 267,
+  "fields": {
+    "student": 20,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.332Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 268,
+  "fields": {
+    "student": 20,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.338Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 269,
+  "fields": {
+    "student": 20,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:04.346Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 270,
+  "fields": {
+    "student": 20,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:04.353Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 271,
+  "fields": {
+    "student": 20,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.359Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 272,
+  "fields": {
+    "student": 20,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:14:04.365Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 273,
+  "fields": {
+    "student": 20,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:04.372Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 274,
+  "fields": {
+    "student": 20,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.379Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 275,
+  "fields": {
+    "student": 20,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.385Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 276,
+  "fields": {
+    "student": 20,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:04.392Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 277,
+  "fields": {
+    "student": 20,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:14:04.398Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 278,
+  "fields": {
+    "student": 21,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:14:04.405Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 279,
+  "fields": {
+    "student": 21,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:04.412Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 280,
+  "fields": {
+    "student": 21,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:04.417Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 281,
+  "fields": {
+    "student": 21,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:14:04.423Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 282,
+  "fields": {
+    "student": 21,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:04.429Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 283,
+  "fields": {
+    "student": 21,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:04.436Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 284,
+  "fields": {
+    "student": 21,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:04.443Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 285,
+  "fields": {
+    "student": 21,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.449Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 286,
+  "fields": {
+    "student": 21,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:04.453Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 287,
+  "fields": {
+    "student": 21,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:04.456Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 288,
+  "fields": {
+    "student": 21,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:04.460Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 289,
+  "fields": {
+    "student": 21,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:14:04.463Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 290,
+  "fields": {
+    "student": 21,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.466Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 291,
+  "fields": {
+    "student": 21,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:14:04.469Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 292,
+  "fields": {
+    "student": 21,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:04.472Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 293,
+  "fields": {
+    "student": 21,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:14:04.475Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 294,
+  "fields": {
+    "student": 21,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.479Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 295,
+  "fields": {
+    "student": 22,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:14:04.482Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 296,
+  "fields": {
+    "student": 22,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:14:04.485Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 297,
+  "fields": {
+    "student": 22,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:14:04.489Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 298,
+  "fields": {
+    "student": 22,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:14:04.493Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 299,
+  "fields": {
+    "student": 22,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.496Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 300,
+  "fields": {
+    "student": 22,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.500Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 301,
+  "fields": {
+    "student": 22,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:14:04.503Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 302,
+  "fields": {
+    "student": 22,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:14:04.506Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 303,
+  "fields": {
+    "student": 22,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:04.510Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 304,
+  "fields": {
+    "student": 22,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:14:04.513Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 305,
+  "fields": {
+    "student": 22,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:14:04.517Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 306,
+  "fields": {
+    "student": 22,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:14:04.520Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 307,
+  "fields": {
+    "student": 22,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.523Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 308,
+  "fields": {
+    "student": 22,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:14:04.526Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 309,
+  "fields": {
+    "student": 22,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:14:04.530Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 310,
+  "fields": {
+    "student": 13,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.193Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 311,
+  "fields": {
+    "student": 13,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.204Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 312,
+  "fields": {
+    "student": 14,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.220Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 313,
+  "fields": {
+    "student": 14,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.225Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 314,
+  "fields": {
+    "student": 15,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.242Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 315,
+  "fields": {
+    "student": 15,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.248Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 316,
+  "fields": {
+    "student": 15,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.255Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 317,
+  "fields": {
+    "student": 15,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.259Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 318,
+  "fields": {
+    "student": 16,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.262Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 319,
+  "fields": {
+    "student": 16,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.265Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 320,
+  "fields": {
+    "student": 16,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.267Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 321,
+  "fields": {
+    "student": 17,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.275Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 322,
+  "fields": {
+    "student": 17,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.278Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 323,
+  "fields": {
+    "student": 17,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.281Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 324,
+  "fields": {
+    "student": 18,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:35:56.288Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 325,
+  "fields": {
+    "student": 18,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.290Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 326,
+  "fields": {
+    "student": 18,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.296Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 327,
+  "fields": {
+    "student": 19,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.302Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 328,
+  "fields": {
+    "student": 19,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.304Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 329,
+  "fields": {
+    "student": 19,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.308Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 330,
+  "fields": {
+    "student": 19,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.310Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 331,
+  "fields": {
+    "student": 20,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.317Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 332,
+  "fields": {
+    "student": 20,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.322Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 333,
+  "fields": {
+    "student": 20,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.324Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 334,
+  "fields": {
+    "student": 20,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.327Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 335,
+  "fields": {
+    "student": 20,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.331Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 336,
+  "fields": {
+    "student": 20,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.333Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 337,
+  "fields": {
+    "student": 20,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.336Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 338,
+  "fields": {
+    "student": 21,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.342Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 339,
+  "fields": {
+    "student": 21,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.346Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 340,
+  "fields": {
+    "student": 21,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.352Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 341,
+  "fields": {
+    "student": 22,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.357Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 342,
+  "fields": {
+    "student": 22,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.360Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 343,
+  "fields": {
+    "student": 22,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.366Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 344,
+  "fields": {
+    "student": 23,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.369Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 345,
+  "fields": {
+    "student": 23,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.371Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 346,
+  "fields": {
+    "student": 23,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.386Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 347,
+  "fields": {
+    "student": 23,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.388Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 348,
+  "fields": {
+    "student": 23,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.391Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 349,
+  "fields": {
+    "student": 23,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.393Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 350,
+  "fields": {
+    "student": 23,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.395Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 351,
+  "fields": {
+    "student": 23,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.398Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 352,
+  "fields": {
+    "student": 23,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.400Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 353,
+  "fields": {
+    "student": 23,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.402Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 354,
+  "fields": {
+    "student": 23,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.404Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 355,
+  "fields": {
+    "student": 23,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.407Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 356,
+  "fields": {
+    "student": 23,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.409Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 357,
+  "fields": {
+    "student": 23,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.411Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 358,
+  "fields": {
+    "student": 23,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.413Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 359,
+  "fields": {
+    "student": 23,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.415Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 360,
+  "fields": {
+    "student": 23,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.417Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 361,
+  "fields": {
+    "student": 23,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.419Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 362,
+  "fields": {
+    "student": 23,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.421Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 363,
+  "fields": {
+    "student": 24,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.424Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 364,
+  "fields": {
+    "student": 24,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.426Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 365,
+  "fields": {
+    "student": 24,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.428Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 366,
+  "fields": {
+    "student": 24,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.430Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 367,
+  "fields": {
+    "student": 24,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.432Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 368,
+  "fields": {
+    "student": 24,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.434Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 369,
+  "fields": {
+    "student": 24,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.436Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 370,
+  "fields": {
+    "student": 24,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.438Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 371,
+  "fields": {
+    "student": 24,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.440Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 372,
+  "fields": {
+    "student": 24,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.443Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 373,
+  "fields": {
+    "student": 24,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.445Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 374,
+  "fields": {
+    "student": 24,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.447Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 375,
+  "fields": {
+    "student": 24,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.449Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 376,
+  "fields": {
+    "student": 24,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.451Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 377,
+  "fields": {
+    "student": 24,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.453Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 378,
+  "fields": {
+    "student": 24,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.455Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 379,
+  "fields": {
+    "student": 24,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.457Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 380,
+  "fields": {
+    "student": 24,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.459Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 381,
+  "fields": {
+    "student": 25,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.461Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 382,
+  "fields": {
+    "student": 25,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.463Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 383,
+  "fields": {
+    "student": 25,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.465Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 384,
+  "fields": {
+    "student": 25,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.467Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 385,
+  "fields": {
+    "student": 25,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:35:56.469Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 386,
+  "fields": {
+    "student": 25,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 35,
+    "submitted_at": "2025-12-10T15:35:56.471Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 387,
+  "fields": {
+    "student": 25,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.473Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 388,
+  "fields": {
+    "student": 25,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.475Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 389,
+  "fields": {
+    "student": 25,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.477Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 390,
+  "fields": {
+    "student": 25,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.479Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 391,
+  "fields": {
+    "student": 25,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.481Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 392,
+  "fields": {
+    "student": 25,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.483Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 393,
+  "fields": {
+    "student": 25,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.485Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 394,
+  "fields": {
+    "student": 25,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.487Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 395,
+  "fields": {
+    "student": 26,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.489Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 396,
+  "fields": {
+    "student": 26,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.491Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 397,
+  "fields": {
+    "student": 26,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.493Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 398,
+  "fields": {
+    "student": 26,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.495Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 399,
+  "fields": {
+    "student": 26,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.497Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 400,
+  "fields": {
+    "student": 26,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.499Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 401,
+  "fields": {
+    "student": 26,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:35:56.501Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 402,
+  "fields": {
+    "student": 26,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.503Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 403,
+  "fields": {
+    "student": 26,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.506Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 404,
+  "fields": {
+    "student": 26,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:35:56.508Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 405,
+  "fields": {
+    "student": 26,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.510Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 406,
+  "fields": {
+    "student": 26,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.512Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 407,
+  "fields": {
+    "student": 26,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.514Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 408,
+  "fields": {
+    "student": 26,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.516Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 409,
+  "fields": {
+    "student": 26,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.518Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 410,
+  "fields": {
+    "student": 27,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.520Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 411,
+  "fields": {
+    "student": 27,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.522Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 412,
+  "fields": {
+    "student": 27,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.524Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 413,
+  "fields": {
+    "student": 27,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.527Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 414,
+  "fields": {
+    "student": 27,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.529Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 415,
+  "fields": {
+    "student": 27,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.531Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 416,
+  "fields": {
+    "student": 27,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.533Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 417,
+  "fields": {
+    "student": 27,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.535Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 418,
+  "fields": {
+    "student": 27,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.537Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 419,
+  "fields": {
+    "student": 27,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.539Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 420,
+  "fields": {
+    "student": 27,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.541Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 421,
+  "fields": {
+    "student": 27,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.543Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 422,
+  "fields": {
+    "student": 27,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.545Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 423,
+  "fields": {
+    "student": 27,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.548Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 424,
+  "fields": {
+    "student": 27,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.550Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 425,
+  "fields": {
+    "student": 27,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.553Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 426,
+  "fields": {
+    "student": 28,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.556Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 427,
+  "fields": {
+    "student": 28,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.558Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 428,
+  "fields": {
+    "student": 28,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.561Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 429,
+  "fields": {
+    "student": 28,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.564Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 430,
+  "fields": {
+    "student": 28,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.566Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 431,
+  "fields": {
+    "student": 28,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.569Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 432,
+  "fields": {
+    "student": 28,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.572Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 433,
+  "fields": {
+    "student": 28,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.574Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 434,
+  "fields": {
+    "student": 28,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.577Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 435,
+  "fields": {
+    "student": 28,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:35:56.579Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 436,
+  "fields": {
+    "student": 28,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.582Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 437,
+  "fields": {
+    "student": 28,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.585Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 438,
+  "fields": {
+    "student": 28,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.588Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 439,
+  "fields": {
+    "student": 28,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.590Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 440,
+  "fields": {
+    "student": 28,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.593Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 441,
+  "fields": {
+    "student": 29,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.596Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 442,
+  "fields": {
+    "student": 29,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.599Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 443,
+  "fields": {
+    "student": 29,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.601Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 444,
+  "fields": {
+    "student": 29,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.604Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 445,
+  "fields": {
+    "student": 29,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.606Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 446,
+  "fields": {
+    "student": 29,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 21,
+    "submitted_at": "2025-12-10T15:35:56.609Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 447,
+  "fields": {
+    "student": 29,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.612Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 448,
+  "fields": {
+    "student": 29,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:35:56.614Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 449,
+  "fields": {
+    "student": 29,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.617Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 450,
+  "fields": {
+    "student": 29,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.620Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 451,
+  "fields": {
+    "student": 29,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.622Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 452,
+  "fields": {
+    "student": 29,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.625Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 453,
+  "fields": {
+    "student": 29,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.628Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 454,
+  "fields": {
+    "student": 30,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.630Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 455,
+  "fields": {
+    "student": 30,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.633Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 456,
+  "fields": {
+    "student": 30,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.635Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 457,
+  "fields": {
+    "student": 30,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.638Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 458,
+  "fields": {
+    "student": 30,
+    "topic": 25,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.641Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 459,
+  "fields": {
+    "student": 30,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.643Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 460,
+  "fields": {
+    "student": 30,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.646Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 461,
+  "fields": {
+    "student": 30,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.649Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 462,
+  "fields": {
+    "student": 30,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 19,
+    "submitted_at": "2025-12-10T15:35:56.652Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 463,
+  "fields": {
+    "student": 30,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.655Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 464,
+  "fields": {
+    "student": 30,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.658Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 465,
+  "fields": {
+    "student": 30,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:35:56.660Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 466,
+  "fields": {
+    "student": 31,
+    "topic": 3,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.663Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 467,
+  "fields": {
+    "student": 31,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 34,
+    "submitted_at": "2025-12-10T15:35:56.666Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 468,
+  "fields": {
+    "student": 31,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 15,
+    "submitted_at": "2025-12-10T15:35:56.668Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 469,
+  "fields": {
+    "student": 31,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:35:56.671Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 470,
+  "fields": {
+    "student": 31,
+    "topic": 11,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.673Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 471,
+  "fields": {
+    "student": 31,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 33,
+    "submitted_at": "2025-12-10T15:35:56.675Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 472,
+  "fields": {
+    "student": 31,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.677Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 473,
+  "fields": {
+    "student": 31,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 22,
+    "submitted_at": "2025-12-10T15:35:56.679Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 474,
+  "fields": {
+    "student": 31,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.681Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 475,
+  "fields": {
+    "student": 31,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 29,
+    "submitted_at": "2025-12-10T15:35:56.683Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 476,
+  "fields": {
+    "student": 31,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 25,
+    "submitted_at": "2025-12-10T15:35:56.685Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 477,
+  "fields": {
+    "student": 31,
+    "topic": 35,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:35:56.687Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 478,
+  "fields": {
+    "student": 31,
+    "topic": 37,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.689Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 479,
+  "fields": {
+    "student": 31,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.691Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 480,
+  "fields": {
+    "student": 31,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 28,
+    "submitted_at": "2025-12-10T15:35:56.693Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 481,
+  "fields": {
+    "student": 32,
+    "topic": 5,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.695Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 482,
+  "fields": {
+    "student": 32,
+    "topic": 7,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.698Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 483,
+  "fields": {
+    "student": 32,
+    "topic": 9,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.700Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 484,
+  "fields": {
+    "student": 32,
+    "topic": 13,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 16,
+    "submitted_at": "2025-12-10T15:35:56.702Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 485,
+  "fields": {
+    "student": 32,
+    "topic": 15,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 17,
+    "submitted_at": "2025-12-10T15:35:56.704Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 486,
+  "fields": {
+    "student": 32,
+    "topic": 17,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 31,
+    "submitted_at": "2025-12-10T15:35:56.706Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 487,
+  "fields": {
+    "student": 32,
+    "topic": 19,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 32,
+    "submitted_at": "2025-12-10T15:35:56.708Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 488,
+  "fields": {
+    "student": 32,
+    "topic": 21,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 27,
+    "submitted_at": "2025-12-10T15:35:56.710Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 489,
+  "fields": {
+    "student": 32,
+    "topic": 23,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 23,
+    "submitted_at": "2025-12-10T15:35:56.712Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 490,
+  "fields": {
+    "student": 32,
+    "topic": 27,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:35:56.714Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 491,
+  "fields": {
+    "student": 32,
+    "topic": 29,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 20,
+    "submitted_at": "2025-12-10T15:35:56.716Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 492,
+  "fields": {
+    "student": 32,
+    "topic": 31,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 24,
+    "submitted_at": "2025-12-10T15:35:56.718Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 493,
+  "fields": {
+    "student": 32,
+    "topic": 33,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 30,
+    "submitted_at": "2025-12-10T15:35:56.720Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 494,
+  "fields": {
+    "student": 32,
+    "topic": 39,
+    "task_type": "test",
+    "course_type": "attestatsiya",
+    "file_link": null,
+    "test_code": "+",
+    "test_answers": "abcabcabcabcabcabcabcabcabcabc",
+    "grade": 26,
+    "submitted_at": "2025-12-10T15:35:56.722Z"
+  }
+},
+{
+  "model": "base_app.task",
+  "pk": 495,
+  "fields": {
+    "student": 32,
+    "topic": 41,
+    "task_type": "assignment",
+    "course_type": "attestatsiya",
+    "file_link": "https://t.me/test_file",
+    "test_code": null,
+    "test_answers": null,
+    "grade": 18,
+    "submitted_at": "2025-12-10T15:35:56.724Z"
+  }
+}
+]
