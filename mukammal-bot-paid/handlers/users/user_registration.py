@@ -465,7 +465,7 @@ async def process_fish(message: types.Message, state: FSMContext):
                 admin_count = len(admins)
                 regular_members = chat_members_count - admin_count
                 
-                if regular_members >= 200:
+                if regular_members >= 50:
                     await message.answer(
                         f"❌ Kechirasiz, bu guruh ham to'lgan!\n\n"
                         f"Iltimos, admin bilan bog'laning."

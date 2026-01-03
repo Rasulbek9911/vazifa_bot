@@ -253,7 +253,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course_type', 'is_active', 'created_at')
+    list_display = ('title', 'course_type', 'is_active', 'deadline', 'created_at')
     list_filter = ('course_type', 'is_active')
     search_fields = ('title',)
     actions = ['add_points_to_topic_tests', 'subtract_points_from_topic_tests', 'export_rating_csv', 'export_detailed_rating_csv']
@@ -279,15 +279,16 @@ class TopicAdmin(admin.ModelAdmin):
             )
             return
         
-        # Tanlangan topiklarning ID lari va tartibi
-        topic_ids = [topic.id for topic in queryset]
-        topics_dict = {topic.id: topic for topic in queryset}
+        # BARCHA topiklarni tanlangan course_type bo'yicha olish (active bo'lmasa ham)
+        all_topics = Topic.objects.filter(course_type=course_type).order_by('created_at')
+        topic_ids = [topic.id for topic in all_topics]
+        topics_dict = {topic.id: topic for topic in all_topics}
         
         # OPTIMIZATSIYA: Barcha tasklarni bir marta olish
+        # MUHIM: course_type emas, balki topic__course_type orqali filtrlash
         all_tasks = Task.objects.filter(
             topic_id__in=topic_ids,
             task_type='test',
-            course_type=course_type,
             grade__isnull=False
         ).select_related('student', 'student__group').order_by('student_id', 'topic_id')
         

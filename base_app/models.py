@@ -20,7 +20,7 @@ class Group(models.Model):
     invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
     is_full = models.BooleanField(
         default=True, 
-        help_text="Guruh to'lganmi (200/200)"
+        help_text="Guruh to'lganmi (50/50)"
     )
 
     def __str__(self):
@@ -52,6 +52,11 @@ class Topic(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=False, null=True, blank=True)
+    deadline = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Deadline dan keyin topshirilsa 80% ball beriladi"
+    )
     
     # Test uchun to'g'ri javoblar (JSON format: {"test_code": "+", "answers": "abc"})
     correct_answers = models.JSONField(null=True, blank=True, default=dict)
