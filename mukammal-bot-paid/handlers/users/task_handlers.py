@@ -402,12 +402,29 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         
         result_text += f"\n📈 Natija: {correct_count}/{total_count} ({percentage:.1f}%)"
         
+        # Deadline tekshiruvi
+        final_grade = correct_count
+        deadline_passed = False
+        
+        if current_topic.get('deadline'):
+            from datetime import datetime
+            deadline_str = current_topic['deadline']
+            # ISO format: "2026-01-10T23:59:59Z"
+            deadline_dt = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+            current_dt = datetime.now(deadline_dt.tzinfo)
+            
+            if current_dt > deadline_dt:
+                deadline_passed = True
+                # 80% ball berish
+                final_grade = int(correct_count * 0.8)
+                result_text += f"\n\n⏰ Deadline o'tgan! Ball 80% ga tushirildi: {final_grade}/{total_count}"
+        
         await message.answer(result_text, reply_markup=vazifa_key)
         
         # Topic'dan course_type ni olamiz (ishonchli)
         topic_course_type = current_topic.get("course_type", "attestatsiya")
         
-        # DBga saqlash - grade qismiga to'g'ri javoblar soni
+        # DBga saqlash - grade qismiga to'g'ri javoblar soni (yoki 80% agar deadline o'tgan bo'lsa)
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
@@ -415,7 +432,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             "course_type": topic_course_type,
             "test_code": test_code,
             "test_answers": test_answers,
-            "grade": correct_count  # To'g'ri javoblar soni
+            "grade": final_grade  # To'g'ri javoblar soni yoki 80% agar deadline o'tgan
         }
     else:
         # To'g'ri javoblar mavjud emas - oddiy saqlash

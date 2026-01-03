@@ -26,7 +26,7 @@ class StudentSerializer(serializers.ModelSerializer):
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = ["id", "title", "is_active", "course_type", "correct_answers", "created_at"]
+        fields = ["id", "title", "is_active", "course_type", "correct_answers", "deadline", "created_at"]
 
 
 class TaskSerializer(serializers.ModelSerializer):
