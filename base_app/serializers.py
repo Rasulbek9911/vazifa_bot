@@ -1,11 +1,33 @@
 from rest_framework import serializers
-from .models import Group, Student, Topic, Task, InviteCode
+from .models import Course, Group, Student, Topic, Task, InviteCode
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ["id", "name", "code", "task_type", "is_active", "created_at"]
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)
+    course_id = serializers.PrimaryKeyRelatedField(
+        queryset=Course.objects.all(),
+        source="course",
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    
+    # Backward compatibility
+    course_type = serializers.SerializerMethodField()
+    
+    def get_course_type(self, obj):
+        """Backward compatibility: course.code qaytarish"""
+        return obj.course.code if obj.course else obj.course_type
+    
     class Meta:
         model = Group
-        fields = ["id", "name", "telegram_group_id", "invite_link", "course_type", "is_full"]
+        fields = ["id", "name", "telegram_group_id", "invite_link", "course", "course_id", "course_type", "is_full"]
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -24,9 +46,25 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class TopicSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)
+    course_id = serializers.PrimaryKeyRelatedField(
+        queryset=Course.objects.all(),
+        source="course",
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    
+    # Backward compatibility
+    course_type = serializers.SerializerMethodField()
+    
+    def get_course_type(self, obj):
+        """Backward compatibility: course.code qaytarish"""
+        return obj.course.code if obj.course else obj.course_type
+    
     class Meta:
         model = Topic
-        fields = ["id", "title", "is_active", "course_type", "correct_answers", "deadline", "created_at"]
+        fields = ["id", "title", "is_active", "course", "course_id", "course_type", "correct_answers", "deadline", "created_at"]
 
 
 class TaskSerializer(serializers.ModelSerializer):

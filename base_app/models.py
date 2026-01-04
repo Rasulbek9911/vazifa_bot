@@ -2,19 +2,64 @@ from django.db import models
 import uuid
 
 
+class Course(models.Model):
+    """Kurs turlari (dinamik boshqarish)"""
+    name = models.CharField(
+        max_length=100, 
+        unique=True, 
+        help_text="Kurs nomi (Milliy sertifikat, Attestatsiya, ...)"
+    )
+    code = models.CharField(
+        max_length=50, 
+        unique=True, 
+        help_text="Kurs kodi (milliy_sert, attestatsiya, ...)"
+    )
+    task_type = models.CharField(
+        max_length=20,
+        choices=[('test', 'Test'), ('assignment', 'Maxsus topshiriq')],
+        default='test',
+        help_text="Bu kursda qanday vazifa topshiriladi"
+    )
+    is_active = models.BooleanField(
+        default=True, 
+        help_text="Kurs faolmi"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Kurs"
+        verbose_name_plural = "Kurslar"
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
 class Group(models.Model):
+    # DEPRECATED: Eski maydon (migration uchun saqlanadi)
     COURSE_CHOICES = [
         ('milliy_sert', 'Milliy sertifikat'),
         ('attestatsiya', 'Attestatsiya'),
     ]
-    
-    name = models.CharField(max_length=100, unique=True)
     course_type = models.CharField(
         max_length=20, 
         choices=COURSE_CHOICES, 
-        default='milliy_sert',
-        help_text="Guruh qaysi kurs uchun"
+        null=True,
+        blank=True,
+        help_text="DEPRECATED: Iltimos 'course' dan foydalaning"
     )
+    
+    # YANGI maydon: Dinamik course
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.PROTECT, 
+        related_name="groups",
+        null=True,
+        blank=True,
+        help_text="Guruh qaysi kursga tegishli"
+    )
+    
+    name = models.CharField(max_length=100, unique=True)
     telegram_group_id = models.CharField(
         max_length=50, unique=True, null=True, blank=True, default=None)
     invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
@@ -24,7 +69,11 @@ class Group(models.Model):
     )
 
     def __str__(self):
-        return f"{self.name} ({self.get_course_type_display()})"
+        if self.course:
+            return f"{self.name} ({self.course.name})"
+        elif self.course_type:
+            return f"{self.name} ({self.get_course_type_display()})"
+        return self.name
 
 
 class Student(models.Model):
@@ -38,18 +87,30 @@ class Student(models.Model):
 
 
 class Topic(models.Model):
+    # DEPRECATED: Eski maydon
     COURSE_CHOICES = [
         ('milliy_sert', 'Milliy sertifikat'),
         ('attestatsiya', 'Attestatsiya'),
     ]
-    
-    title = models.CharField(max_length=255, unique=True)
     course_type = models.CharField(
         max_length=20, 
-        choices=COURSE_CHOICES, 
-        default='milliy_sert',
-        help_text="Mavzu qaysi kurs uchun"
+        choices=COURSE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="DEPRECATED: Iltimos 'course' dan foydalaning"
     )
+    
+    # YANGI maydon: Dinamik course
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        related_name="topics",
+        null=True,
+        blank=True,
+        help_text="Mavzu qaysi kursga tegishli"
+    )
+    
+    title = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=False, null=True, blank=True)
     deadline = models.DateTimeField(
@@ -62,7 +123,11 @@ class Topic(models.Model):
     correct_answers = models.JSONField(null=True, blank=True, default=dict)
 
     def __str__(self):
-        return f"{self.title} ({self.get_course_type_display()})"
+        if self.course:
+            return f"{self.title} ({self.course.name})"
+        elif self.course_type:
+            return f"{self.title} ({self.get_course_type_display()})"
+        return self.title
 
 
 class Task(models.Model):
@@ -71,10 +136,18 @@ class Task(models.Model):
         ('assignment', 'Maxsus topshiriq'),
     ]
     
+    # DEPRECATED: Eski maydon (migration uchun saqlanadi)
     COURSE_CHOICES = [
         ('milliy_sert', 'Milliy Sertifikat'),
         ('attestatsiya', 'Attestatsiya'),
     ]
+    course_type = models.CharField(
+        max_length=20, 
+        choices=COURSE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="DEPRECATED: topic.course dan olinadi"
+    )
     
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name="tasks")
@@ -82,22 +155,23 @@ class Task(models.Model):
         Topic, on_delete=models.CASCADE, related_name="tasks")
     task_type = models.CharField(
         max_length=20, choices=TASK_TYPE_CHOICES, default='test')
-    course_type = models.CharField(
-        max_length=20, choices=COURSE_CHOICES, default='attestatsiya')
     
     # Maxsus topshiriq uchun - fayl
     file_link = models.TextField(null=True, blank=True)
     
     # Test uchun - test kodi va javoblar
-    test_code = models.CharField(max_length=50, null=True, blank=True)  # Masalan: "+", "*", "A"
-    test_answers = models.CharField(max_length=255, null=True, blank=True)  # Masalan: "abc", "1a2c3b"
+    test_code = models.CharField(max_length=50, null=True, blank=True)
+    test_answers = models.CharField(max_length=255, null=True, blank=True)
     
+    # Baho: 0-55 gacha (test to'g'ri javoblar soni yoki maxsus topshiriq bahosi)
     grade = models.PositiveSmallIntegerField(
-        null=True, blank=True)  # Baho (3,4,5)
+        null=True, 
+        blank=True,
+        help_text="Test uchun: to'g'ri javoblar soni (0-55). Vazifa uchun: admin bahosi (0-55)"
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # bitta student bitta mavzuga har xil turdagi vazifa topshira oladi
         unique_together = ("student", "topic", "task_type")
 
     def __str__(self):
