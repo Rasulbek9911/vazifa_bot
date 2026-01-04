@@ -53,31 +53,42 @@ async def send_unsubmitted_warnings():
 
         for student in students:
             try:
-                # ✨ YANGI: Studentning guruh course_type'ini aniqlaymiz
+                # ✨ Studentning guruh course'ini aniqlaymiz
                 student_group = await sync_to_async(lambda: student.group)()
                 if not student_group:
                     continue
                 
-                student_course_type = student_group.course_type
+                # Backward compatibility: course yoki course_type
+                if student_group.course:
+                    student_course_code = student_group.course.code
+                else:
+                    student_course_code = student_group.course_type or "attestatsiya"
                 
                 # Faqat student kursiga mos active mavzularni olamiz
+                # Backward compatibility: course yoki course_type bilan filter
                 active_topics = await sync_to_async(list)(
-                    Topic.objects.filter(is_active=True, course_type=student_course_type)
+                    Topic.objects.filter(is_active=True)
                 )
+                # Client-side filter (course yoki course_type)
+                active_topics = [
+                    t for t in active_topics
+                    if (t.course and t.course.code == student_course_code) or 
+                       (not t.course and t.course_type == student_course_code)
+                ]
                 
-                # ✨ YANGI: Har bir mavzu uchun test YOKI maxsus topshiriq yuborilganini tekshiramiz
+                # ✨ Har bir mavzu uchun test YOKI maxsus topshiriq yuborilganini tekshiramiz
                 unsubmitted = []
                 for topic in active_topics:
                     # Mavzu turini aniqlaymiz (correct_answers bor bo'lsa Test, yo'q bo'lsa Maxsus)
                     expected_task_type = 'test' if topic.correct_answers else 'assignment'
                     
                     # Student o'sha mavzu va task_type uchun vazifa yuborgan-yubormaganini tekshiramiz
+                    # course_type'siz tekshiramiz chunki topic.course allaqachon to'g'ri
                     task_exists = await sync_to_async(
                         Task.objects.filter(
                             student=student,
                             topic=topic,
-                            task_type=expected_task_type,
-                            course_type=student_course_type
+                            task_type=expected_task_type
                         ).exists
                     )()
                     
@@ -100,7 +111,18 @@ async def send_unsubmitted_warnings():
                             url=f"tg://user?id={student.telegram_id}"
                         ))
                         
-                        for admin_id in ADMINS:
+                        # Studentning kurs adminini aniqlaymiz
+                        course_admin_id = None
+                        if student_group.course and student_group.course.admin_telegram_id:
+                            course_admin_id = student_group.course.admin_telegram_id
+                        
+                        # Course adminiga va barcha ADMINlarga yuboramiz
+                        admins_to_notify = list(ADMINS)
+                        if course_admin_id:
+                            admins_to_notify.append(course_admin_id)
+                        admins_to_notify = list(set(admins_to_notify))  # Dublikatlarni olib tashlash
+                        
+                        for admin_id in admins_to_notify:
                             try:
                                 await bot.send_message(
                                     admin_id,

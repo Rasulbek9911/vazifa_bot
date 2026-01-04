@@ -179,14 +179,14 @@ class TopicDetailView(APIView):
 
 class TaskSubmitView(APIView):
     """
-    Student vazifa yuboradi (telegram_id, topic_id, task_type, course_type, file_link/test_code/test_answers, grade)
+    Student vazifa yuboradi (telegram_id, topic_id, task_type, file_link/test_code/test_answers, grade)
+    course_type avtomatik topic.course dan olinadi
     """
 
     def post(self, request):
         telegram_id = request.data.get("student_id")   # bu aslida telegram_id
         topic_id = request.data.get("topic_id")
         task_type = request.data.get("task_type", "test")
-        course_type = request.data.get("course_type", "milliy_sert")
         file_link = request.data.get("file_link")
         test_code = request.data.get("test_code")
         test_answers = request.data.get("test_answers")
@@ -198,12 +198,23 @@ class TaskSubmitView(APIView):
         except Student.DoesNotExist:
             return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Topic'ni topib, course_type ni aniqlaymiz
+        try:
+            topic = Topic.objects.get(id=topic_id)
+            # Backward compatibility: course yoki course_type dan olamiz
+            if topic.course:
+                course_type = topic.course.code
+            else:
+                course_type = topic.course_type or "attestatsiya"
+        except Topic.DoesNotExist:
+            return Response({"error": "Topic topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
         # Serializerga model PKlarini beramiz
         data = {
             "student_id": student.id,   # PK kerak
             "topic_id": topic_id,
             "task_type": task_type,
-            "course_type": course_type,
+            "course_type": course_type,  # Topic'dan olingan
         }
         
         # Optional fields

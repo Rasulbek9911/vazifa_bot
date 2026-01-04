@@ -9,14 +9,14 @@ from .models import Course, Group, Student, Topic, Task
 
 
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'task_type', 'is_active', 'created_at')
+    list_display = ('name', 'code', 'task_type', 'admin_telegram_id', 'is_active', 'created_at')
     list_filter = ('task_type', 'is_active')
-    search_fields = ('name', 'code')
+    search_fields = ('name', 'code', 'admin_telegram_id')
     readonly_fields = ('created_at',)
     
     fieldsets = (
         ('Asosiy ma`lumotlar', {
-            'fields': ('name', 'code', 'task_type', 'is_active')
+            'fields': ('name', 'code', 'task_type', 'admin_telegram_id', 'is_active')
         }),
         ('Qo`shimcha', {
             'fields': ('created_at',)

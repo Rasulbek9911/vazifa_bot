@@ -58,21 +58,27 @@ async def _ask_course_type(message: types.Message, state: FSMContext, task_name:
                 )
                 return
         
-        # Guruh ma'lumotlarini olish va course_type aniqla
+        # Guruh ma'lumotlarini olish va course aniqla
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
             groups = await resp.json()
             
         group_obj = next((g for g in groups if g["id"] == group_id), None)
-        student_course_type = group_obj.get("course_type") if group_obj else None
+        # Backward compatibility: course yoki course_type ni olamiz
+        student_course_code = None
+        if group_obj:
+            if group_obj.get("course"):
+                student_course_code = group_obj["course"]["code"]
+            elif group_obj.get("course_type"):
+                student_course_code = group_obj["course_type"]
         
-        if not student_course_type:
+        if not student_course_code:
             await message.answer("❌ Sizning kurs turi aniqlanmadi!")
             return
     
-    # Course type ma'lumotini saqla va davom et
+    # Course code ma'lumotini saqla va davom et
     await state.update_data(
         student_data=student_data,
-        student_course_type=student_course_type,
+        student_course_code=student_course_code,
         group_obj=group_obj
     )
     
@@ -87,7 +93,7 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     student_data = data.get("student_data", {})
     group_id = student_data.get("group", {}).get("id")
     group_obj = data.get("group_obj", {})
-    student_course_type = data.get("student_course_type", "attestatsiya")
+    student_course_code = data.get("student_course_code", "attestatsiya")
     
     # Guruhga qo'shilganligini tekshirish
     group_not_joined = True
@@ -153,7 +159,10 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
         # Faqat active va studentning kurs uchun bo'lgan mavzularni olamiz
         active_topics = [
             t for t in topics 
-            if t.get("is_active", False) and t.get("course_type") == student_course_type
+            if t.get("is_active", False) and (
+                (t.get("course") and t["course"]["code"] == student_course_code) or
+                t.get("course_type") == student_course_code
+            )
         ]
         
         if not active_topics:
@@ -171,14 +180,18 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     submitted_topic_ids = {
         task["topic"]["id"] 
         for task in submitted_tasks 
-        if task.get("task_type") == task_type and task.get("course_type") == student_course_type
+        if task.get("task_type") == task_type and (
+            (task.get("topic", {}).get("course") and task["topic"]["course"]["code"] == student_course_code) or
+            task.get("course_type") == student_course_code
+        )
     }
 
     # 4️⃣ Faqat yubormagan active mavzularni filter qilamiz
     available_topics = [t for t in active_topics if t["id"] not in submitted_topic_ids]
 
     if not available_topics:
-        course_name = "Milliy Sertifikat" if student_course_type == "milliy_sert" else "Attestatsiya"
+        # Course nomini dynamic qilamiz
+        course_name = "Milliy Sertifikat" if student_course_code == "milliy_sert" else "Attestatsiya"
         task_name_lower = "test" if task_type == "test" else "maxsus topshiriq"
         await message.answer(f"✅ Siz {course_name} uchun barcha active mavzular uchun {task_name_lower} yuborgansiz!")
         return
@@ -421,15 +434,12 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         
         await message.answer(result_text, reply_markup=vazifa_key)
         
-        # Topic'dan course_type ni olamiz (ishonchli)
-        topic_course_type = current_topic.get("course_type", "attestatsiya")
-        
         # DBga saqlash - grade qismiga to'g'ri javoblar soni (yoki 80% agar deadline o'tgan bo'lsa)
+        # course_type ni yubormaymiz, backend topic.course dan oladi
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
-            "course_type": topic_course_type,
             "test_code": test_code,
             "test_answers": test_answers,
             "grade": final_grade  # To'g'ri javoblar soni yoki 80% agar deadline o'tgan
@@ -438,14 +448,11 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         # To'g'ri javoblar mavjud emas - oddiy saqlash
         await message.answer("✅ 📝 Test javoblari yuborildi! Admin tekshiradi.", reply_markup=vazifa_key)
         
-        # Topic'dan course_type ni olamiz (ishonchli)
-        topic_course_type = current_topic.get("course_type", "attestatsiya")
-        
+        # course_type ni yubormaymiz, backend topic.course dan oladi
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
-            "course_type": topic_course_type,
             "test_code": test_code,
             "test_answers": test_answers
         }
@@ -486,20 +493,11 @@ async def process_file(message: types.Message, state: FSMContext):
         file_id = message.photo[-1].file_id
         file_type = "photo"
 
-    # Topic'dan course_type ni olamiz
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp_topic:
-            if resp_topic.status == 200:
-                topic_data = await resp_topic.json()
-                topic_course_type = topic_data.get("course_type", "attestatsiya")
-            else:
-                topic_course_type = "attestatsiya"  # Default
-
+    # course_type ni yubormaymiz, backend topic.course dan oladi
     payload = {
         "student_id": message.from_user.id,  # telegram_id
         "topic_id": topic_id,
         "task_type": task_type,
-        "course_type": topic_course_type,
         "file_link": file_id
     }
 
@@ -530,14 +528,31 @@ async def process_file(message: types.Message, state: FSMContext):
                     f"📚 Mavzu: {topic_title}\n"
                 )
 
-                # ✨ Kurs turiga qarab to'g'ri adminga yuborish
-                student_course_type = payload.get("course_type", "milliy_sert")
-                target_admin = MILLIY_ADMIN if student_course_type == "milliy_sert" else ATTESTATSIYA_ADMIN
-    
-                if file_type == "document":
-                    await bot.send_document(target_admin, file_id, caption=caption, reply_markup=kb)
-                else:
-                    await bot.send_photo(target_admin, file_id, caption=caption, reply_markup=kb)
+                # ✨ Topic'dan course ma'lumotlarini olamiz va course adminiga yuboramiz
+                topic_data = data["topic"]
+                course_admin_id = None
+                
+                # Agar topic.course mavjud bo'lsa, course adminini olamiz
+                if topic_data.get("course"):
+                    course_admin_id = topic_data["course"].get("admin_telegram_id")
+                
+                # Fallback: eski MILLIY_ADMIN va ATTESTATSIYA_ADMIN
+                if not course_admin_id:
+                    topic_course_type = topic_data.get("course_type", "milliy_sert")
+                    course_admin_id = MILLIY_ADMIN if topic_course_type == "milliy_sert" else ATTESTATSIYA_ADMIN
+                
+                # Adminlarga ham yuboramiz (barcha adminlar ko'rishi uchun)
+                admins_to_notify = [course_admin_id] + ADMINS
+                admins_to_notify = list(set(admins_to_notify))  # Dublikatlarni olib tashlash
+                
+                for admin_id in admins_to_notify:
+                    try:
+                        if file_type == "document":
+                            await bot.send_document(admin_id, file_id, caption=caption, reply_markup=kb)
+                        else:
+                            await bot.send_photo(admin_id, file_id, caption=caption, reply_markup=kb)
+                    except Exception as e:
+                        print(f"❌ Admin {admin_id} ga yuborishda xato: {e}")
 
             else:
                 await message.answer("❌ Vazifa yuborishda xatolik bo'ldi.")

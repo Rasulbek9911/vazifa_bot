@@ -17,12 +17,34 @@ from filters.is_private import IsPrivate
 # --- Baho qo'yish ---
 @dp.callback_query_handler(lambda c: c.data.startswith("grade_"))
 async def set_grade(callback: types.CallbackQuery):
-    # Milliy va Attestatsiya adminlari baho qo'yishi mumkin
+    # Barcha adminlar va kurs adminlari baho qo'yishi mumkin
+    # Kurs adminini tekshirish uchun taskni yuklaymiz
+    _, task_id, grade = callback.data.split("_")
+    
+    # Taskni olish
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/tasks/{task_id}/") as resp_task:
+            if resp_task.status != 200:
+                await callback.answer("❌ Task topilmadi!", show_alert=True)
+                return
+            task_data = await resp_task.json()
+    
+    # Kurs adminini tekshiramiz
+    topic_data = task_data.get("topic", {})
+    course_admin_id = None
+    if topic_data.get("course"):
+        course_admin_id = topic_data["course"].get("admin_telegram_id")
+    
+    # Ruxsat tekshiruvi: ADMINS, course admin, yoki eski MILLIY/ATTESTATSIYA adminlar
+    user_id = str(callback.from_user.id)
     allowed_admins = ADMINS + [MILLIY_ADMIN, ATTESTATSIYA_ADMIN]
-    if str(callback.from_user.id) not in allowed_admins:
+    if course_admin_id:
+        allowed_admins.append(course_admin_id)
+    
+    if user_id not in allowed_admins:
         await callback.answer("❌ Sizda baho qo'yish huquqi yo'q.", show_alert=True)
         return
-    _, task_id, grade = callback.data.split("_")
+    
     payload = {"grade": int(grade)}
 
     async with aiohttp.ClientSession() as session:
@@ -73,23 +95,32 @@ async def show_all_topics(message: types.Message):
         await message.answer("❌ Hozircha mavzular mavjud emas.")
         return
 
-    # ✨ YANGI: Course_type bo'yicha grouping
-    milliy_sert_topics = [t for t in topics if t.course_type == 'milliy_sert']
-    attestatsiya_topics = [t for t in topics if t.course_type == 'attestatsiya']
+    # ✨ Course bo'yicha grouping (backward compatibility bilan)
+    def get_course_code(topic):
+        if topic.course:
+            return topic.course.code
+        return topic.course_type or "attestatsiya"
+    
+    # Kurslar bo'yicha guruhlash
+    topics_by_course = {}
+    for t in topics:
+        course_code = get_course_code(t)
+        if course_code not in topics_by_course:
+            topics_by_course[course_code] = []
+        topics_by_course[course_code].append(t)
     
     text = "📌 Barcha mavzular:\n\n"
     
-    if milliy_sert_topics:
-        text += "🔹 <b>Milliy Sertifikat</b>:\n"
-        for t in milliy_sert_topics:
-            status = "✅ Active" if t.is_active else "❌ Inactive"
-            title = html.escape(t.title)
-            text += f"  <b>{t.id}.</b> {title} — {status}\n"
-        text += "\n"
+    # Har bir kurs uchun chiqarish
+    course_names = {
+        'milliy_sert': 'Milliy Sertifikat',
+        'attestatsiya': 'Attestatsiya'
+    }
     
-    if attestatsiya_topics:
-        text += "🔹 <b>Attestatsiya</b>:\n"
-        for t in attestatsiya_topics:
+    for course_code, course_topics in topics_by_course.items():
+        course_name = course_names.get(course_code, course_code.title())
+        text += f"🔹 <b>{course_name}</b>:\n"
+        for t in course_topics:
             status = "✅ Active" if t.is_active else "❌ Inactive"
             title = html.escape(t.title)
             text += f"  <b>{t.id}.</b> {title} — {status}\n"
@@ -125,19 +156,42 @@ async def activate_topic(message: types.Message):
     topic.is_active = True
     await sync_to_async(topic.save)()
 
+    # Topic kursini aniqlaymiz (backward compatibility)
+    if topic.course:
+        topic_course_code = topic.course.code
+        topic_course_name = topic.course.name
+    else:
+        topic_course_code = topic.course_type or "attestatsiya"
+        topic_course_name = "Milliy Sertifikat" if topic_course_code == "milliy_sert" else "Attestatsiya"
+
     await message.answer(
         f"✅ <b>{topic.title}</b> mavzu <b>Active</b> qilindi!\n"
-        "👥 Endi barcha studentlarga xabar yuboriladi.",
+        f"📚 Kurs: {topic_course_name}\n"
+        f"👥 Faqat {topic_course_name} kursidagi studentlarga xabar yuboriladi.",
         parse_mode="HTML"
     )
 
-    # 👥 Barcha studentlarga xabar yuboramiz
-    students = await sync_to_async(list)(Student.objects.all())
+    # 👥 Faqat o'sha kursdagi studentlarga xabar yuboramiz
+    students = await sync_to_async(list)(Student.objects.select_related('group', 'group__course').all())
+    
     notify_text = f"📚 Yangi mavzu active qilindi:\n<b>{topic.title}</b>\n\n" \
                   "📤 Vazifani yuborishingiz mumkin!"
-
+    
+    notified_count = 0
     for student in students:
-        await safe_send_message(student.telegram_id, notify_text)
+        # Student guruhining kursini tekshiramiz
+        if student.group:
+            if student.group.course:
+                student_course_code = student.group.course.code
+            else:
+                student_course_code = student.group.course_type or "attestatsiya"
+            
+            # Faqat o'sha kursdagi studentlarga yuboramiz
+            if student_course_code == topic_course_code:
+                await safe_send_message(student.telegram_id, notify_text)
+                notified_count += 1
+    
+    await message.answer(f"✅ {notified_count} ta studentga xabar yuborildi.", parse_mode="HTML")
 
 
 # --- Barcha userlarga xabar yuborish ---

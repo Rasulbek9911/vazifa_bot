@@ -20,6 +20,12 @@ class Course(models.Model):
         default='test',
         help_text="Bu kursda qanday vazifa topshiriladi"
     )
+    admin_telegram_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Bu kurs uchun mas'ul admin Telegram ID"
+    )
     is_active = models.BooleanField(
         default=True, 
         help_text="Kurs faolmi"
