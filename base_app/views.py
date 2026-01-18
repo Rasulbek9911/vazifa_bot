@@ -141,10 +141,25 @@ class TopicsListView(APIView):
     """
 
     def get(self, request):
-        from .models import Topic
+        from .models import Topic, Student, Group
         from .serializers import TopicSerializer
 
-        topics = Topic.objects.all().order_by('id')
+        student_id = request.query_params.get('student_id')
+        if student_id:
+            try:
+                student = Student.objects.get(telegram_id=student_id)
+            except Student.DoesNotExist:
+                return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+            # Student a'zo bo'lgan barcha group/course uchun active topiclar
+            student_courses = Group.objects.filter(students=student, course__isnull=False).values_list('course', flat=True)
+            topics = Topic.objects.filter(is_active=True, course_id__in=student_courses).order_by('id')
+        else:
+            # Agar course_id query parametresi bo'lsa, course bo'yicha filter qilamiz
+            course_id = request.query_params.get('course_id')
+            if course_id:
+                topics = Topic.objects.filter(is_active=True, course_id=course_id).order_by('id')
+            else:
+                topics = Topic.objects.filter(is_active=True, course__isnull=False).order_by('id')
         serializer = TopicSerializer(topics, many=True)
         return Response(serializer.data)
 
@@ -292,11 +307,14 @@ class WeeklyReportPDFView(APIView):
             return HttpResponse("Group not found", status=404)
 
         students = group.students.all()
-        
-        # ✨ YANGI: Guruhning course_type'iga mos mavzularni olamiz
-        group_course_type = group.course_type
-        topics = Topic.objects.filter(is_active=True, course_type=group_course_type)
-        
+
+        # ✨ YANGI: Guruhning course yoki course_type'iga mos mavzularni olamiz
+        group_course = getattr(group, "course", None)
+        if group_course:
+            topics = Topic.objects.filter(is_active=True, course=group_course)
+        else:
+            topics = Topic.objects.none()
+
         # Agar active mavzu yo'q bo'lsa, PDF yaratmaymiz
         if not topics.exists():
             return HttpResponse("No active topics", status=404)
@@ -348,19 +366,20 @@ class WeeklyReportPDFView(APIView):
             
             for topic in topics:
                 task_type = 'test' if topic.correct_answers else 'assignment'
-                
+
+                # Faqat shu kurs uchun taskni olamiz
                 task = Task.objects.filter(
                     student=student,
                     topic=topic,
                     task_type=task_type,
-                    course_type=group_course_type
+                    topic__course=group.course
                 ).first()
-                
+
                 if task and task.grade is not None:
                     grade = task.grade
                 else:
                     grade = 0
-                
+
                 row.append(str(grade) if grade > 0 else "—")
                 grades.append(grade)
             
