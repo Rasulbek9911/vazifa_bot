@@ -45,7 +45,7 @@ class SubtractPointsForm(forms.Form):
 
 
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'course', 'is_full', 'telegram_group_id')
+    list_display = ('id','name', 'course', 'is_full', 'telegram_group_id')
     list_filter = ('course', 'is_full')
     search_fields = ('name',)
     actions = ['export_group_rating_csv']

@@ -93,20 +93,7 @@ class Student(models.Model):
 
 
 class Topic(models.Model):
-    # DEPRECATED: Eski maydon
-    COURSE_CHOICES = [
-        ('milliy_sert', 'Milliy sertifikat'),
-        ('attestatsiya', 'Attestatsiya'),
-    ]
-    course_type = models.CharField(
-        max_length=20, 
-        choices=COURSE_CHOICES,
-        null=True,
-        blank=True,
-        help_text="DEPRECATED: Iltimos 'course' dan foydalaning"
-    )
-    
-    # YANGI maydon: Dinamik course
+   
     course = models.ForeignKey(
         Course,
         on_delete=models.PROTECT,
