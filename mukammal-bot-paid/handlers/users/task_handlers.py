@@ -151,22 +151,12 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
         await message.answer(msg)
         return
     
-    # 1️⃣ Mavzularni olish va filterlash
+    # 1️⃣ Mavzularni olish (barcha kurslari uchun)
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/topics/") as resp:
-            topics = await resp.json()
-        
-        # Faqat active va studentning kurs uchun bo'lgan mavzularni olamiz
-        active_topics = [
-            t for t in topics 
-            if t.get("is_active", False) and (
-                (t.get("course") and t["course"]["code"] == student_course_code) or
-                t.get("course_type") == student_course_code
-            )
-        ]
-        
+        async with session.get(f"{API_BASE_URL}/topics/?student_id={telegram_id}") as resp:
+            active_topics = await resp.json()
         if not active_topics:
-            await message.answer(f"❌ Hozirda sizning kurs uchun active mavzu yo'q!")
+            await message.answer(f"❌ Hozirda siz uchun active mavzu yo'q!")
             return
 
         # 2️⃣ Student yuborgan vazifalar
