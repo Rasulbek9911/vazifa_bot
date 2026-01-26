@@ -40,7 +40,7 @@ async def on_startup(dispatcher):
     
     # TEST rejimi (faqat test paytida yoqing):
     # scheduler.add_job(send_weekly_reports, "cron", minute="*/2")
-    # scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=2)
+    # scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=5)
     
     scheduler.start()
 

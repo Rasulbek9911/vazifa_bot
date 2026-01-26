@@ -63,7 +63,8 @@ class GroupAdmin(admin.ModelAdmin):
         all_students_data = []
         
         for group in queryset:
-            students = Student.objects.filter(group=group)
+            # Student group yoki groups da shu guruhga tegishli bo'lishi mumkin
+            students = Student.objects.filter(Q(group=group) | Q(groups=group)).distinct()
             
             # Guruh course ga qarab task_type ni aniqlash
             task_type = group.course.task_type if group.course else 'test'
@@ -140,9 +141,17 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'telegram_id', 'group')
+    list_display = ('full_name', 'telegram_id', 'get_groups')
     search_fields = ('full_name', 'telegram_id')
-    list_filter = ('group',)
+    list_filter = ('groups',)
+    
+    def get_groups(self, obj):
+        """Barcha guruhlarni ko'rsatish"""
+        all_groups = obj.get_all_groups()
+        if all_groups:
+            return ", ".join([g.name for g in all_groups])
+        return "N/A"
+    get_groups.short_description = 'Guruhlar'
 
 
 class TaskAdmin(admin.ModelAdmin):

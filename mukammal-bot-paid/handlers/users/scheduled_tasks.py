@@ -50,17 +50,44 @@ async def send_unsubmitted_warnings():
     try:
         from base_app.models import Student, Topic, Task
         from django.utils import timezone
+        import asyncio
         
-        students = await sync_to_async(list)(Student.objects.all())
+        # ⚡ OPTIMIZATSIYA: Barcha ma'lumotlarni bitta querysetda prefetch qilamiz
+        students = await sync_to_async(list)(
+            Student.objects.all()
+            .prefetch_related('groups__course', 'group__course')
+            .only('id', 'telegram_id', 'full_name')
+        )
+        
+        # Active topiclarni bir marta olamiz (har student uchun qayta-qayta emas)
+        active_topics = await sync_to_async(list)(
+            Topic.objects.filter(is_active=True)
+            .select_related('course')
+            .only('id', 'title', 'deadline', 'correct_answers', 'course_type', 'course')
+        )
+        
+        # Har bir topic uchun course ma'lumotlarini oldindan olamiz
+        topic_course_map = {}
+        for t in active_topics:
+            course = t.course
+            if course:
+                topic_course_map[t.id] = course.code
+            elif t.course_type:
+                topic_course_map[t.id] = t.course_type
+            else:
+                topic_course_map[t.id] = None
+        
+        # Admin uchun yig'ma hisobot
+        students_with_unsubmitted = []
 
         for student in students:
             try:
-                # ✨ Studentning barcha guruhlarini va kurslarini aniqlaymiz
-                all_groups = await sync_to_async(student.get_all_groups)()
+                # Studentning barcha guruhlarini olamiz (prefetch_related ishlatganimiz uchun tez)
+                all_groups = student.get_all_groups()
                 if not all_groups:
                     continue
                 
-                # Barcha kurs kodlarini yig'amiz
+                # Student kurslarini yig'amiz
                 student_courses = set()
                 for grp in all_groups:
                     if grp.course:
@@ -68,43 +95,21 @@ async def send_unsubmitted_warnings():
                     elif grp.course_type:
                         student_courses.add(grp.course_type)
                 
-                student_courses = list(student_courses)
-                
                 if not student_courses:
                     continue
                 
-                # Faqat student kurslariga mos active mavzularni olamiz
-                active_topics = await sync_to_async(list)(
-                    Topic.objects.filter(is_active=True)
-                )
-                # Client-side filter (barcha kurslar uchun)
-                active_topics = [
+                # Student kurslariga mos topiclarni filter qilamiz (client-side, chunki allaqachon cached)
+                filtered_topics = [
                     t for t in active_topics
-                    if (t.course and t.course.code in student_courses) or 
-                       (not t.course and t.course_type in student_courses)
+                    if topic_course_map.get(t.id) in student_courses
                 ]
                 
-                # ⚡ YANGI: Faqat deadline o'tgan yoki yaqinlashgan mavzularni tekshiramiz
-                now = timezone.now()
-                # Deadline 24 soat ichida bo'lsa yoki o'tgan bo'lsa eslatma yuboramiz
-                topics_to_check = []
-                for t in active_topics:
-                    if t.deadline:
-                        # Deadline o'tgan yoki 24 soat ichida
-                        if t.deadline <= now or (t.deadline - now).total_seconds() <= 86400:
-                            topics_to_check.append(t)
-                    # Agar deadline yo'q bo'lsa, hamma vaqt tekshiramiz
-                    else:
-                        topics_to_check.append(t)
-                
-                # ✨ Har bir mavzu uchun test YOKI maxsus topshiriq yuborilganini tekshiramiz
+                # Har bir mavzu uchun vazifa yuborilganini tekshiramiz
                 unsubmitted = []
-                for topic in topics_to_check:
-                    # Mavzu turini aniqlaymiz (correct_answers bor bo'lsa Test, yo'q bo'lsa Maxsus)
+                for topic in filtered_topics:
                     expected_task_type = 'test' if topic.correct_answers else 'assignment'
                     
-                    # Student o'sha mavzu va task_type uchun vazifa yuborgan-yubormaganini tekshiramiz
-                    # course_type'siz tekshiramiz chunki topic.course allaqachon to'g'ri
+                    # Task mavjudligini tekshiramiz
                     task_exists = await sync_to_async(
                         Task.objects.filter(
                             student=student,
@@ -117,49 +122,60 @@ async def send_unsubmitted_warnings():
                         unsubmitted.append(topic)
 
                 if unsubmitted:
+                    # Student ma'lumotlari allaqachon prefetch_related orqali olindi
+                    student_tg_id = student.telegram_id
+                    student_full_name = student.full_name
+                    
+                    # Xabar uchun ma'lumotlarni to'plamiz (prefetch_related ishlatganimiz uchun tez)
+                    unsubmitted_info = [
+                        {
+                            'title': t.title,
+                            'deadline': t.deadline
+                        }
+                        for t in unsubmitted
+                    ]
+                    
                     msg = f"⚠️ Siz {len(unsubmitted)} ta mavzu bo'yicha vazifa topshirmagansiz!\n"
                     msg += "\n".join([
-                        f"- {t.title}" + (f" (Deadline: {t.deadline.strftime('%d.%m.%Y %H:%M')})" if t.deadline else "")
-                        for t in unsubmitted
+                        f"- {info['title']}" + (f" (Deadline: {info['deadline'].strftime('%d.%m.%Y %H:%M')})" if info['deadline'] else "")
+                        for info in unsubmitted_info
                     ])
-                    await safe_send_message(student.telegram_id, msg)
-
+                    await safe_send_message(student_tg_id, msg)
+                    
+                    # 3 tadan ko'p bo'lsa, admin uchun yig'ma hisobotga qo'shamiz
                     if len(unsubmitted) >= 3:
-                        admin_msg = f"🚨 <b>{student.full_name}</b> {len(unsubmitted)} ta vazifa topshirmagan."
-                        admin_msg += f"\nTelegram ID: <code>{student.telegram_id}</code>"
-                        admin_msg += f"\n\n📋 <b>Mavzular:</b>\n" + "\n".join([
-                            f"- {t.title}" + (f" (⏰ <i>Deadline: {t.deadline.strftime('%d.%m.%Y %H:%M')}</i>)" if t.deadline else "")
-                            for t in unsubmitted
-                        ])
-
-                        kb = InlineKeyboardMarkup()
-                        kb.add(InlineKeyboardButton(
-                            text="Chatga o'tish",
-                            url=f"tg://user?id={student.telegram_id}"
-                        ))
-                        
-                        # Studentning barcha kurs adminlarini aniqlaymiz
-                        course_admin_ids = set()
-                        for grp in all_groups:
-                            if grp.course and grp.course.admin_telegram_id:
-                                course_admin_ids.add(grp.course.admin_telegram_id)
-                        
-                        # Course adminlari va barcha ADMINlarga yuboramiz
-                        admins_to_notify = list(ADMINS) + list(course_admin_ids)
-                        admins_to_notify = list(set(admins_to_notify))  # Dublikatlarni olib tashlash
-                        
-                        for admin_id in admins_to_notify:
-                            try:
-                                await bot.send_message(
-                                    admin_id,
-                                    admin_msg,
-                                    reply_markup=kb,
-                                    parse_mode="HTML"
-                                )
-                            except Exception as admin_err:
-                                print(f"⚠️ Admin {admin_id} ga xabar yuborishda xatolik: {admin_err}")
+                        students_with_unsubmitted.append({
+                            'full_name': student_full_name,
+                            'telegram_id': student_tg_id,
+                            'unsubmitted_count': len(unsubmitted),
+                            'unsubmitted_info': unsubmitted_info
+                        })
             except Exception as e:
                 print(f"⚠️ Student {student.telegram_id} uchun eslatma yuborishda xatolik: {e}")
                 continue
+        
+        # ✨ YANGI: Barcha studentlar uchun yig'ma hisobot adminlarga yuborish
+        # Admin uchun yig'ma hisobotni yuborish (har 20 student)
+        if students_with_unsubmitted:
+            batch_size = 20
+            for i in range(0, len(students_with_unsubmitted), batch_size):
+                batch = students_with_unsubmitted[i:i+batch_size]
+                msg = f"🚨 <b>Vazifa topshirmaganlar hisobot (batch {i//batch_size+1})</b>\n\n"
+                for s in batch:
+                    msg += f"<b>{s['full_name']}</b> (<code>{s['telegram_id']}</code>) - <b>{s['unsubmitted_count']}</b> ta\n"
+                    for info in s['unsubmitted_info']:
+                        msg += f"  • {info['title']}"
+                        if info['deadline']:
+                            msg += f" (Deadline: {info['deadline'].strftime('%d.%m.%Y %H:%M')})"
+                        msg += "\n"
+                    # Chatga o'tish tugmasi
+                    msg += f"<a href='tg://user?id={s['telegram_id']}'>Chatga o'tish</a>\n\n"
+                # Inline tugma emas, HTML link
+                for admin_id in ADMINS:
+                    try:
+                        await bot.send_message(admin_id, msg, parse_mode="HTML", disable_web_page_preview=True)
+                    except Exception as e:
+                        print(f"⚠️ Admin {admin_id} ga yig'ma hisobot yuborishda xatolik: {e}")
+        
     except Exception as e:
         print(f"❌ Eslatma yuborishda xatolik: {e}")

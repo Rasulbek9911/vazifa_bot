@@ -30,7 +30,10 @@ async def send_task_deprecated(message: types.Message):
                 await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
                 return
             student_data = await resp.json()
-            group_id = student_data.get("group", {}).get("id")
+            
+            # Birinchi guruhni olish (all_groups dan)
+            all_groups = student_data.get("all_groups", [])
+            group_id = all_groups[0]["id"] if all_groups else None
             
         # Guruh ma'lumotlarini olish
         async with session.get(f"{API_BASE_URL}/groups/") as resp:
@@ -219,7 +222,11 @@ async def process_file(message: types.Message, state: FSMContext):
                 data = await resp.json()
                 task_id = data["id"]
                 student_name = data["student"]["full_name"]
-                group_name = data["student"]["group"]["name"]
+                
+                # Birinchi guruhni olish
+                all_groups = data["student"].get("all_groups", [])
+                group_name = all_groups[0]["name"] if all_groups else "N/A"
+                
                 topic_title = data["topic"]["title"]
 
                 # ✅ Studenta javob
@@ -265,7 +272,11 @@ async def set_grade(callback: types.CallbackQuery):
                 task = await resp.json()
                 student_id = task["student"]["telegram_id"]
                 student_name = task["student"]["full_name"]
-                group_name = task["student"]["group"]["name"]
+                
+                # Birinchi guruhni olish
+                all_groups = task["student"].get("all_groups", [])
+                group_name = all_groups[0]["name"] if all_groups else "N/A"
+                
                 topic_title = task["topic"]["title"]
 
                 # ✅ Studentga yuborish

@@ -36,7 +36,7 @@ class StudentSerializer(serializers.ModelSerializer):
     group_id = serializers.PrimaryKeyRelatedField(
         queryset=Group.objects.all(),
         source="group",
-        write_only=False,
+        write_only=True,
         required=False,
         allow_null=True,
     )

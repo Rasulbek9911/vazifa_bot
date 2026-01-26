@@ -120,12 +120,23 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                     # User allaqachon DBda bor
                                     student_info = await check_resp.json()
                                     keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
-                                    await message.answer(
-                                        f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
-                                        f"👥 Guruh: {student_info.get('group', {}).get('name', 'N/A')}\n\n"
-                                        f"Endi vazifa yuborishingiz mumkin.",
-                                        reply_markup=keyboard
-                                    )
+                                    
+                                    # Barcha guruhlarni ko'rsatish
+                                    all_groups_info = student_info.get('all_groups', [])
+                                    if all_groups_info:
+                                        groups_text = "\n".join([f"   • {g['name']}" for g in all_groups_info])
+                                        await message.answer(
+                                            f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
+                                            f"👥 Guruhlar:\n{groups_text}\n\n"
+                                            f"Endi vazifa yuborishingiz mumkin.",
+                                            reply_markup=keyboard
+                                        )
+                                    else:
+                                        await message.answer(
+                                            f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
+                                            f"Endi vazifa yuborishingiz mumkin.",
+                                            reply_markup=keyboard
+                                        )
                                     try:
                                         await state.finish()
                                     except (KeyError, Exception):

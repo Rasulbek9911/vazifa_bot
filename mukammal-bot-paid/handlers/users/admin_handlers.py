@@ -53,7 +53,11 @@ async def set_grade(callback: types.CallbackQuery):
                 task = await resp.json()
                 student_id = task["student"]["telegram_id"]
                 student_name = task["student"]["full_name"]
-                group_name = task["student"]["group"]["name"]
+                
+                # Birinchi guruhni olish
+                all_groups = task["student"].get("all_groups", [])
+                group_name = all_groups[0]["name"] if all_groups else "N/A"
+                
                 topic_title = task["topic"]["title"]
 
                 # ✅ Studentga yuborish
@@ -483,11 +487,12 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             
             # Agar admin 'x' deb belgilagan bo'lsa (savol bekor qilindi)
             if correct_ans_list == ['x']:
-                # Bu savol bekor, HAMMA studentlar ball oladi
+                # Bu savol bekor, HAMMA studentlar 1 ball oladi
                 correct_count += 1
                 bekor_count += 1
-            # Oddiy holat: student javobi to'g'ri javoblar ichida bormi?
-            elif student_ans in correct_ans_list:
+            # User javobi to'g'ri javoblar ichida bormi? (Ko'p variant qo'llab-quvvatlash)
+            # Masalan: admin 13bd (b yoki d to'g'ri), user 13b yoki 13d yoki 13bd yozishi mumkin
+            elif any(ch in correct_ans_list for ch in student_ans):
                 correct_count += 1
         
         new_grade = correct_count

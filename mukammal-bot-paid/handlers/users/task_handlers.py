@@ -548,7 +548,11 @@ async def process_file(message: types.Message, state: FSMContext):
                 data = await resp.json()
                 task_id = data["id"]
                 student_name = data["student"]["full_name"]
-                group_name = data["student"]["group"]["name"]
+                
+                # Birinchi guruhni olish
+                all_groups = data["student"].get("all_groups", [])
+                group_name = all_groups[0]["name"] if all_groups else "N/A"
+                
                 topic_title = data["topic"]["title"]
 
                 # ✅ Studenta javob
