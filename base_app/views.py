@@ -1,4 +1,4 @@
-
+import logging
 
 from reportlab.lib.pagesizes import A4, landscape
 from django.http import HttpResponse
@@ -14,6 +14,8 @@ from rest_framework.views import APIView
 
 from .models import Student, Task, Group, Topic
 from .serializers import StudentSerializer, TaskSerializer
+
+logger = logging.getLogger(__name__)
 
 class StudentListView(APIView):
     """
@@ -47,16 +49,43 @@ class StudentIsRegisteredView(APIView):
 class StudentRegisterView(APIView):
     """
     Student ro'yxatdan o'tadi (telegram_id + full_name + group_id)
-    Agar student allaqachon ro'yxatdan o'tgan bo'lsa, xatolik beradi
+    Agar student mavjud bo'lsa va yangi guruh berilsa, groups ga qo'shadi
     """
 
     def post(self, request):
         telegram_id = request.data.get("telegram_id")
+        group_id = request.data.get("group_id")
+        full_name = request.data.get("full_name")
         
-        # Agar student allaqachon ro'yxatdan o'tgan bo'lsa, xatolik beramiz
+        # Agar student allaqachon ro'yxatdan o'tgan bo'lsa
         if telegram_id:
             try:
                 student = Student.objects.get(telegram_id=telegram_id)
+                
+                # Agar yangi guruh berilsa, groups ga qo'shamiz
+                if group_id:
+                    try:
+                        new_group = Group.objects.get(id=group_id)
+                        
+                        # Avval shu guruhda borligini tekshiramiz
+                        all_groups = student.get_all_groups()
+                        if new_group not in all_groups:
+                            student.groups.add(new_group)
+                            return Response(
+                                {"message": f"{student.full_name}, siz yangi guruhga qo'shildingiz: {new_group.name}"},
+                                status=status.HTTP_200_OK
+                            )
+                        else:
+                            return Response(
+                                {"error": f"Siz allaqachon {new_group.name} guruhida ro'yxatdan o'tgansiz"},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                    except Group.DoesNotExist:
+                        return Response(
+                            {"error": "Guruh topilmadi"},
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                
                 return Response(
                     {"error": f"Siz allaqachon {student.full_name} ismi bilan ro'yxatdan o'tgansiz"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -143,6 +172,7 @@ class TopicsListView(APIView):
     def get(self, request):
         from .models import Topic, Student, Group
         from .serializers import TopicSerializer
+        from django.db.models import Q
 
         student_id = request.query_params.get('student_id')
         if student_id:
@@ -150,9 +180,18 @@ class TopicsListView(APIView):
                 student = Student.objects.get(telegram_id=student_id)
             except Student.DoesNotExist:
                 return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
-            # Student a'zo bo'lgan barcha group/course uchun active topiclar
-            student_courses = Group.objects.filter(students=student, course__isnull=False).values_list('course', flat=True)
-            topics = Topic.objects.filter(is_active=True, course_id__in=student_courses).order_by('id')
+            
+            # ✨ YANGI: Student barcha guruhlarini olish (group + groups)
+            all_groups = student.get_all_groups()
+            
+            # Barcha course ID larni yig'ish
+            course_ids = set()
+            for grp in all_groups:
+                if grp.course:
+                    course_ids.add(grp.course.id)
+            
+            # Active topiclarni filter qilish
+            topics = Topic.objects.filter(is_active=True, course_id__in=course_ids).order_by('id')
         else:
             # Agar course_id query parametresi bo'lsa, course bo'yicha filter qilamiz
             course_id = request.query_params.get('course_id')
@@ -211,17 +250,14 @@ class TaskSubmitView(APIView):
         try:
             student = Student.objects.get(telegram_id=telegram_id)
         except Student.DoesNotExist:
+            logger.error(f"Student topilmadi: telegram_id={telegram_id}")
             return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
         # Topic'ni topib, course_type ni aniqlaymiz
         try:
             topic = Topic.objects.get(id=topic_id)
-            # Backward compatibility: course yoki course_type dan olamiz
-            if topic.course:
-                course_type = topic.course.code
-            else:
-                course_type = topic.course_type or "attestatsiya"
         except Topic.DoesNotExist:
+            logger.error(f"Topic topilmadi: topic_id={topic_id}")
             return Response({"error": "Topic topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
         # Serializerga model PKlarini beramiz
@@ -229,7 +265,8 @@ class TaskSubmitView(APIView):
             "student_id": student.id,   # PK kerak
             "topic_id": topic_id,
             "task_type": task_type,
-            "course_type": course_type,  # Topic'dan olingan
+            # course_type yubormaslik - u deprecated va validatsiya muammosi keltirib chiqaradi
+            # Backend topicdan kerak bo'lsa oladi
         }
         
         # Optional fields
@@ -242,12 +279,16 @@ class TaskSubmitView(APIView):
         if grade is not None:
             data["grade"] = grade
         
+        logger.info(f"TaskSubmitView payload: {data}")
+        
         serializer = TaskSerializer(data=data)
 
         if serializer.is_valid():
             task = serializer.save()
+            logger.info(f"Task saqlandi: task_id={task.id}, student={student.full_name}, topic={topic.title}")
             return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
 
+        logger.error(f"Serializer validation xatolari: {serializer.errors}, telegram_id={telegram_id}, topic_id={topic_id}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -49,37 +49,47 @@ async def _ask_course_type(message: types.Message, state: FSMContext, task_name:
                 )
                 return
             student_data = await resp.json()
-            group_id = student_data.get("group", {}).get("id")
             
-            if not group_id:
+            # ✨ YANGI: Studentning barcha guruhlarini olamiz
+            from base_app.models import Student
+            from asgiref.sync import sync_to_async
+            
+            @sync_to_async
+            def get_student_groups_and_courses(telegram_id):
+                """Student guruh va kurslarini olish (async-safe)"""
+                student_obj = Student.objects.get(telegram_id=telegram_id)
+                all_groups = student_obj.get_all_groups()
+                
+                if not all_groups:
+                    return None, None
+                
+                student_courses = set()
+                for grp in all_groups:
+                    if grp.course:
+                        student_courses.add(grp.course.code)
+                    elif grp.course_type:
+                        student_courses.add(grp.course_type)
+                
+                return list(all_groups), list(student_courses)
+            
+            all_groups, student_courses = await get_student_groups_and_courses(telegram_id)
+            
+            if all_groups is None:
                 await message.answer(
                     "❌ Sizga guruh biriktirilmagan!\n\n"
                     "📝 /start ni bosib qayta ro'yxatdan o'ting."
                 )
                 return
-        
-        # Guruh ma'lumotlarini olish va course aniqla
-        async with session.get(f"{API_BASE_URL}/groups/") as resp:
-            groups = await resp.json()
             
-        group_obj = next((g for g in groups if g["id"] == group_id), None)
-        # Backward compatibility: course yoki course_type ni olamiz
-        student_course_code = None
-        if group_obj:
-            if group_obj.get("course"):
-                student_course_code = group_obj["course"]["code"]
-            elif group_obj.get("course_type"):
-                student_course_code = group_obj["course_type"]
-        
-        if not student_course_code:
-            await message.answer("❌ Sizning kurs turi aniqlanmadi!")
-            return
+            if not student_courses:
+                await message.answer("❌ Sizning kurs turi aniqlanmadi!")
+                return
     
-    # Course code ma'lumotini saqla va davom et
+    # Student ma'lumotlarini saqla va davom et
     await state.update_data(
         student_data=student_data,
-        student_course_code=student_course_code,
-        group_obj=group_obj
+        student_courses=student_courses,  # Ko'p kurs
+        all_groups=all_groups
     )
     
     # Guruhga qo'shilganligini tekshirish
@@ -91,67 +101,73 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     data = await state.get_data()
     
     student_data = data.get("student_data", {})
-    group_id = student_data.get("group", {}).get("id")
-    group_obj = data.get("group_obj", {})
-    student_course_code = data.get("student_course_code", "attestatsiya")
+    all_groups = data.get("all_groups", [])
+    student_courses = data.get("student_courses", [])
     
-    # Guruhga qo'shilganligini tekshirish
-    group_not_joined = True
+    # ✨ YANGI: Har bir guruhga qo'shilganligini tekshirish
+    not_joined_groups = []
+    kicked_from_groups = []
     
-    if group_obj and group_obj.get("telegram_group_id"):
+    for group_obj in all_groups:
+        if not group_obj.telegram_group_id:
+            continue
+            
         try:
             bot_info = await bot.get_me()
-            bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
+            bot_member = await bot.get_chat_member(group_obj.telegram_group_id, bot_info.id)
             
             if bot_member.status in ["administrator", "creator"]:
-                group_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                if group_member.status in ["member", "administrator", "creator"]:
-                    group_not_joined = False
-        except Exception as e:
-            print(f"❌ Guruh membership tekshiruvida xatolik: {e}")
-    
-    if group_not_joined:
-        msg = "❌ Siz guruhga qo'shilmagansiz!\n\n"
-        
-        if group_obj and group_obj.get("telegram_group_id"):
-            user_status = None
-            try:
-                bot_info = await bot.get_me()
-                bot_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), bot_info.id)
+                group_member = await bot.get_chat_member(group_obj.telegram_group_id, telegram_id)
                 
-                if bot_member.status in ["administrator", "creator"]:
-                    user_member = await bot.get_chat_member(group_obj.get("telegram_group_id"), telegram_id)
-                    user_status = user_member.status
-            except Exception:
-                pass
-            
-            if user_status == "kicked":
-                msg += "⚠️ Siz guruhdan chiqarilgansiz.\n"
-                msg += "📞 Admin bilan bog'lanib, qayta qo'shilishni so'rang.\n\n"
-                
-                admin_msg = (
-                    f"🔔 Kicked user qayta guruhga qo'shilmoqchi:\n\n"
-                    f"👤 User: {message.from_user.full_name}\n"
-                    f"🆔 ID: {telegram_id}\n"
-                    f"📱 Username: @{message.from_user.username or 'N/A'}\n\n"
-                    f"🔗 Guruh: {group_obj['name']}\n\n"
-                    f"⚠️ Iltimos, userni guruhga qayta qo'shing (unban + invite)."
-                )
-                for admin_id in ADMINS:
-                    try:
-                        await bot.send_message(int(admin_id), admin_msg)
-                    except Exception:
-                        pass
+                if group_member.status == "kicked":
+                    kicked_from_groups.append(group_obj)
+                elif group_member.status not in ["member", "administrator", "creator"]:
+                    not_joined_groups.append(group_obj)
             else:
-                if group_obj.get("invite_link"):
-                    msg += f"🔗 Guruh: {group_obj.get('invite_link')}\n"
-                    msg += f"   (Qo'shilish uchun bosing)\n\n"
+                not_joined_groups.append(group_obj)
+        except Exception as e:
+            print(f"❌ Guruh {group_obj.name} membership tekshiruvida xatolik: {e}")
+            not_joined_groups.append(group_obj)
+    
+    # Agar hech bo'lmasa bitta guruhga qo'shilmagan bo'lsa
+    if not_joined_groups or kicked_from_groups:
+        msg = "⚠️ Siz ba'zi guruhlarga qo'shilmagansiz:\n\n"
         
-        msg += "⚠️ Guruhga qo'shilgandan keyin vazifa yuborishingiz mumkin.\n"
+        for grp in not_joined_groups:
+            msg += f"❌ {grp.name}"
+            if grp.invite_link:
+                msg += f"\n   🔗 {grp.invite_link}"
+            msg += "\n"
+        
+        if kicked_from_groups:
+            msg += "\n🚫 Quyidagi guruhlardan chiqarilgansiz:\n"
+            for grp in kicked_from_groups:
+                msg += f"   • {grp.name}\n"
+            msg += "\n📞 Admin bilan bog'lanib, qayta qo'shilishni so'rang.\n"
+            
+            # Adminlarga xabar
+            admin_msg = (
+                f"🔔 Kicked user qayta guruhlarga qo'shilmoqchi:\n\n"
+                f"👤 User: {message.from_user.full_name}\n"
+                f"🆔 ID: {telegram_id}\n"
+                f"📱 Username: @{message.from_user.username or 'N/A'}\n\n"
+                f"🔗 Guruhlar:\n"
+            )
+            for grp in kicked_from_groups:
+                admin_msg += f"   • {grp.name}\n"
+            admin_msg += "\n⚠️ Iltimos, userni guruhlarga qayta qo'shing (unban + invite)."
+            
+            for admin_id in ADMINS:
+                try:
+                    await bot.send_message(int(admin_id), admin_msg)
+                except Exception:
+                    pass
+        
+        msg += "\n⚠️ Barcha guruhlarga qo'shilgandan keyin vazifa yuborishingiz mumkin.\n"
         await message.answer(msg)
         return
     
-    # 1️⃣ Mavzularni olish (barcha kurslari uchun)
+    # 1️⃣ Mavzularni olish (barcha kurslar uchun)
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/topics/?student_id={telegram_id}") as resp:
             active_topics = await resp.json()
@@ -166,35 +182,72 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     # Hozirgi vazifa turini olamiz
     task_type = data.get("task_type", "test")
 
-    # 3️⃣ Faqat shu task_type va kurs uchun yuborilgan mavzularni filter qilamiz
+    # 3️⃣ Faqat shu task_type uchun yuborilgan mavzularni filter qilamiz
+    # ✨ YANGI: Barcha kurslar uchun
     submitted_topic_ids = {
         task["topic"]["id"] 
         for task in submitted_tasks 
-        if task.get("task_type") == task_type and (
-            (task.get("topic", {}).get("course") and task["topic"]["course"]["code"] == student_course_code) or
-            task.get("course_type") == student_course_code
-        )
+        if task.get("task_type") == task_type
     }
 
-    # 4️⃣ Faqat yubormagan active mavzularni filter qilamiz
-    available_topics = [t for t in active_topics if t["id"] not in submitted_topic_ids]
+    # 4️⃣ Faqat yubormagan active mavzularni filter qilamiz (barcha kurslar uchun)
+    available_topics = []
+    for t in active_topics:
+        if t["id"] in submitted_topic_ids:
+            continue
+        
+        # Mavzuning kursini aniqlaymiz
+        topic_course_code = None
+        if t.get("course"):
+            topic_course_code = t["course"]["code"]
+        elif t.get("course_type"):
+            topic_course_code = t["course_type"]
+        
+        # Agar topic student kurslarida bo'lsa, qo'shamiz
+        if topic_course_code in student_courses:
+            available_topics.append(t)
 
     if not available_topics:
-        # Course nomini dynamic qilamiz
-        course_name = "Milliy Sertifikat" if student_course_code == "milliy_sert" else "Attestatsiya"
         task_name_lower = "test" if task_type == "test" else "maxsus topshiriq"
-        await message.answer(f"✅ Siz {course_name} uchun barcha active mavzular uchun {task_name_lower} yuborgansiz!")
+        await message.answer(f"✅ Siz barcha active mavzular uchun {task_name_lower} yuborgansiz!")
         return
 
-    kb = types.InlineKeyboardMarkup()
+    # ✨ YANGI: Kurs bo'yicha grouping qilamiz
+    topics_by_course = {}
     for t in available_topics:
+        course_code = t.get("course", {}).get("code") if t.get("course") else t.get("course_type", "attestatsiya")
+        course_name = t.get("course", {}).get("name") if t.get("course") else ("Milliy Sertifikat" if course_code == "milliy_sert" else "Attestatsiya")
+        
+        if course_code not in topics_by_course:
+            topics_by_course[course_code] = {
+                "name": course_name,
+                "topics": []
+            }
+        topics_by_course[course_code]["topics"].append(t)
+    
+    # Inline keyboard - kurs bo'yicha
+    kb = types.InlineKeyboardMarkup()
+    for course_code, course_data in topics_by_course.items():
         kb.add(types.InlineKeyboardButton(
-            text=t["title"], callback_data=f"topic_{t['id']}"
+            text=f"📚 {course_data['name']}",
+            callback_data=f"dummy"  # Faqat label
         ))
+        for t in course_data["topics"]:
+            kb.add(types.InlineKeyboardButton(
+                text=f"  • {t['title']}",
+                callback_data=f"topic_{t['id']}"
+            ))
 
     await message.answer(f"📚 {task_type} uchun mavzuni tanlang:", reply_markup=kb)
     await TaskState.topic.set()
-    
+
+
+# Dummy callback handler - kurs labellarini ignor qilish
+@dp.callback_query_handler(lambda c: c.data == "dummy", state=TaskState.topic)
+async def ignore_dummy_callback(callback: types.CallbackQuery):
+    """Kurs label tugmalarini bosganda hech narsa qilmaslik"""
+    await callback.answer("ℹ️ Iltimos, mavzu tanlang", show_alert=False)
+
 
 @dp.callback_query_handler(lambda c: c.data.startswith("topic_"), state=TaskState.topic)
 async def process_topic(callback: types.CallbackQuery, state: FSMContext):
@@ -204,19 +257,13 @@ async def process_topic(callback: types.CallbackQuery, state: FSMContext):
     
     # Topic dan correct_answers borligini tekshirish
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/topics/") as resp:
+        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp:
             if resp.status != 200:
-                await callback.message.answer("❌ Xatolik yuz berdi!")
-                await callback.answer()
-                return
-            
-            topics = await resp.json()
-            topic = next((t for t in topics if t['id'] == topic_id), None)
-            
-            if not topic:
                 await callback.message.answer("❌ Mavzu topilmadi!")
                 await callback.answer()
                 return
+            
+            topic = await resp.json()
             
             # Mavzuning turi (correct_answers bor bo'lsa test, yo'q bo'lsa maxsus topshiriq)
             topic_has_answers = bool(topic.get('correct_answers'))
@@ -308,18 +355,12 @@ async def process_test_answers(message: types.Message, state: FSMContext):
     
     # Topic dan to'g'ri javoblarni olish
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/topics/") as resp_topics:
+        async with session.get(f"{API_BASE_URL}/topics/{topic_id}/") as resp_topics:
             if resp_topics.status != 200:
-                await message.answer("❌ Xatolik yuz berdi!")
-                return
-            
-            topics_list = await resp_topics.json()
-            current_topic = next((t for t in topics_list if t['id'] == topic_id), None)
-            
-            if not current_topic:
                 await message.answer("❌ Mavzu topilmadi!")
                 return
             
+            current_topic = await resp_topics.json()
             correct_answers = current_topic.get('correct_answers') or {}
     
     # ✨ YANGI: Agar correct_answers mavjud bo'lsa, test kodi tekshiriladi
@@ -438,7 +479,6 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         # To'g'ri javoblar mavjud emas - oddiy saqlash
         await message.answer("✅ 📝 Test javoblari yuborildi! Admin tekshiradi.", reply_markup=vazifa_key)
         
-        # course_type ni yubormaymiz, backend topic.course dan oladi
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
@@ -454,10 +494,21 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                 error_text = await resp.text()
                 print(f"❌ Test saqlashda xatolik. Status: {resp.status}, Error: {error_text}")
                 print(f"Payload: {payload}")
+                
+                # Parse JSON error if possible
+                try:
+                    import json
+                    error_data = json.loads(error_text)
+                    error_detail = str(error_data)
+                except:
+                    error_detail = error_text[:200]
+                
                 await message.answer(
                     f"❌ Test javoblarini saqlashda xatolik!\n\n"
                     f"Status: {resp.status}\n"
-                    f"Iltimos, admin bilan bog'laning."
+                    f"Xato: {error_detail}\n\n"
+                    f"Iltimos, admin bilan bog'laning.",
+                    reply_markup=vazifa_key
                 )
     
     await state.finish()
@@ -545,7 +596,25 @@ async def process_file(message: types.Message, state: FSMContext):
                         print(f"❌ Admin {admin_id} ga yuborishda xato: {e}")
 
             else:
-                await message.answer("❌ Vazifa yuborishda xatolik bo'ldi.")
+                error_text = await resp.text()
+                print(f"❌ Vazifa saqlashda xatolik. Status: {resp.status}, Error: {error_text}")
+                print(f"Payload: {payload}")
+                
+                # Parse JSON error if possible
+                try:
+                    import json
+                    error_data = json.loads(error_text)
+                    error_detail = str(error_data)
+                except:
+                    error_detail = error_text[:200]
+                
+                await message.answer(
+                    f"❌ Vazifa yuborishda xatolik bo'ldi!\n\n"
+                    f"Status: {resp.status}\n"
+                    f"Xato: {error_detail}\n\n"
+                    f"Iltimos, admin bilan bog'laning.",
+                    reply_markup=vazifa_key
+                )
 
     try:
         await state.finish()

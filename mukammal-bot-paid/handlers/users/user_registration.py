@@ -151,73 +151,71 @@ async def cmd_start(message: types.Message, state: FSMContext):
         async with session.get(f"{API_BASE_URL}/students/{message.from_user.id}/") as resp:
             if resp.status == 200:
                 data = await resp.json()
+                full_name = data.get('full_name')
+                telegram_id = message.from_user.id
                 
-                # Guruhga qo'shilganligini ham tekshiramiz
-                group_id = data.get("group", {}).get("id")
-                if group_id:
-                    async with session.get(f"{API_BASE_URL}/groups/") as resp_groups:
-                        groups = await resp_groups.json()
+                # Keyboard va salom (yangi guruh tekshirmasdan tez javob)
+                all_groups_data = data.get("all_groups", [])
+                if all_groups_data:
+                    keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
                     
-                    group_obj = next((g for g in groups if g["id"] == group_id), None)
+                    groups_text = "\n".join([f"   • {g['name']}" for g in all_groups_data])
                     
-                    if group_obj and group_obj.get("telegram_group_id"):
-                        try:
-                            member = await bot.get_chat_member(
-                                group_obj.get("telegram_group_id"), 
-                                message.from_user.id
-                            )
-                            
-                            # Agar guruhda bo'lsa, vazifa keyboard beramiz
-                            if member.status in ["member", "administrator", "creator"]:
-                                group_name = data.get('group', {}).get('name', 'N/A')
-                                telegram_id = message.from_user.id
-                                keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
-                                await message.answer(
-                                    f"👋 Salom, {data['full_name']}!\n\n"
-                                    f"📊 Sizning ma'lumotlaringiz:\n"
-                                    f"👤 Ism: {data['full_name']}\n"
-                                    f"👥 Guruh: {group_name}\n\n"
-                                    f"Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
-                                    reply_markup=keyboard
-                                )
-                                return
-                        except Exception:
-                            pass
-                
-                # Agar guruhga qo'shilmagan bo'lsa, oddiy salom
-                await message.answer(
-                    f"👋 Salom, {data['full_name']}!\n"
-                    f"Vazifa yuborish uchun guruhga qo'shiling."
-                )
+                    await message.answer(
+                        f"👋 Salom, {full_name}!\n\n"
+                        f"📊 Sizning ma'lumotlaringiz:\n"
+                        f"👤 Ism: {full_name}\n"
+                        f"👥 Guruhlar:\n{groups_text}\n\n"
+                        f"Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
+                        reply_markup=keyboard
+                    )
+                else:
+                    await message.answer(
+                        f"👋 Salom, {full_name}!\n"
+                        f"Vazifa yuborish uchun guruhga qo'shiling."
+                    )
                 return
             elif resp.status == 404:
                 # User DBda yo'q - ehtimol guruhga qo'shilgan, lekin DBga yozilmagan
-                # Guruhlardan birida borligini tekshiramiz
                 async with session.get(f"{API_BASE_URL}/groups/") as resp_groups:
                     groups = await resp_groups.json()
                 
-                for grp in groups:
-                    grp_telegram_id = grp.get("telegram_group_id")
-                    if grp_telegram_id:
-                        try:
-                            member = await bot.get_chat_member(grp_telegram_id, message.from_user.id)
-                            if member.status in ["member", "administrator", "creator"]:
-                                # User guruhda bor! Ism familiyasini so'raymiz
-                                await message.answer(
-                                    "👋 Salom! Siz guruhda ko'rinasiz, lekin ro'yxatdan o'tmagansiz.\n\n"
-                                    "Ro'yxatdan o'tish uchun Ism familiyangizni kiriting:\n"
-                                    "(Misol: Fayziyev Aslbek)"
-                                )
-                                # Guruh ma'lumotlarini state ga saqlaymiz
-                                await state.update_data(
-                                    auto_register=True,
-                                    group_id=grp["id"],
-                                    group_name=grp["name"]
-                                )
-                                await RegisterState.full_name.set()
-                                return
-                        except Exception:
-                            continue
+                # ⚡ OPTIMIZATSIYA: Faqat telegram_group_id bor guruhlarni tekshirish
+                import asyncio
+                groups_with_telegram = [g for g in groups if g.get("telegram_group_id")]
+                
+                async def check_new_user_membership(grp):
+                    """Yangi user uchun guruhga qo'shilganligini tekshirish"""
+                    try:
+                        member = await bot.get_chat_member(grp["telegram_group_id"], message.from_user.id)
+                        if member.status in ["member", "administrator", "creator"]:
+                            return {"id": grp["id"], "name": grp["name"]}
+                    except Exception:
+                        pass
+                    return None
+                
+                # Parallel tekshirish (faqat telegram_group_id bor guruhlar)
+                if groups_with_telegram:
+                    check_tasks = [check_new_user_membership(grp) for grp in groups_with_telegram]
+                    results = await asyncio.gather(*check_tasks)
+                    user_joined_groups = [grp for grp in results if grp is not None]
+                else:
+                    user_joined_groups = []
+                
+                # Agar kamida bitta guruhda bo'lsa, ro'yxatdan o'tkazamiz
+                if user_joined_groups:
+                    await message.answer(
+                        "👋 Salom! Siz guruhda ko'rinasiz, lekin ro'yxatdan o'tmagansiz.\n\n"
+                        "Ro'yxatdan o'tish uchun Ism familiyangizni kiriting:\n"
+                        "(Misol: Fayziyev Aslbek)"
+                    )
+                    # Barcha guruh ma'lumotlarini state ga saqlaymiz
+                    await state.update_data(
+                        auto_register_multi=True,
+                        user_joined_groups=user_joined_groups
+                    )
+                    await RegisterState.full_name.set()
+                    return
     
     # Ro'yxatdan o'tish jarayonini boshlash
     await message.answer(
@@ -243,7 +241,55 @@ async def process_fish(message: types.Message, state: FSMContext):
     await state.update_data(full_name=message.text)
     data = await state.get_data()
     
-    # Agar user allaqachon guruhda bo'lsa (auto_register=True), to'g'ridan-to'g'ri DBga yozamiz
+    # ✨ YANGI: Agar user ko'p guruhda bo'lsa, barchasiga ro'yxatdan o'tkazamiz
+    if data.get("auto_register_multi"):
+        user_joined_groups = data.get("user_joined_groups", [])
+        
+        if not user_joined_groups:
+            await message.answer("❌ Siz hech qanday guruhda yo'qsiz!")
+            await state.finish()
+            return
+        
+        # Birinchi guruhga asosiy ro'yxatdan o'tish
+        first_group = user_joined_groups[0]
+        payload = {
+            "telegram_id": str(message.from_user.id),
+            "full_name": message.text,
+            "group_id": first_group["id"]
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{API_BASE_URL}/students/register/", json=payload) as resp:
+                if resp.status != 201:
+                    error_data = await resp.json()
+                    error_msg = error_data.get("error", "Ro'yxatdan o'tishda xatolik bo'ldi")
+                    await message.answer(f"⚠️ {error_msg}")
+                    await state.finish()
+                    return
+            
+            # Qolgan guruhlarni qo'shamiz
+            for grp in user_joined_groups[1:]:
+                payload_extra = {
+                    "telegram_id": str(message.from_user.id),
+                    "full_name": message.text,
+                    "group_id": grp["id"]
+                }
+                try:
+                    await session.post(f"{API_BASE_URL}/students/register/", json=payload_extra)
+                except Exception:
+                    pass
+        
+        groups_text = "\n".join([f"   • {g['name']}" for g in user_joined_groups])
+        await message.answer(
+            f"✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!\n\n"
+            f"👥 Guruhlar:\n{groups_text}\n\n"
+            f"Endi vazifa yuborishingiz mumkin.",
+            reply_markup=vazifa_key
+        )
+        await state.finish()
+        return
+    
+    # Eski logika: Agar user allaqachon guruhda bo'lsa (auto_register=True), to'g'ridan-to'g'ri DBga yozamiz
     if data.get("auto_register"):
         group_id = data.get("group_id")
         group_name = data.get("group_name")
@@ -543,16 +589,27 @@ async def show_profile(message: types.Message, state: FSMContext):
             
             student_data = await resp.json()
             full_name = student_data.get("full_name", "N/A")
-            group_name = student_data.get("group", {}).get("name", "N/A")
-            course_type = student_data.get("group", {}).get("course_type", "N/A")
-            course_display = "Milliy sertifikat" if course_type == "milliy_sert" else "Attestatsiya"
+            
+            # ✨ YANGI: Barcha guruhlarni ko'rsatish
+            all_groups = student_data.get("all_groups", [])
+            
+            if not all_groups:
+                await message.answer("❌ Sizga guruh biriktirilmagan!")
+                return
+            
+            # Guruhlar va kurslarni formatlash
+            groups_text = ""
+            for idx, grp in enumerate(all_groups, 1):
+                group_name = grp.get("name", "N/A")
+                course_type = grp.get("course_type", "N/A")
+                course_display = "Milliy sertifikat" if course_type == "milliy_sert" else "Attestatsiya"
+                groups_text += f"   {idx}. {group_name} ({course_display})\n"
             
             # Profile ma'lumotlarini ko'rsatish
             profile_text = (
                 f"📋 <b>Profil ma'lumotlari</b>\n\n"
                 f"👤 <b>Ism:</b> {full_name}\n"
-                f"👥 <b>Guruh:</b> {group_name}\n"
-                f"📚 <b>Kurs:</b> {course_display}\n\n"
+                f"👥 <b>Guruhlar:</b>\n{groups_text}\n"
                 f"Ismingizni o'zgartirish uchun pastdagi tugmani bosing."
             )
             

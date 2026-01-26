@@ -4,10 +4,6 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
-# RegisterState removed - registration now handled in user_registration.py
-from states.task_state import TaskState
-from keyboards.default.vazifa_keyboard import vazifa_key
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
 
@@ -17,11 +13,14 @@ GENERAL_GROUP_ID = "-1003295943458"
 
 
 # NOTE: /start and registration handlers moved to user_registration.py
-# This file only contains task submission and scheduled functions
+# NOTE: Task submission handlers moved to task_handlers.py
+# This file is DEPRECATED and can be removed
 
 
-@dp.message_handler(Text(equals="📤 Vazifa yuborish"))
-async def send_task(message: types.Message):
+# ⚠️ DEPRECATED: Eski "📤 Vazifa yuborish" handler - hozir ishlatilmaydi
+# Yangi "📝 Test yuborish" va "📋 Maxsus topshiriq yuborish" task_handlers.py da
+@dp.message_handler(Text(equals="📤 Vazifa yuborish (DEPRECATED)"))
+async def send_task_deprecated(message: types.Message):
     telegram_id = message.from_user.id
 
     # Studentni tekshirish

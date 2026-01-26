@@ -172,24 +172,27 @@ async def activate_topic(message: types.Message):
     )
 
     # 👥 Faqat o'sha kursdagi studentlarga xabar yuboramiz
-    students = await sync_to_async(list)(Student.objects.select_related('group', 'group__course').all())
+    students = await sync_to_async(list)(Student.objects.prefetch_related('groups', 'group__course').all())
     
     notify_text = f"📚 Yangi mavzu active qilindi:\n<b>{topic.title}</b>\n\n" \
                   "📤 Vazifani yuborishingiz mumkin!"
     
     notified_count = 0
     for student in students:
-        # Student guruhining kursini tekshiramiz
-        if student.group:
-            if student.group.course:
-                student_course_code = student.group.course.code
+        # ✨ YANGI: Student barcha guruhlarini tekshiramiz
+        all_groups = await sync_to_async(student.get_all_groups)()
+        
+        for grp in all_groups:
+            if grp.course:
+                student_course_code = grp.course.code
             else:
-                student_course_code = student.group.course_type or "attestatsiya"
+                student_course_code = grp.course_type or "attestatsiya"
             
             # Faqat o'sha kursdagi studentlarga yuboramiz
             if student_course_code == topic_course_code:
                 await safe_send_message(student.telegram_id, notify_text)
                 notified_count += 1
+                break  # Bitta marta yuborish yetarli
     
     await message.answer(f"✅ {notified_count} ta studentga xabar yuborildi.", parse_mode="HTML")
 
@@ -460,9 +463,9 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             # Format 1: faqat harflar (abc -> [a, b, c])
             student_answers_list = list(student_answers)
         else:
-            # Format 2: raqam+harf (1a2b3c -> [a, b, c])
-            # Student har bir savol uchun BITTA harf yuboradi
-            for match in re.finditer(r'\d+([abcdx])', student_answers):
+            # Format 2: raqam+harf(lar) (1a2b3c -> [a, b, c] yoki 1ab2c3d -> [ab, c, d])
+            # Student bir nechta harf yozgan bo'lishi mumkin
+            for match in re.finditer(r'\d+([abcdx]+)', student_answers):
                 student_answers_list.append(match.group(1))
         
         # Uzunliklarni tekshirish
@@ -470,22 +473,19 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             continue
             
         # Yangi bahoni hisoblaymiz
-        # Student javobi to'g'ri javoblar ro'yxatida bo'lsa 1 ball
         old_grade = task.grade
         correct_count = 0
-        bonus_for_x = 0  # Agar admin 'x' qo'shgan bo'lsa, studentga bonus
+        bekor_count = 0  # Bekor qilingan savollar soni
         
         for i in range(answer_count):
             student_ans = student_answers_list[i]
             correct_ans_list = correct_answers_list[i]
             
-            # Agar admin 'x' deb belgilagan bo'lsa (to'g'ri javob yo'q)
-            if correct_ans_list == ['x'] and student_ans != 'x':
-                # Student 'x' yozmagan, lekin admin 'x' deb belgilagan
-                # Bu student aybdor emas - test xato bo'lgan
-                # Studentga bonus ball beramiz
-                bonus_for_x += 1
+            # Agar admin 'x' deb belgilagan bo'lsa (savol bekor qilindi)
+            if correct_ans_list == ['x']:
+                # Bu savol bekor, HAMMA studentlar ball oladi
                 correct_count += 1
+                bekor_count += 1
             # Oddiy holat: student javobi to'g'ri javoblar ichida bormi?
             elif student_ans in correct_ans_list:
                 correct_count += 1
@@ -512,33 +512,34 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             
             # Studentga xabar yuboramiz
             change_symbol = "📈" if diff > 0 else "📉"
-            bonus_msg = ""
-            if bonus_for_x > 0:
-                bonus_msg = f"\n\n🎁 Bonus: {bonus_for_x} ta savolda to'g'ri javob yo'q edi (admin test xatosini tuzatdi)"
+            bekor_msg = ""
+            if bekor_count > 0:
+                bekor_msg = f"\n\n🎁 {bekor_count} ta savol bekor qilindi (test xatosi tuzatildi)"
             
             await safe_send_message(
                 student_telegram_id,
                 f"{change_symbol} Test natijangiz o'zgardi!\n\n"
                 f"📚 Mavzu: {topic_title}\n"
-                f"❌ Eski baho: {old_grade}\n"
-                f"✅ Yangi baho: {new_grade}\n"
+                f"❌ Eski baho: {old_grade}/{answer_count}\n"
+                f"✅ Yangi baho: {new_grade}/{answer_count}\n"
                 f"{'➕' if diff > 0 else '➖'} Farq: {abs(diff)} ball"
-                f"{bonus_msg}"
+                f"{bekor_msg}"
             )
     
     # Adminga statistika
     stats_text = f"✅ Yangilash tugadi!\n\n"
     stats_text += f"📊 Statistika:\n"
-    stats_text += f"• Jami qayta hisoblangan: {updated_count} ta test\n\n"
+    stats_text += f"• Qayta hisoblangan testlar: {updated_count} ta\n"
+    stats_text += f"• Jami baholangan testlar: {len(tasks)} ta\n\n"
     
     if grade_changes:
-        stats_text += f"📋 Baho o'zgarishlari:\n"
+        stats_text += f"📋 Baho o'zgargan studentlar ({len(grade_changes)} ta):\n"
         for change in grade_changes[:10]:  # Faqat birinchi 10 tasini ko'rsatamiz
             symbol = "📈" if change['diff'] > 0 else "📉"
-            stats_text += f"{symbol} {change['student']}: {change['old']} → {change['new']} ({change['diff']:+d})\n"
+            stats_text += f"{symbol} {change['student']}: {change['old']} → {change['new']} ({change['diff']:+d} ball)\n"
         
         if len(grade_changes) > 10:
-            stats_text += f"\n... va yana {len(grade_changes) - 10} ta o'zgarish"
+            stats_text += f"\n... va yana {len(grade_changes) - 10} ta student"
     
     await message.answer(stats_text)
     
