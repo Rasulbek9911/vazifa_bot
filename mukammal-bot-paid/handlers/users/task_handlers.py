@@ -5,6 +5,7 @@ Single group with approval link (200 user limit, excluding admins/owners/bots)
 from aiogram import types
 import aiohttp
 import re
+import json
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text, Command
 from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
@@ -385,32 +386,49 @@ async def process_test_answers(message: types.Message, state: FSMContext):
     if correct_answers and test_code in correct_answers:
         import re
         
-        correct = correct_answers[test_code].lower()
-        user_answer = test_answers.lower()
+        correct = correct_answers[test_code].lower().strip()
+        user_answer = test_answers.lower().strip()
         
         # Parse admin correct answers (supports multi-correct: 1ab2x3abcd)
         correct_answers_list = []
-        if re.match(r'^[abcdx]+$', correct):
-            # Format 1: abc -> [[a], [b], [c]]
-            correct_answers_list = [[ch] for ch in correct]
-        else:
+        
+        # Raqam bor-yo'qligini tekshirish
+        has_numbers = bool(re.search(r'\d', correct))
+        
+        if has_numbers:
             # Format 2: 1a2b3c or 1ab2x3abcd -> [[a], [b], [c]] or [[a,b], [x], [a,b,c,d]]
-            for match in re.finditer(r'\d+([abcdx]+)', correct):
+            for match in re.finditer(r'\d+([a-zx]+)', correct):
                 answers = match.group(1)
                 if answers == 'x':
                     correct_answers_list.append(['x'])
                 else:
                     correct_answers_list.append(list(answers))
+        elif re.match(r'^[a-zx]+$', correct):
+            # Format 1: abc -> [[a], [b], [c]]
+            correct_answers_list = [[ch] for ch in correct]
+        else:
+            # Noma'lum format - barcha kichik harflarni olamiz
+            filtered = ''.join(ch for ch in correct if ch.isalpha() or ch == 'x')
+            correct_answers_list = [[ch] for ch in filtered]
         
         # Parse student answers (single answer per question)
         student_answers_list = []
-        if re.match(r'^[abcdx]+$', user_answer):
+        
+        # Raqam bor-yo'qligini tekshirish
+        has_numbers_student = bool(re.search(r'\d', user_answer))
+        
+        if has_numbers_student:
+            # Format 2: 1a2b3c -> [a, b, c]
+            # Raqamlar bor - formatli parse qilamiz: 1a2b3c
+            for match in re.finditer(r'\d+([a-zx])', user_answer):
+                student_answers_list.append(match.group(1))
+        elif re.match(r'^[a-zx]+$', user_answer):
             # Format 1: abc -> [a, b, c]
             student_answers_list = list(user_answer)
         else:
-            # Format 2: 1a2b3c -> [a, b, c]
-            for match in re.finditer(r'\d+([abcdx])', user_answer):
-                student_answers_list.append(match.group(1))
+            # Noma'lum format - barcha kichik harflarni olamiz
+            filtered = ''.join(ch for ch in user_answer if ch.isalpha() or ch == 'x')
+            student_answers_list = list(filtered)
         
         # Savol sonini tekshirish
         if len(correct_answers_list) != len(student_answers_list):
@@ -425,54 +443,75 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             return
         
         # Har bir javobni tekshirish (multi-correct support)
-        result_text = "📊 Test natijalari:\n\n"
         correct_count = 0
         total_count = len(correct_answers_list)
         
-        for i in range(total_count):
-            student_ans = student_answers_list[i]
-            correct_ans_list = correct_answers_list[i]
+        # Deadline tekshiruvi
+        deadline_passed = False
+        show_detailed = True  # Default: batafsil ko'rsatish
+        
+        if current_topic.get('deadline'):
+            from datetime import datetime
+            deadline_str = current_topic['deadline']
+            deadline_dt = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+            current_dt = datetime.now(deadline_dt.tzinfo)
             
-            if student_ans in correct_ans_list:
-                result_text += f"{i+1}. ✅ {student_ans.upper()}\n"
-                correct_count += 1
+            if current_dt > deadline_dt:
+                deadline_passed = True
+                show_detailed = True  # Deadline o'tgan - batafsil ko'rsatamiz
             else:
-                # Show all valid answers
-                valid_answers = '/'.join([a.upper() for a in correct_ans_list])
-                result_text += f"{i+1}. ❌ {student_ans.upper()} (To'g'ri: {valid_answers})\n"
+                show_detailed = False  # Deadline o'tmagan - javoblar yashirin
+        
+        if show_detailed:
+            # Batafsil natijalarni ko'rsatish (har bir savol uchun)
+            result_text = "📊 Test natijalari:\n\n"
+            
+            for i in range(total_count):
+                student_ans = student_answers_list[i]
+                correct_ans_list = correct_answers_list[i]
+                
+                if student_ans in correct_ans_list:
+                    result_text += f"{i+1}. ✅ {student_ans.upper()}\n"
+                    correct_count += 1
+                else:
+                    # Show all valid answers
+                    valid_answers = '/'.join([a.upper() for a in correct_ans_list])
+                    result_text += f"{i+1}. ❌ {student_ans.upper()} (To'g'ri: {valid_answers})\n"
+        else:
+            # Faqat umumiy natijani ko'rsatish (batafsil emas)
+            result_text = "📊 Test natijalari:\n\n"
+            
+            for i in range(total_count):
+                student_ans = student_answers_list[i]
+                correct_ans_list = correct_answers_list[i]
+                
+                if student_ans in correct_ans_list:
+                    correct_count += 1
         
         # Foiz hisoblab userga ko'rsatish (baho ko'rsatmaslik)
         percentage = (correct_count / total_count * 100) if total_count > 0 else 0
         
         result_text += f"\n📈 Natija: {correct_count}/{total_count} ({percentage:.1f}%)"
         
-        # Deadline tekshiruvi
+        # Deadline dan keyin baho pasaytirish
         final_grade = correct_count
-        deadline_passed = False
         
-        if current_topic.get('deadline'):
-            from datetime import datetime
-            deadline_str = current_topic['deadline']
-            # ISO format: "2026-01-10T23:59:59Z"
-            deadline_dt = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
-            current_dt = datetime.now(deadline_dt.tzinfo)
-            
-            if current_dt > deadline_dt:
-                deadline_passed = True
-                # 80% ball berish
-                final_grade = int(correct_count * 0.8)
-                result_text += f"\n\n⏰ Deadline o'tgan! Ball 80% ga tushirildi: {final_grade}/{total_count}"
+        if deadline_passed:
+            # 80% ball berish
+            final_grade = int(correct_count * 0.8)
+            result_text += f"\n\n⏰ Deadline o'tgan! Ball 80% ga tushirildi: {final_grade}/{total_count}"
         
         await message.answer(result_text, reply_markup=vazifa_key)
         
         # DBga saqlash - grade qismiga to'g'ri javoblar soni (yoki 80% agar deadline o'tgan bo'lsa)
         # course_type ni yubormaymiz, backend topic.course dan oladi
+        # ✅ IMPORTANT: test_answers faqat javoblar bo'lishi kerak (test_code-javoblar emas!)
         payload = {
             "student_id": message.from_user.id,
             "topic_id": topic_id,
             "task_type": "test",
             "test_code": test_code,
-            "test_answers": test_answers,
+            "test_answers": test_answers,  # Faqat javoblar: "abc" yoki "dbcaa..."
             "grade": final_grade  # To'g'ri javoblar soni yoki 80% agar deadline o'tgan
         }
     else:
@@ -764,3 +803,153 @@ async def admin_add_test_answer(message: types.Message, state: FSMContext):
         await state.finish()
     except KeyError:
         pass
+
+
+# --- DEADLINE TUGAGANDAN KEYIN AVVALGI USERLARGA BATAFSIL NATIJALARNI YUBORISH ---
+@dp.message_handler(IsPrivate(), Command("send_past_results"), user_id=ADMINS)
+async def admin_send_past_results(message: types.Message, state: FSMContext):
+    """
+    Deadline tugagan mavzular uchun avval test yechgan userlarga batafsil natijalarni yuborish
+    /send_past_results
+    """
+    try:
+        await state.finish()
+    except Exception:
+        pass
+    
+    await message.answer("⏳ Deadline tugagan mavzularni qidiryapman...")
+    
+    # Deadline tugagan mavzularni topish
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/topics/") as resp:
+            if resp.status != 200:
+                await message.answer("❌ Mavzularni olishda xatolik!")
+                return
+            all_topics = await resp.json()
+    
+    from datetime import datetime
+    import pytz
+    
+    sent_count = 0
+    error_count = 0
+    
+    for topic in all_topics:
+        if not topic.get('deadline') or not topic.get('correct_answers'):
+            continue
+        
+        # Deadline tekshirish
+        deadline_str = topic['deadline']
+        deadline_dt = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+        current_dt = datetime.now(pytz.UTC)
+        
+        # Faqat deadline tugagan mavzular
+        if current_dt <= deadline_dt:
+            continue
+        
+        # Bu mavzu uchun deadline tugashidan oldin test yechgan userlarni topish
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{API_BASE_URL}/tasks/") as resp:
+                if resp.status != 200:
+                    continue
+                all_tasks = await resp.json()
+        
+        # Bu mavzu uchun test task'larni filter
+        topic_id = topic['id']
+        topic_title = topic['title']
+        correct_answers = topic['correct_answers']
+        
+        for task in all_tasks:
+            if task['topic']['id'] != topic_id:
+                continue
+            if task['task_type'] != 'test':
+                continue
+            if not task.get('test_code') or not task.get('test_answers'):
+                continue
+            
+            # Task deadline tugashidan oldin yuboriganligini tekshirish
+            task_created = datetime.fromisoformat(task['created_at'].replace('Z', '+00:00'))
+            if task_created > deadline_dt:
+                continue  # Deadline tugagandan keyin yuborilgan - avval batafsil ko'rgan
+            
+            # Userga batafsil natijalarni hisoblash
+            student_telegram_id = task['student']['telegram_id']
+            test_code = task['test_code']
+            test_answers = task['test_answers']
+            
+            if test_code not in correct_answers:
+                continue
+            
+            # Parse answers (oldingi koddan copy)
+            correct = correct_answers[test_code].lower().strip()
+            user_answer = test_answers.lower().strip()
+            
+            # Parse admin correct answers
+            correct_answers_list = []
+            has_numbers = bool(re.search(r'\d', correct))
+            
+            if has_numbers:
+                for match in re.finditer(r'\d+([a-zx]+)', correct):
+                    answers = match.group(1)
+                    if answers == 'x':
+                        correct_answers_list.append(['x'])
+                    else:
+                        correct_answers_list.append(list(answers))
+            elif re.match(r'^[a-zx]+$', correct):
+                correct_answers_list = [[ch] for ch in correct]
+            else:
+                filtered = ''.join(ch for ch in correct if ch.isalpha() or ch == 'x')
+                correct_answers_list = [[ch] for ch in filtered]
+            
+            # Parse student answers
+            student_answers_list = []
+            has_numbers_student = bool(re.search(r'\d', user_answer))
+            
+            if has_numbers_student:
+                for match in re.finditer(r'\d+([a-zx])', user_answer):
+                    student_answers_list.append(match.group(1))
+            elif re.match(r'^[a-zx]+$', user_answer):
+                student_answers_list = list(user_answer)
+            else:
+                filtered = ''.join(ch for ch in user_answer if ch.isalpha() or ch == 'x')
+                student_answers_list = list(filtered)
+            
+            if len(correct_answers_list) != len(student_answers_list):
+                continue
+            
+            # Batafsil natijalarni tayyorlash
+            correct_count = 0
+            total_count = len(correct_answers_list)
+            result_text = f"📊 {topic_title} - Batafsil natijalar:\n\n"
+            result_text += f"🗓 Deadline tugadi. Sizning natijalaringiz:\n\n"
+            
+            for i in range(total_count):
+                student_ans = student_answers_list[i]
+                correct_ans_list = correct_answers_list[i]
+                
+                if student_ans in correct_ans_list:
+                    result_text += f"{i+1}. ✅ {student_ans.upper()}\n"
+                    correct_count += 1
+                else:
+                    valid_answers = '/'.join([a.upper() for a in correct_ans_list])
+                    result_text += f"{i+1}. ❌ {student_ans.upper()} (To'g'ri: {valid_answers})\n"
+            
+            percentage = (correct_count / total_count * 100) if total_count > 0 else 0
+            final_grade = int(correct_count * 0.8)  # 80% ball
+            
+            result_text += f"\n📈 Natija: {correct_count}/{total_count} ({percentage:.1f}%)"
+            result_text += f"\n⏰ Deadline tugagandan oldin topshirgan edingiz."
+            result_text += f"\n🎯 Ball (80%): {final_grade}/{total_count}"
+            
+            # Userga yuborish
+            try:
+                await bot.send_message(int(student_telegram_id), result_text)
+                sent_count += 1
+            except Exception as e:
+                print(f"❌ Userga yuborishda xatolik {student_telegram_id}: {e}")
+                error_count += 1
+    
+    await message.answer(
+        f"✅ Yuborildi!\n\n"
+        f"📤 Yuborilgan xabarlar: {sent_count}\n"
+        f"❌ Xatolar: {error_count}"
+    )

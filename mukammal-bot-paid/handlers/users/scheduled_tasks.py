@@ -26,8 +26,7 @@ async def send_weekly_reports():
                     continue  # telegram_group_id yo'q bo'lsa tashlab ketamiz
 
                 try:
-                    # PDF reportni olib kelamiz
-                    # Server o'zi active mavzularni tekshiradi va 404 qaytaradi
+                    # PDF reportni olib kelamiz (oxirgi 10 ta topic + umumiy o'rtacha)
                     async with session.get(f"{API_BASE_URL}/reports/{group_id}/weekly/pdf/") as resp:
                         if resp.status == 200:
                             pdf_bytes = await resp.read()

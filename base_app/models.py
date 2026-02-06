@@ -87,9 +87,9 @@ class Student(models.Model):
     full_name = models.CharField(max_length=255)
     
     # DEPRECATED: Eski maydon (backward compatibility uchun saqlanadi)
-    group = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name="students", null=True, blank=True,
-        help_text="DEPRECATED: Iltimos 'groups' dan foydalaning (asosiy guruh)")
+    # group = models.ForeignKey(
+    #     Group, on_delete=models.CASCADE, related_name="students", null=True, blank=True,
+    #     help_text="DEPRECATED: Iltimos 'groups' dan foydalaning (asosiy guruh)")
     
     # YANGI: Ko'p guruh (ko'p kurs) uchun
     groups = models.ManyToManyField(
@@ -141,6 +141,12 @@ class Topic(models.Model):
     
     # Test uchun to'g'ri javoblar (JSON format: {"test_code": "+", "answers": "abc"})
     correct_answers = models.JSONField(null=True, blank=True, default=dict)
+    
+    # Test natijalarini batafsil ko'rsatish (har bir savol to'g'ri/noto'g'ri)
+    show_detailed_results = models.BooleanField(
+        default=False,
+        help_text="True bo'lsa - har bir savol to'g'ri/noto'g'ri ko'rinadi. False bo'lsa - faqat umumiy natija"
+    )
 
     def __str__(self):
         if self.course:

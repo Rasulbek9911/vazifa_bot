@@ -18,6 +18,7 @@ admin_key = ReplyKeyboardMarkup(
         
         [
             KeyboardButton(text='🔧 Test javoblarini o\'zgartirish'),
+            KeyboardButton(text = "➕ Mavzu qo'shish"),
         ]
      
     ],

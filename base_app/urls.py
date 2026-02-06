@@ -3,7 +3,7 @@ from .views import (
      StudentRegisterView, StudentChangeGroupView, TaskSubmitView,
      StudentIsRegisteredView, GroupsListView, TopicsListView, TopicDetailView,
      TaskListView, TaskUpdateView, WeeklyReportPDFView, StudentListView,
-     CreateInviteCodeView, ValidateInviteCodeView, StudentUpdateNameView
+     CreateInviteCodeView, ValidateInviteCodeView, StudentUpdateNameView, TopicCreateView
 )
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
      # Group and topic-related URLs
      path("groups/", GroupsListView.as_view(), name="groups-list"),
      path("topics/", TopicsListView.as_view(), name="topics-list"),
+     path("topics/create/", TopicCreateView.as_view(), name="topic-create"),
      path("topics/<int:pk>/", TopicDetailView.as_view(), name="topic-detail"),
      
 

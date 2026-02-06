@@ -5,8 +5,10 @@ import middlewares, filters, handlers
 from utils.notify_admins import on_startup_notify
 from utils.set_bot_commands import set_default_commands
 from handlers.users.scheduled_tasks import send_weekly_reports, send_unsubmitted_warnings
+from utils.deadline_checker import deadline_checker_loop
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import aiohttp
+import asyncio
 
 import os
 import sys
@@ -43,6 +45,9 @@ async def on_startup(dispatcher):
     # scheduler.add_job(send_unsubmitted_warnings, "interval", minutes=5)
     
     scheduler.start()
+    
+    # Deadline checker background task
+    asyncio.create_task(deadline_checker_loop())
 
 
 if __name__ == '__main__':

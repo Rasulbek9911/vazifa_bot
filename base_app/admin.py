@@ -287,9 +287,10 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course', 'is_active', 'deadline', 'created_at')
-    list_filter = ('course', 'is_active')
+    list_display = ('title', 'course', 'is_active', 'show_detailed_results', 'deadline', 'created_at')
+    list_filter = ('course', 'is_active', 'show_detailed_results')
     search_fields = ('title',)
+    list_editable = ('show_detailed_results',)
     actions = ['add_points_to_topic_tests', 'subtract_points_from_topic_tests', 'export_rating_csv', 'export_detailed_rating_csv']
     
     def export_detailed_rating_csv(self, request, queryset):

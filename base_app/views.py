@@ -349,15 +349,20 @@ class WeeklyReportPDFView(APIView):
 
         students = group.students.all()
 
-        # ✨ YANGI: Guruhning course yoki course_type'iga mos mavzularni olamiz
+        # Guruhning course yoki course_type'iga mos mavzularni olamiz
         group_course = getattr(group, "course", None)
         if group_course:
-            topics = Topic.objects.filter(is_active=True, course=group_course)
+            # Barcha active topiclarni olamiz (id bo'yicha tartibda)
+            all_topics = Topic.objects.filter(is_active=True, course=group_course).order_by('id')
+            # Oxirgi 10 ta topicni olamiz (teskari tartibda keyin o'giramiz)
+            topics_list = list(all_topics)
+            topics = topics_list[-10:] if len(topics_list) >= 10 else topics_list
         else:
-            topics = Topic.objects.none()
+            topics = []
+            all_topics = Topic.objects.none()
 
         # Agar active mavzu yo'q bo'lsa, PDF yaratmaymiz
-        if not topics.exists():
+        if not topics:
             return HttpResponse("No active topics", status=404)
 
         # Stillar
@@ -369,8 +374,8 @@ class WeeklyReportPDFView(APIView):
         name_style = ParagraphStyle(
             'NameStyle',
             parent=styles['Normal'],
-            fontSize=8,
-            leading=10,
+            fontSize=7,
+            leading=9,
             alignment=TA_LEFT,
             wordWrap='CJK'
         )
@@ -379,8 +384,8 @@ class WeeklyReportPDFView(APIView):
         vertical_style = ParagraphStyle(
             'VerticalStyle',
             parent=styles['Normal'],
-            fontSize=7,
-            leading=8,
+            fontSize=6,
+            leading=7,
             alignment=TA_CENTER,
         )
         
@@ -395,7 +400,8 @@ class WeeklyReportPDFView(APIView):
             vertical_text += f"<br/><font size='5'>{topic_type}</font>"
             header.append(Paragraph(vertical_text, vertical_style))
         
-        header.append(Paragraph("<b>O'rtacha</b>", styles['Heading4']))
+        # Umumiy o'rtacha ustuni qo'shamiz
+        header.append(Paragraph("<b>U<br/>m<br/>u<br/>m<br/>i<br/>y<br/><br/>o<br/>'<br/>r<br/>t<br/>a<br/>c<br/>h<br/>a</b>", vertical_style))
         data = [header]
 
         # Studentlar uchun qatordan-qatordan to'ldirish
@@ -403,7 +409,7 @@ class WeeklyReportPDFView(APIView):
         for student in students:
             # Ismni Paragraph sifatida qo'shamiz - avtomatik word wrap
             row = [Paragraph(student.full_name, name_style)]
-            grades = []
+            grades_10 = []  # Oxirgi 10 ta topic uchun
             
             for topic in topics:
                 task_type = 'test' if topic.correct_answers else 'assignment'
@@ -422,18 +428,32 @@ class WeeklyReportPDFView(APIView):
                     grade = 0
 
                 row.append(str(grade) if grade > 0 else "—")
-                grades.append(grade)
+                grades_10.append(grade)
             
-            # O'rtacha bahoni hisoblash
-            if grades:
-                average = sum(grades) / len(grades)
-                row.append(f"{average:.1f}")
-                student_rows.append((row, average))
+            # Umumiy o'rtacha bahoni hisoblash (barcha active topiclar bo'yicha)
+            all_grades = []
+            for topic in all_topics:
+                task_type = 'test' if topic.correct_answers else 'assignment'
+                task = Task.objects.filter(
+                    student=student,
+                    topic=topic,
+                    task_type=task_type,
+                    topic__course=group.course
+                ).first()
+                
+                if task and task.grade is not None:
+                    all_grades.append(task.grade)
+            
+            # Umumiy o'rtacha (barcha active topiclar)
+            if all_grades:
+                overall_avg = sum(all_grades) / len(all_grades)
+                row.append(f"{overall_avg:.1f}")
+                student_rows.append((row, overall_avg))
             else:
                 row.append("—")
                 student_rows.append((row, 0))
         
-        # O'rtacha bo'yicha kamayish tartibida sort
+        # Umumiy o'rtacha bo'yicha kamayish tartibida sort
         student_rows.sort(key=lambda x: x[1], reverse=True)
         
         # Qatorlarni qo'shamiz
@@ -456,27 +476,31 @@ class WeeklyReportPDFView(APIView):
             font_name = 'Helvetica'
             font_name_bold = 'Helvetica-Bold'
 
-        doc = SimpleDocTemplate(response, pagesize=landscape(A4), 
-                                leftMargin=20, rightMargin=20, 
-                                topMargin=20, bottomMargin=20)
+        from reportlab.lib.pagesizes import A3
+        
+        doc = SimpleDocTemplate(response, pagesize=landscape(A3), 
+                                leftMargin=15, rightMargin=15, 
+                                topMargin=15, bottomMargin=15)
         
         # Sahifa o'lchamlari
-        page_width = landscape(A4)[0] - 40  # minus margins
+        page_width = landscape(A3)[0] - 30  # minus margins
         
         # Ustun kengliklarini hisoblash
-        name_col_width = 150  # Ism ustuni uchun keng joy
         num_topics = len(topics)
         
-        # Qolgan joy mavzular va o'rtacha uchun
-        remaining = page_width - name_col_width
-        topic_col_width = remaining / (num_topics + 1)  # +1 o'rtacha uchun
+        # Ism ustuni uchun minimal 150 point
+        name_col_width = 150
         
-        # Agar mavzular juda ko'p bo'lsa, har bir mavzu uchun minimal 25 point
-        topic_col_width = max(topic_col_width, 25)
+        # Qolgan joy mavzular va umumiy o'rtacha uchun
+        remaining = page_width - name_col_width
+        topic_col_width = remaining / (num_topics + 1)  # +1 umumiy o'rtacha uchun
+        
+        # Har bir mavzu uchun minimal 22 point
+        topic_col_width = max(topic_col_width, 22)
         
         col_widths = [name_col_width]  # Ism
         col_widths.extend([topic_col_width] * num_topics)  # Mavzular
-        col_widths.append(topic_col_width)  # O'rtacha
+        col_widths.append(topic_col_width * 1.2)  # Umumiy o'rtacha biroz kengroq
         
         table = Table(data, colWidths=col_widths, repeatRows=1)
 
@@ -488,10 +512,10 @@ class WeeklyReportPDFView(APIView):
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Vertikal o'rtaga
             ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
             ("FONTNAME", (0, 1), (-1, -1), font_name),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 3),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
         ])
@@ -587,3 +611,62 @@ class ValidateInviteCodeView(APIView):
         invite.save()
         
         return Response({"success": True, "message": "Invite code qabul qilindi"}, status=status.HTTP_200_OK)
+
+
+class TopicCreateView(APIView):
+    """
+    Yangi Topic yaratish (Admin uchun)
+    POST /api/topics/create/
+    Body: {
+        "course_id": 1,
+        "title": "Mavzu nomi",
+        "deadline": "2026-02-15T23:59:59Z",  # optional
+        "is_active": false  # default: false
+    }
+    """
+    def post(self, request):
+        from .models import Topic, Course
+        from .serializers import TopicSerializer
+        from django.utils.dateparse import parse_datetime
+        
+        course_id = request.data.get("course_id")
+        title = request.data.get("title")
+        deadline_str = request.data.get("deadline")
+        is_active = request.data.get("is_active", False)
+        
+        # Validatsiya
+        if not course_id or not title:
+            return Response(
+                {"error": "course_id va title majburiy"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Course mavjudligini tekshirish
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response(
+                {"error": "Course topilmadi"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Deadline ni parse qilish
+        deadline = None
+        if deadline_str:
+            deadline = parse_datetime(deadline_str)
+            if not deadline:
+                return Response(
+                    {"error": "Deadline formati noto'g'ri. ISO 8601 format: 2026-02-15T23:59:59Z"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # Topic yaratish
+        topic = Topic.objects.create(
+            course=course,
+            title=title,
+            deadline=deadline,
+            is_active=is_active
+        )
+        
+        serializer = TopicSerializer(topic)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

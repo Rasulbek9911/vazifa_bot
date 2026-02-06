@@ -100,7 +100,7 @@ class TopicSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Topic
-        fields = ["id", "title", "is_active", "course", "course_id", "course_type", "correct_answers", "deadline", "created_at"]
+        fields = ["id", "title", "is_active", "course", "course_id", "course_type", "correct_answers", "deadline", "show_detailed_results", "created_at"]
 
 
 class TaskSerializer(serializers.ModelSerializer):

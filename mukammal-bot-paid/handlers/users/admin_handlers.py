@@ -11,6 +11,7 @@ from asgiref.sync import sync_to_async
 from utils.safe_send_message import safe_send_message
 from states.broadcast_state import BroadcastState
 from states.update_answers_state import UpdateAnswersState
+from states.add_topic_state import AddTopicState
 from filters.is_private import IsPrivate
 
 
@@ -135,9 +136,9 @@ async def show_all_topics(message: types.Message):
     await message.answer(text, parse_mode="HTML")
 
 
-@dp.message_handler(IsPrivate(), commands=["activate"])
+@dp.message_handler(IsPrivate(), commands=["activate"], user_id=ADMINS)
 async def activate_topic(message: types.Message):
-    from base_app.models import Topic, Student
+    from base_app.models import Topic, Student, Group
 
     args = message.get_args()
     if not args.isdigit():
@@ -151,10 +152,19 @@ async def activate_topic(message: types.Message):
 
     # Mavzuni topamiz
     try:
-        topic = await sync_to_async(Topic.objects.get)(id=topic_id)
+        topic = await sync_to_async(Topic.objects.select_related('course').get)(id=topic_id)
     except Topic.DoesNotExist:
         await message.answer("❌ Bunday ID li mavzu topilmadi.")
         return
+
+    # Agar allaqachon active bo'lsa
+    if topic.is_active:
+        await message.answer(
+            f"⚠️ <b>{topic.title}</b> mavzu allaqachon active!\n"
+            f"Studentlarga qayta xabar yuborishni xohlaysizmi?",
+            parse_mode="HTML"
+        )
+        # Davom etamiz - qayta xabar yuboriladi
 
     # ✅ is_active = True qilamiz
     topic.is_active = True
@@ -176,29 +186,31 @@ async def activate_topic(message: types.Message):
     )
 
     # 👥 Faqat o'sha kursdagi studentlarga xabar yuboramiz
-    students = await sync_to_async(list)(Student.objects.prefetch_related('groups', 'group__course').all())
+    # Performance: Faqat kerakli kursdagi guruhlarni olamiz
+    if topic.course:
+        groups = await sync_to_async(list)(
+            Group.objects.filter(course=topic.course).prefetch_related('students')
+        )
+    else:
+        # Backward compatibility: course_type bo'yicha filter
+        groups = await sync_to_async(list)(
+            Group.objects.filter(course_type=topic_course_code).prefetch_related('students')
+        )
     
+    # Unique studentlarni to'playmiz (bir student bir nechta guruhda bo'lishi mumkin)
+    notified_students = set()
     notify_text = f"📚 Yangi mavzu active qilindi:\n<b>{topic.title}</b>\n\n" \
                   "📤 Vazifani yuborishingiz mumkin!"
     
-    notified_count = 0
-    for student in students:
-        # ✨ YANGI: Student barcha guruhlarini tekshiramiz
-        all_groups = await sync_to_async(student.get_all_groups)()
-        
-        for grp in all_groups:
-            if grp.course:
-                student_course_code = grp.course.code
-            else:
-                student_course_code = grp.course_type or "attestatsiya"
-            
-            # Faqat o'sha kursdagi studentlarga yuboramiz
-            if student_course_code == topic_course_code:
+    for group in groups:
+        students = await sync_to_async(list)(group.students.all())
+        for student in students:
+            # Agar bu studentga xabar yuborilmagan bo'lsa
+            if student.telegram_id not in notified_students:
                 await safe_send_message(student.telegram_id, notify_text)
-                notified_count += 1
-                break  # Bitta marta yuborish yetarli
+                notified_students.add(student.telegram_id)
     
-    await message.answer(f"✅ {notified_count} ta studentga xabar yuborildi.", parse_mode="HTML")
+    await message.answer(f"✅ {len(notified_students)} ta studentga xabar yuborildi.", parse_mode="HTML")
 
 
 # --- Barcha userlarga xabar yuborish ---
@@ -326,12 +338,12 @@ async def topic_selected_for_update(callback: types.CallbackQuery, state: FSMCon
     
     # Javoblar sonini to'g'ri hisoblash (uch formatni qo'llab-quvvatlash)
     import re
-    if re.match(r'^[abcd]+$', current_answers):
+    if re.match(r'^[a-z]+$', current_answers):
         # Format 1: faqat harflar (abc = 3 ta)
         answer_count = len(current_answers)
     else:
         # Format 2: raqam+harf(lar) (1a2b3c = 3 ta, 1ab2x3cd = 3 ta)
-        answer_count = len(re.findall(r'\d+[abcdx]+', current_answers))
+        answer_count = len(re.findall(r'\d+[a-zx]+', current_answers))
     
     await callback.message.edit_text(
         f"📝 Mavzu: {topic.title}\n"
@@ -376,7 +388,7 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     import re
     
     # Format 1: faqat harflar (abc, abcd, ...)
-    if re.match(r'^[abcd]+$', new_answers):
+    if re.match(r'^[a-z]+$', new_answers):
         if len(new_answers) != answer_count:
             await message.answer(
                 f"❌ Xato! To'g'ri javoblar {answer_count} ta bo'lishi kerak.\n"
@@ -389,9 +401,9 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     # Format 2: raqam+harf(lar) yoki x (1a2b3c, 1ab2x3cd, ...)
     # x = hech biri to'g'ri emas
     # ko'p harflar = bir nechta to'g'ri javob
-    elif re.match(r'^(\d+[abcdx]+)+$', new_answers):
+    elif re.match(r'^(\d+[a-zx]+)+$', new_answers):
         # Javoblar sonini sanab ko'ramiz
-        questions = re.findall(r'\d+[abcdx]+', new_answers)
+        questions = re.findall(r'\d+[a-zx]+', new_answers)
         if len(questions) != answer_count:
             await message.answer(
                 f"❌ Xato! To'g'ri javoblar {answer_count} ta bo'lishi kerak.\n"
@@ -410,7 +422,7 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             "   • 1ab = 1-savol: a yoki b to'g'ri\n"
             "   • 2x = 2-savol: hech biri to'g'ri emas\n"
             "   • 3abcd = 3-savol: hammasi to'g'ri\n\n"
-            "Faqat a, b, c, d, x harflaridan foydalaning.\n"
+            "Barcha kichik lotin harflaridan foydalaning (a-z).\n"
             "Qaytadan yuboring yoki /cancel"
         )
         return
@@ -434,14 +446,15 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     
     # Yangi javoblarni parse qilish (uch formatni qo'llab-quvvatlash)
     import re
-    if re.match(r'^[abcd]+$', new_answers):
-        # Format 1: faqat harflar (abc) -> har biri bitta to'g'ri javob
-        correct_answers_list = [[ch] for ch in new_answers]
-    else:
+    
+    # Raqam bor-yo'qligini tekshirish
+    has_numbers = bool(re.search(r'\d', new_answers))
+    
+    if has_numbers:
         # Format 2: raqam+harf(lar) (1a2b3c yoki 1ab2x3cd)
         # Har bir savolning to'g'ri javoblarini list qilib olamiz
         correct_answers_list = []
-        for match in re.finditer(r'\d+([abcdx]+)', new_answers):
+        for match in re.finditer(r'\d+([a-zx]+)', new_answers):
             answers = match.group(1)
             if answers == 'x':
                 # 'x' = hech biri to'g'ri emas
@@ -449,28 +462,54 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             else:
                 # Ko'p variant (ab, abcd, ...)
                 correct_answers_list.append(list(answers))
+    elif re.match(r'^[a-zx]+$', new_answers):
+        # Format 1: faqat harflar (abc) -> har biri bitta to'g'ri javob
+        correct_answers_list = [[ch] for ch in new_answers]
+    else:
+        # Noma'lum format - barcha kichik harflarni olamiz
+        filtered = ''.join(ch for ch in new_answers if ch.isalpha() or ch == 'x')
+        correct_answers_list = [[ch] for ch in filtered]
     
     # Barcha bu mavzu bo'yicha test topshirgan studentlarning natijasini qayta hisoblaymiz
     tasks = await sync_to_async(list)(
         Task.objects.filter(topic_id=topic_id, task_type='test', test_code=test_code).select_related('student')
     )
     
+    # Topic deadline ni olamiz
+    topic_deadline = topic.deadline
+    
     updated_count = 0
+    deadline_penalty_count = 0  # Deadline tufayli jazolangan studentlar soni
     grade_changes = []  # Baho o'zgarishlarini saqlaymiz
     
     for task in tasks:
         # Student javoblarini parse qilish
-        student_answers = task.test_answers.lower()
+        student_answers = task.test_answers.lower().strip()
+        
+        # ✅ FIX: Test kod prefixini olib tashlash (masalan: "19-dbcaa..." -> "dbcaa...")
+        if '-' in student_answers:
+            parts = student_answers.split('-', 1)
+            if len(parts) == 2 and parts[0].replace('_', '').isdigit():
+                # Test kod prefixi mavjud, uni olib tashlaymiz
+                student_answers = parts[1]
+        
         student_answers_list = []
         
-        if re.match(r'^[abcdx]+$', student_answers):
+        # Raqam bor-yo'qligini tekshirish
+        has_numbers = bool(re.search(r'\d', student_answers))
+        
+        if has_numbers:
+            # Format 2: raqam+harf (1a2b3c -> [a, b, c])
+            # Raqamlar bor - formatli parse: 1a2b3c (har bir raqamdan keyin BITTA harf)
+            for match in re.finditer(r'\d+([a-zx])', student_answers):
+                student_answers_list.append(match.group(1))
+        elif re.match(r'^[a-zx]+$', student_answers):
             # Format 1: faqat harflar (abc -> [a, b, c])
             student_answers_list = list(student_answers)
         else:
-            # Format 2: raqam+harf(lar) (1a2b3c -> [a, b, c] yoki 1ab2c3d -> [ab, c, d])
-            # Student bir nechta harf yozgan bo'lishi mumkin
-            for match in re.finditer(r'\d+([abcdx]+)', student_answers):
-                student_answers_list.append(match.group(1))
+            # Noma'lum format - barcha kichik harflarni olamiz
+            filtered = ''.join(ch for ch in student_answers if ch.isalpha() or ch == 'x')
+            student_answers_list = list(filtered)
         
         # Uzunliklarni tekshirish
         if not student_answers_list or len(student_answers_list) != answer_count:
@@ -487,19 +526,31 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             
             # Agar admin 'x' deb belgilagan bo'lsa (savol bekor qilindi)
             if correct_ans_list == ['x']:
-                # Bu savol bekor, HAMMA studentlar 1 ball oladi
+                # Bu savol bekor, HAMMA studentlar ball oladi
                 correct_count += 1
                 bekor_count += 1
-            # User javobi to'g'ri javoblar ichida bormi? (Ko'p variant qo'llab-quvvatlash)
-            # Masalan: admin 13bd (b yoki d to'g'ri), user 13b yoki 13d yoki 13bd yozishi mumkin
-            elif any(ch in correct_ans_list for ch in student_ans):
+            # Student javobi to'g'ri javoblar ichida bormi?
+            # Student BITTA harf yozadi (a, b, c, d yoki x)
+            elif student_ans in correct_ans_list:
                 correct_count += 1
         
         new_grade = correct_count
         
+        # ✅ Deadline tekshiruvi: agar deadline dan keyin topshirgan bo'lsa 80% ball
+        is_late = False
+        if topic_deadline and task.submitted_at:
+            # submitted_at va deadline ni solishtirish
+            # submitted_at - datetime object, deadline - ham datetime object
+            if task.submitted_at > topic_deadline:
+                is_late = True
+                # 80% ball berish (yaxlitlab)
+                new_grade = int(new_grade * 0.8)
+                deadline_penalty_count += 1
+        
         if old_grade != new_grade:
             task.grade = new_grade
-            await sync_to_async(task.save)()
+            # ✅ Faqat grade fieldini update qilamiz (optimizatsiya)
+            await sync_to_async(task.save)(update_fields=['grade'])
             updated_count += 1
             
             # Student ma'lumotlarini olamiz (task.student allaqachon select_related bilan yuklangan)
@@ -512,7 +563,8 @@ async def process_new_answers(message: types.Message, state: FSMContext):
                 'student': student_full_name,
                 'old': old_grade,
                 'new': new_grade,
-                'diff': diff
+                'diff': diff,
+                'is_late': is_late
             })
             
             # Studentga xabar yuboramiz
@@ -520,6 +572,10 @@ async def process_new_answers(message: types.Message, state: FSMContext):
             bekor_msg = ""
             if bekor_count > 0:
                 bekor_msg = f"\n\n🎁 {bekor_count} ta savol bekor qilindi (test xatosi tuzatildi)"
+            
+            deadline_msg = ""
+            if is_late:
+                deadline_msg = f"\n\n⚠️ Siz testni deadline dan keyin topshirgansiz, shuning uchun 80% ball berildi"
             
             await safe_send_message(
                 student_telegram_id,
@@ -529,19 +585,24 @@ async def process_new_answers(message: types.Message, state: FSMContext):
                 f"✅ Yangi baho: {new_grade}/{answer_count}\n"
                 f"{'➕' if diff > 0 else '➖'} Farq: {abs(diff)} ball"
                 f"{bekor_msg}"
+                f"{deadline_msg}"
             )
     
     # Adminga statistika
     stats_text = f"✅ Yangilash tugadi!\n\n"
     stats_text += f"📊 Statistika:\n"
     stats_text += f"• Qayta hisoblangan testlar: {updated_count} ta\n"
-    stats_text += f"• Jami baholangan testlar: {len(tasks)} ta\n\n"
+    stats_text += f"• Jami baholangan testlar: {len(tasks)} ta\n"
+    if deadline_penalty_count > 0:
+        stats_text += f"• ⚠️ Deadline dan keyin (80% ball): {deadline_penalty_count} ta\n"
+    stats_text += "\n"
     
     if grade_changes:
         stats_text += f"📋 Baho o'zgargan studentlar ({len(grade_changes)} ta):\n"
         for change in grade_changes[:10]:  # Faqat birinchi 10 tasini ko'rsatamiz
             symbol = "📈" if change['diff'] > 0 else "📉"
-            stats_text += f"{symbol} {change['student']}: {change['old']} → {change['new']} ({change['diff']:+d} ball)\n"
+            late_mark = " ⚠️" if change.get('is_late', False) else ""
+            stats_text += f"{symbol} {change['student']}: {change['old']} → {change['new']} ({change['diff']:+d} ball){late_mark}\n"
         
         if len(grade_changes) > 10:
             stats_text += f"\n... va yana {len(grade_changes) - 10} ta student"
@@ -550,3 +611,222 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     
     # State ni tozalaymiz
     await state.finish()
+
+
+# --- YANGI MAVZU QO'SHISH ---
+@dp.message_handler(IsPrivate(), lambda msg: msg.text == "➕ Mavzu qo'shish", user_id=ADMINS)
+async def add_topic_start(message: types.Message):
+    """Admin yangi mavzu qo'shish jarayonini boshlaydi"""
+    from base_app.models import Course
+    
+    # Barcha kurslarni olamiz
+    courses = await sync_to_async(list)(Course.objects.filter(is_active=True).order_by('name'))
+    
+    if not courses:
+        await message.answer("❌ Hozircha faol kurslar mavjud emas.")
+        return
+    
+    # Kurs tanlash uchun inline keyboard
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for course in courses:
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"{course.name}",
+                callback_data=f"add_topic_course_{course.id}"
+            )
+        )
+    
+    await message.answer(
+        "➕ Yangi mavzu qo'shish\n\n"
+        "Birinchi navbatda, qaysi kurs uchun mavzu qo'shmoqchisiz?",
+        reply_markup=keyboard
+    )
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("add_topic_course_"), state="*")
+async def course_selected_for_topic(callback: types.CallbackQuery, state: FSMContext):
+    """Admin kurs tanladi, endi mavzu nomini so'raymiz"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    course_id = int(callback.data.split("_")[3])
+    
+    from base_app.models import Course
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+    
+    await callback.message.edit_text(
+        f"✅ Kurs tanlandi: {course.name}\n\n"
+        f"📝 Endi mavzu nomini yuboring:\n\n"
+        f"Masalan: 1-mavzu, 2-mavzu va h.k.\n\n"
+        f"❌ Bekor qilish uchun /cancel"
+    )
+    
+    # State ga course_id saqlaymiz
+    await state.update_data(course_id=course_id, course_name=course.name)
+    await AddTopicState.waiting_for_title.set()
+    
+    await callback.answer()
+
+
+@dp.message_handler(IsPrivate(), state=AddTopicState.waiting_for_title, user_id=ADMINS)
+async def process_topic_title(message: types.Message, state: FSMContext):
+    """Mavzu nomini qabul qilish va deadline so'rash"""
+    title = message.text.strip()
+    
+    if not title:
+        await message.answer("❌ Mavzu nomi bo'sh bo'lishi mumkin emas. Qaytadan yuboring yoki /cancel")
+        return
+    
+    # Title ni state ga saqlaymiz
+    data = await state.get_data()
+    await state.update_data(title=title)
+    
+    # Deadline tanlash uchun inline keyboard
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton(text="📅 Deadline belgilash", callback_data="set_deadline"),
+        InlineKeyboardButton(text="⏩ O'tkazib yuborish", callback_data="skip_deadline")
+    )
+    
+    await message.answer(
+        f"✅ Mavzu nomi: {title}\n\n"
+        f"📅 Deadline belgilaysizmi?\n\n"
+        f"Agar deadline belgilasangiz, deadline dan keyin topshirilgan testlar 80% ball oladi.",
+        reply_markup=keyboard
+    )
+
+
+@dp.callback_query_handler(lambda c: c.data == "skip_deadline", state=AddTopicState.waiting_for_title)
+async def skip_deadline(callback: types.CallbackQuery, state: FSMContext):
+    """Deadline ni o'tkazib yuborish va mavzuni yaratish"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    data = await state.get_data()
+    course_id = data['course_id']
+    course_name = data['course_name']
+    title = data['title']
+    
+    # Mavzuni API orqali yaratish
+    async with aiohttp.ClientSession() as session:
+        payload = {
+            "course_id": course_id,
+            "title": title,
+            "is_active": False  # Default: inactive
+        }
+        
+        async with session.post(f"{API_BASE_URL}/topics/create/", json=payload) as resp:
+            if resp.status == 201:
+                topic_data = await resp.json()
+                topic_id = topic_data['id']
+                
+                await callback.message.edit_text(
+                    f"✅ Yangi mavzu muvaffaqiyatli yaratildi!\n\n"
+                    f"📚 Kurs: {course_name}\n"
+                    f"📝 Mavzu: {title}\n"
+                    f"🆔 ID: {topic_id}\n"
+                    f"📅 Deadline: Yo'q\n"
+                    f"🔴 Status: Inactive\n\n"
+                    f"Mavzuni active qilish uchun: /activate {topic_id}"
+                )
+                
+                await state.finish()
+                await callback.answer("✅ Mavzu yaratildi!", show_alert=False)
+            else:
+                error_text = await resp.text()
+                await callback.message.edit_text(f"❌ Xatolik yuz berdi:\n{error_text}")
+                await state.finish()
+                await callback.answer("❌ Xatolik!", show_alert=True)
+
+
+@dp.callback_query_handler(lambda c: c.data == "set_deadline", state=AddTopicState.waiting_for_title)
+async def set_deadline_request(callback: types.CallbackQuery, state: FSMContext):
+    """Deadline belgilash uchun so'rash"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    await callback.message.edit_text(
+        f"📅 Deadline ni quyidagi formatda yuboring:\n\n"
+        f"<code>KUN.OY.YIL SOAT:DAQIQA</code>\n\n"
+        f"Masalan:\n"
+        f"<code>15.02.2026 23:59</code>\n"
+        f"<code>20.03.2026 18:00</code>\n\n"
+        f"❌ Bekor qilish uchun /cancel",
+        parse_mode="HTML"
+    )
+    
+    await AddTopicState.waiting_for_deadline.set()
+    await callback.answer()
+
+
+@dp.message_handler(IsPrivate(), state=AddTopicState.waiting_for_deadline, user_id=ADMINS)
+async def process_deadline(message: types.Message, state: FSMContext):
+    """Deadline ni qabul qilish va mavzuni yaratish"""
+    deadline_text = message.text.strip()
+    
+    # Deadline ni parse qilish
+    from datetime import datetime
+    import pytz
+    
+    try:
+        # Format: "15.02.2026 23:59"
+        dt = datetime.strptime(deadline_text, "%d.%m.%Y %H:%M")
+        
+        # Tashkent timezone bilan
+        tashkent_tz = pytz.timezone('Asia/Tashkent')
+        dt_aware = tashkent_tz.localize(dt)
+        
+        # ISO 8601 formatga o'zgartirish (API uchun)
+        deadline_iso = dt_aware.isoformat()
+        
+    except ValueError:
+        await message.answer(
+            "❌ Xato format! Iltimos, quyidagi formatda yuboring:\n\n"
+            "<code>KUN.OY.YIL SOAT:DAQIQA</code>\n\n"
+            "Masalan: <code>15.02.2026 23:59</code>\n\n"
+            "Qaytadan yuboring yoki /cancel",
+            parse_mode="HTML"
+        )
+        return
+    
+    data = await state.get_data()
+    course_id = data['course_id']
+    course_name = data['course_name']
+    title = data['title']
+    
+    # Mavzuni API orqali yaratish
+    async with aiohttp.ClientSession() as session:
+        payload = {
+            "course_id": course_id,
+            "title": title,
+            "deadline": deadline_iso,
+            "is_active": False  # Default: inactive
+        }
+        
+        async with session.post(f"{API_BASE_URL}/topics/create/", json=payload) as resp:
+            if resp.status == 201:
+                topic_data = await resp.json()
+                topic_id = topic_data['id']
+                
+                # Deadline ni odam tushunadigan formatga o'zgartirish
+                deadline_readable = dt.strftime("%d.%m.%Y %H:%M")
+                
+                await message.answer(
+                    f"✅ Yangi mavzu muvaffaqiyatli yaratildi!\n\n"
+                    f"📚 Kurs: {course_name}\n"
+                    f"📝 Mavzu: {title}\n"
+                    f"🆔 ID: {topic_id}\n"
+                    f"📅 Deadline: {deadline_readable}\n"
+                    f"🔴 Status: Inactive\n\n"
+                    f"Mavzuni active qilish uchun: /activate {topic_id}"
+                )
+                
+                await state.finish()
+            else:
+                error_text = await resp.text()
+                await message.answer(f"❌ Xatolik yuz berdi:\n{error_text}")
+                await state.finish()
+
