@@ -446,9 +446,9 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         correct_count = 0
         total_count = len(correct_answers_list)
         
-        # Deadline tekshiruvi
+        # Deadline tekshiruvi va show_detailed_results maydonini tekshirish
         deadline_passed = False
-        show_detailed = True  # Default: batafsil ko'rsatish
+        show_detailed = False  # Default: yashirin
         
         if current_topic.get('deadline'):
             from datetime import datetime
@@ -461,6 +461,9 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                 show_detailed = True  # Deadline o'tgan - batafsil ko'rsatamiz
             else:
                 show_detailed = False  # Deadline o'tmagan - javoblar yashirin
+        else:
+            # Deadline yo'q - show_detailed_results maydoniga qaraymiz
+            show_detailed = current_topic.get('show_detailed_results', False)
         
         if show_detailed:
             # Batafsil natijalarni ko'rsatish (har bir savol uchun)

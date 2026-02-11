@@ -63,8 +63,8 @@ class GroupAdmin(admin.ModelAdmin):
         all_students_data = []
         
         for group in queryset:
-            # Student group yoki groups da shu guruhga tegishli bo'lishi mumkin
-            students = Student.objects.filter(Q(group=group) | Q(groups=group)).distinct()
+            # Student groups da shu guruhga tegishli bo'lishi mumkin
+            students = Student.objects.filter(Q(groups=group)).distinct()
             
             # Guruh course ga qarab task_type ni aniqlash
             task_type = group.course.task_type if group.course else 'test'
@@ -412,10 +412,11 @@ class TopicAdmin(admin.ModelAdmin):
         # Ma'lumotlar
         for idx, data in enumerate(sorted_students, start=1):
             student = data['student']
+            first_group = student.groups.first()
             row = [
                 idx,
                 student.full_name,
-                student.group.name if student.group else "Yo'q",
+                first_group.name if first_group else "Yo'q",
             ]
             
             # Har bir topic bo'yicha ball
@@ -530,10 +531,11 @@ class TopicAdmin(admin.ModelAdmin):
         # Ma'lumotlar
         for idx, data in enumerate(students_data, start=1):
             student = data['student']
+            first_group = student.groups.first()
             writer.writerow([
                 idx,
                 student.full_name,
-                student.group.name if student.group else 'Yo\'q',
+                first_group.name if first_group else 'Yo\'q',
                 data['avg_grade'],
                 data['total_tasks'],
                 data['total_score'],

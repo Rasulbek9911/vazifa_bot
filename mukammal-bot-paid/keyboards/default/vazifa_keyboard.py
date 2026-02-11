@@ -24,3 +24,12 @@ admin_key = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+cancel_key = ReplyKeyboardMarkup(
+    keyboard = [
+        [
+            KeyboardButton(text='❌ Bekor qilish'),
+        ],
+    ],
+    resize_keyboard=True
+)

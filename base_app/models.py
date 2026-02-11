@@ -86,32 +86,28 @@ class Student(models.Model):
     telegram_id = models.CharField(max_length=50, unique=True)
     full_name = models.CharField(max_length=255)
     
-    # DEPRECATED: Eski maydon (backward compatibility uchun saqlanadi)
-    # group = models.ForeignKey(
-    #     Group, on_delete=models.CASCADE, related_name="students", null=True, blank=True,
-    #     help_text="DEPRECATED: Iltimos 'groups' dan foydalaning (asosiy guruh)")
-    
-    # YANGI: Ko'p guruh (ko'p kurs) uchun
+    # Ko'p guruh (ko'p kurs) uchun
     groups = models.ManyToManyField(
         Group, related_name="enrolled_students", blank=True,
         help_text="Student qaysi guruhlarda o'qiydi (ko'p kurs)")
 
     def __str__(self):
-        if self.group:
-            return f"{self.full_name} ({self.group.name})"
+        group_names = [g.name for g in self.groups.all()[:2]]
+        if group_names:
+            groups_str = ", ".join(group_names)
+            if self.groups.count() > 2:
+                groups_str += f" +{self.groups.count() - 2}"
+            return f"{self.full_name} ({groups_str})"
         return self.full_name
     
     def get_all_groups(self):
-        """Barcha guruhlarni (group + groups) qaytarish"""
-        all_groups = list(self.groups.all())
-        if self.group and self.group not in all_groups:
-            all_groups.append(self.group)
-        return all_groups
+        """Barcha guruhlarni qaytarish"""
+        return list(self.groups.all())
     
     def get_all_courses(self):
         """Barcha kurslarni qaytarish"""
         courses = set()
-        for grp in self.get_all_groups():
+        for grp in self.groups.all():
             if grp.course:
                 courses.add(grp.course.code)
             elif grp.course_type:

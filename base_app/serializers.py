@@ -31,17 +31,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    # DEPRECATED: Eski single group (backward compatibility)
-    group = GroupSerializer(read_only=True)
-    group_id = serializers.PrimaryKeyRelatedField(
-        queryset=Group.objects.all(),
-        source="group",
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
-    
-    # YANGI: Ko'p guruh (ManyToMany)
+    # Ko'p guruh (ManyToMany)
     groups = GroupSerializer(many=True, read_only=True)
     groups_ids = serializers.PrimaryKeyRelatedField(
         queryset=Group.objects.all(),
@@ -51,26 +41,19 @@ class StudentSerializer(serializers.ModelSerializer):
         required=False,
     )
     
-    # Helper: Barcha guruhlarni (group + groups) qaytarish
+    # Helper: Barcha guruhlarni qaytarish
     all_groups = serializers.SerializerMethodField()
     
     def get_all_groups(self, obj):
-        """group va groups birlashtirib qaytarish"""
-        all_grps = list(obj.groups.all())
-        if obj.group and obj.group not in all_grps:
-            all_grps.insert(0, obj.group)
-        return GroupSerializer(all_grps, many=True).data
+        """Barcha guruhlarni qaytarish"""
+        return GroupSerializer(obj.groups.all(), many=True).data
     
     def create(self, validated_data):
-        """Student yaratish - agar group_id berilsa, groups ga ham qo'shish"""
+        """Student yaratish"""
         groups_data = validated_data.pop('groups', [])
         student = Student.objects.create(**validated_data)
         
-        # Agar group berilsa, groups ga ham qo'shamiz (backward compatibility)
-        if student.group:
-            student.groups.add(student.group)
-        
-        # groups_ids orqali qo'shimcha guruhlar
+        # groups_ids orqali guruhlar qo'shish
         for group in groups_data:
             student.groups.add(group)
         
@@ -78,7 +61,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = ["id", "telegram_id", "full_name", "group", "group_id", "groups", "groups_ids", "all_groups"]
+        fields = ["id", "telegram_id", "full_name", "groups", "groups_ids", "all_groups"]
 
 
 class TopicSerializer(serializers.ModelSerializer):
