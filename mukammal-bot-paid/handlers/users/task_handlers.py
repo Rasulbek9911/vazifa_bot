@@ -956,3 +956,18 @@ async def admin_send_past_results(message: types.Message, state: FSMContext):
         f"📤 Yuborilgan xabarlar: {sent_count}\n"
         f"❌ Xatolar: {error_count}"
     )
+
+
+# --- DEADLINE TUGAGANDA AVTOMATIK NATIJALARNI YUBORISH (test uchun) ---
+@dp.message_handler(IsPrivate(), Command("test_deadline_results"), user_id=ADMINS)
+async def test_deadline_results_command(message: types.Message):
+    """Admin: Deadline natijalarini yuborish funksiyasini test qilish"""
+    await message.answer("⏳ Deadline natijalarini yuborish boshlandi...")
+    
+    from handlers.users.scheduled_tasks import send_deadline_results
+    
+    try:
+        await send_deadline_results()
+        await message.answer("✅ Deadline natijalarini yuborish yakunlandi!")
+    except Exception as e:
+        await message.answer(f"❌ Xatolik: {str(e)[:200]}")

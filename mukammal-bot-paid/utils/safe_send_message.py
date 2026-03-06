@@ -3,10 +3,10 @@ import asyncio
 from data.config import ADMINS
 from loader import bot
 # --- xavfsiz xabar yuborish helper ---
-async def safe_send_message(user_id: int, text: str):
+async def safe_send_message(user_id: int, text: str, parse_mode: str = None):
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     try:
-        await bot.send_message(user_id, text)
+        await bot.send_message(user_id, text, parse_mode=parse_mode)
     except BotBlocked:
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton(
@@ -30,7 +30,7 @@ async def safe_send_message(user_id: int, text: str):
         await bot.send_message(ADMINS[0], f"⚠️ Student botni stop qildi.", reply_markup=kb)
     except RetryAfter as e:
         await asyncio.sleep(e.timeout)
-        await safe_send_message(user_id, text)
+        await safe_send_message(user_id, text, parse_mode=parse_mode)
     except Exception as e:
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton(

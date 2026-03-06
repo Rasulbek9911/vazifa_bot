@@ -291,7 +291,7 @@ class TopicAdmin(admin.ModelAdmin):
     list_filter = ('course', 'is_active', 'show_detailed_results')
     search_fields = ('title',)
     list_editable = ('show_detailed_results',)
-    actions = ['add_points_to_topic_tests', 'subtract_points_from_topic_tests', 'export_rating_csv', 'export_detailed_rating_csv']
+    actions = ['export_detailed_rating_csv']
     
     def export_detailed_rating_csv(self, request, queryset):
         """
@@ -318,8 +318,8 @@ class TopicAdmin(admin.ModelAdmin):
             )
             return
         
-        # BARCHA topiklarni tanlangan course bo'yicha olish (active bo'lmasa ham)
-        all_topics = Topic.objects.filter(course=course).order_by('created_at')
+        # FAQAT TANLANGAN topiklarni olish
+        all_topics = queryset.order_by('created_at')
         topic_ids = [topic.id for topic in all_topics]
         topics_dict = {topic.id: topic for topic in all_topics}
         
@@ -331,7 +331,7 @@ class TopicAdmin(admin.ModelAdmin):
             topic_id__in=topic_ids,
             task_type=task_type,
             grade__isnull=False
-        ).select_related('student', 'student__group').order_by('student_id', 'topic_id')
+        ).select_related('student').order_by('student_id', 'topic_id')
         
         # Tasklarni student va topic bo'yicha guruhlash
         students_data = {}
@@ -412,6 +412,7 @@ class TopicAdmin(admin.ModelAdmin):
         # Ma'lumotlar
         for idx, data in enumerate(sorted_students, start=1):
             student = data['student']
+            # Studentning birinchi guruhini olish (ko'p guruh boʻlishi mumkin)
             first_group = student.groups.first()
             row = [
                 idx,

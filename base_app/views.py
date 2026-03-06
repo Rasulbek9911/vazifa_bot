@@ -126,8 +126,7 @@ class StudentUpdateNameView(APIView):
     Body: {"full_name": "Yangi Ism"}
     """
 
-    def patch(self, request, pk):
-        telegram_id = pk
+    def patch(self, request, telegram_id):
         new_name = request.data.get("full_name", "").strip()
         
         if not new_name:
@@ -148,6 +147,99 @@ class StudentUpdateNameView(APIView):
             return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
 
+class StudentResultsView(APIView):
+    """
+    Student natijalarini mavzular bo'yicha olish
+    GET /api/students/{telegram_id}/results/
+    
+    Natija:
+    {
+        "full_name": "Student Nomi",
+        "total_score": 100,
+        "results": [
+            {
+                "topic_id": 1,
+                "topic_title": "Mavzu nomi",
+                "course_type": "milliy_sert",
+                "tasks": [
+                    {
+                        "task_type": "test",
+                        "grade": 45,
+                        "submitted_at": "2026-01-15T10:30:00Z"
+                    },
+                    {
+                        "task_type": "assignment",
+                        "grade": 50,
+                        "submitted_at": "2026-01-16T14:20:00Z"
+                    }
+                ],
+                "average_score": 47.5
+            }
+        ]
+    }
+    """
+
+    def get(self, request, pk):
+        telegram_id = pk
+        
+        try:
+            student = Student.objects.get(telegram_id=telegram_id)
+        except Student.DoesNotExist:
+            return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Studentning barcha vazifalarini mavzular bo'yicha guruhlash
+        tasks = Task.objects.filter(
+            student=student
+        ).select_related('topic', 'topic__course').order_by('submitted_at')
+        
+        # Mavzular bo'yicha guruhlash
+        results_by_topic = {}
+        total_score = 0
+        task_count = 0
+        
+        for task in tasks:
+            topic_id = task.topic.id
+            
+            if topic_id not in results_by_topic:
+                results_by_topic[topic_id] = {
+                    "topic_id": topic_id,
+                    "topic_title": task.topic.title,
+                    "course_type": task.topic.course.code if task.topic.course else None,
+                    "tasks": []
+                }
+            
+            # Vazifa ma'lumotlarini qo'shish
+            task_info = {
+                "task_type": task.task_type,
+                "task_type_display": "📝 Test" if task.task_type == "test" else "📋 Maxsus topshiriq",
+                "grade": task.grade if task.grade else 0,
+                "submitted_at": task.submitted_at.isoformat() if task.submitted_at else None
+            }
+            
+            results_by_topic[topic_id]["tasks"].append(task_info)
+            
+            if task.grade:
+                total_score += task.grade
+                task_count += 1
+        
+        # O'rtacha ballni hisoblash har bir mavzu uchun
+        for topic_data in results_by_topic.values():
+            if topic_data["tasks"]:
+                avg_score = sum(t["grade"] for t in topic_data["tasks"]) / len(topic_data["tasks"])
+                topic_data["average_score"] = round(avg_score, 2)
+            else:
+                topic_data["average_score"] = 0
+        
+        # Natijani qaytarish
+        return Response({
+            "full_name": student.full_name,
+            "total_score": total_score,
+            "total_tasks": task_count,
+            "average_score": round(total_score / task_count, 2) if task_count > 0 else 0,
+            "results": list(results_by_topic.values())
+        }, status=status.HTTP_200_OK)
+
+
 class GroupsListView(APIView):
     """
     Guruhlar ro‘yxatini qaytaradi
@@ -160,7 +252,7 @@ class GroupsListView(APIView):
         # current_size ni ham qo'shamiz
         data = serializer.data
         for i, group in enumerate(groups):
-            data[i]["current_size"] = group.students.count()
+            data[i]["current_size"] = group.enrolled_students.count()
         return Response(data)
 
 
@@ -347,14 +439,14 @@ class WeeklyReportPDFView(APIView):
         except Group.DoesNotExist:
             return HttpResponse("Group not found", status=404)
 
-        students = group.students.all()
+        students = group.enrolled_students.all()
 
         # Guruhning course yoki course_type'iga mos mavzularni olamiz
         group_course = getattr(group, "course", None)
         if group_course:
             # Barcha active topiclarni olamiz (id bo'yicha tartibda)
-            all_topics = Topic.objects.filter(is_active=True, course=group_course).order_by('id')
-            # Oxirgi 10 ta topicni olamiz (teskari tartibda keyin o'giramiz)
+            all_topics = Topic.objects.filter(is_active=True, course=group.course).order_by('id')
+            # Oxirgi 10 ta topicni olamiz
             topics_list = list(all_topics)
             topics = topics_list[-10:] if len(topics_list) >= 10 else topics_list
         else:
@@ -364,6 +456,18 @@ class WeeklyReportPDFView(APIView):
         # Agar active mavzu yo'q bo'lsa, PDF yaratmaymiz
         if not topics:
             return HttpResponse("No active topics", status=404)
+
+        # Kiril harflarini qo'llab-quvvatlaydigan fontni yuklash
+        try:
+            # DejaVu Sans font (ko'pchilik Linux sistemalarida mavjud)
+            pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+            pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
+            font_name = 'DejaVuSans'
+            font_name_bold = 'DejaVuSans-Bold'
+        except:
+            # Agar font topilmasa, standart fontni ishlat
+            font_name = 'Helvetica'
+            font_name_bold = 'Helvetica-Bold'
 
         # Stillar
         from reportlab.lib.styles import ParagraphStyle
@@ -377,7 +481,8 @@ class WeeklyReportPDFView(APIView):
             fontSize=7,
             leading=9,
             alignment=TA_LEFT,
-            wordWrap='CJK'
+            wordWrap='CJK',
+            fontName=font_name
         )
         
         # Vertikal mavzu sarlavhasi uchun stil
@@ -387,6 +492,7 @@ class WeeklyReportPDFView(APIView):
             fontSize=6,
             leading=7,
             alignment=TA_CENTER,
+            fontName=font_name
         )
         
         # Jadval sarlavhalari - mavzularni vertikal qilamiz
@@ -394,13 +500,14 @@ class WeeklyReportPDFView(APIView):
         
         for t in topics:
             # Mavzu nomini vertikal qilish - har bir belgini yangi qatorda
+            # PASTDAN TEPAGA yozish (teskari tartib)
             topic_type = "📝" if t.correct_answers else "📋"
-            # Har bir belgini <br/> bilan ajratamiz
-            vertical_text = "<br/>".join(list(t.title))
-            vertical_text += f"<br/><font size='5'>{topic_type}</font>"
+            # Har bir belgini <br/> bilan ajratamiz - teskari tartibda
+            vertical_text = f"<font size='5'>{topic_type}</font><br/>"
+            vertical_text += "<br/>".join(reversed(list(t.title)))
             header.append(Paragraph(vertical_text, vertical_style))
         
-        # Umumiy o'rtacha ustuni qo'shamiz
+        # Umumiy o'rtacha ustuni qo'shamiz - tepadan pastga
         header.append(Paragraph("<b>U<br/>m<br/>u<br/>m<br/>i<br/>y<br/><br/>o<br/>'<br/>r<br/>t<br/>a<br/>c<br/>h<br/>a</b>", vertical_style))
         data = [header]
 
@@ -431,7 +538,9 @@ class WeeklyReportPDFView(APIView):
                 grades_10.append(grade)
             
             # Umumiy o'rtacha bahoni hisoblash (barcha active topiclar bo'yicha)
-            all_grades = []
+            # Bajarmagan mavzular ham 0 ball sifatida hisobga olinadi
+            total_topics_count = all_topics.count()
+            all_grades_sum = 0
             for topic in all_topics:
                 task_type = 'test' if topic.correct_answers else 'assignment'
                 task = Task.objects.filter(
@@ -442,11 +551,11 @@ class WeeklyReportPDFView(APIView):
                 ).first()
                 
                 if task and task.grade is not None:
-                    all_grades.append(task.grade)
+                    all_grades_sum += task.grade
             
-            # Umumiy o'rtacha (barcha active topiclar)
-            if all_grades:
-                overall_avg = sum(all_grades) / len(all_grades)
+            # Umumiy o'rtacha (barcha active topiclar soniga bo'linadi, bajarmagan = 0)
+            if total_topics_count > 0:
+                overall_avg = all_grades_sum / total_topics_count
                 row.append(f"{overall_avg:.1f}")
                 student_rows.append((row, overall_avg))
             else:
@@ -463,18 +572,6 @@ class WeeklyReportPDFView(APIView):
         # PDF response
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="weekly_report_{group.name}.pdf"'
-
-        # Kiril harflarini qo'llab-quvvatlaydigan font
-        try:
-            # DejaVu Sans font (ko'pchilik Linux sistemalarida mavjud)
-            pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
-            pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
-            font_name = 'DejaVuSans'
-            font_name_bold = 'DejaVuSans-Bold'
-        except:
-            # Agar font topilmasa, standart fontni ishlat
-            font_name = 'Helvetica'
-            font_name_bold = 'Helvetica-Bold'
 
         from reportlab.lib.pagesizes import A3
         
@@ -670,3 +767,95 @@ class TopicCreateView(APIView):
         
         serializer = TopicSerializer(topic)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class StudentResultsView(APIView):
+    """
+    Studentning barcha mavzulardagi natijalarini qaytaradi
+    GET /api/student/<telegram_id>/results/
+    
+    Javob formati:
+    {
+        "telegram_id": "123456",
+        "full_name": "Ali Valiyev",
+        "results": [
+            {
+                "topic_id": 1,
+                "topic_title": "1-mavzu",
+                "grade": 35
+            },
+            {
+                "topic_id": 2,
+                "topic_title": "2-mavzu", 
+                "grade": 34
+            },
+            {
+                "topic_id": 5,
+                "topic_title": "5-mavzu",
+                "grade": 0
+            }
+        ]
+    }
+    """
+    
+    def get(self, request, telegram_id):
+        try:
+            student = Student.objects.get(telegram_id=telegram_id)
+        except Student.DoesNotExist:
+            return Response(
+                {"error": "Student not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Studentning guruhlarini olish
+        student_groups = student.groups.all()
+        if not student_groups.exists():
+            return Response(
+                {"error": "Student has no groups"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Studentning kurslarini olish
+        student_courses = []
+        for group in student_groups:
+            if group.course:
+                student_courses.append(group.course)
+        
+        # Agar kurs bo'lmasa, bo'sh javob qaytaramiz
+        if not student_courses:
+            response_data = {
+                "telegram_id": student.telegram_id,
+                "full_name": student.full_name,
+                "results": []
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        # Faqat student tegishli bo'lgan kurslar bo'yicha mavzuları olish
+        all_topics = Topic.objects.filter(
+            is_active=True,
+            course__in=student_courses
+        ).order_by('id')
+        
+        results = []
+        for topic in all_topics:
+            # Ushbu mavzudan studentning vazifasini qidirish
+            try:
+                task = Task.objects.get(student=student, topic=topic)
+                grade = task.grade if task.grade is not None else 0
+            except Task.DoesNotExist:
+                # Agar student bu mavzuda topshirmagan bo'lsa
+                grade = 0
+            
+            results.append({
+                "topic_id": topic.id,
+                "topic_title": topic.title,
+                "grade": grade
+            })
+        
+        response_data = {
+            "telegram_id": student.telegram_id,
+            "full_name": student.full_name,
+            "results": results
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)

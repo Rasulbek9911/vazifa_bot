@@ -9,18 +9,22 @@ vazifa_key = ReplyKeyboardMarkup(
         [
             KeyboardButton(text='👤 Profil'),
         ],
+        [
+            KeyboardButton(text='📊 Natijalarim'),
+        ],
     ],
     resize_keyboard=True
 )
 
 admin_key = ReplyKeyboardMarkup(
     keyboard = [
-        
         [
             KeyboardButton(text='🔧 Test javoblarini o\'zgartirish'),
             KeyboardButton(text = "➕ Mavzu qo'shish"),
+        ],
+        [
+            KeyboardButton(text='📢 Broadcast'),
         ]
-     
     ],
     resize_keyboard=True
 )

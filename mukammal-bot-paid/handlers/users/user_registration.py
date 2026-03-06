@@ -17,6 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from base_app.models import Group, Student
+from django.db import close_old_connections
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from data.config import ADMINS, API_BASE_URL
@@ -31,11 +32,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 async def fetch_groups_from_db():
     """Database'dan barcha guruhlarni olish"""
     try:
-        groups = await asyncio.to_thread(
-            lambda: list(Group.objects.filter(telegram_group_id__isnull=False).values(
+        def _fetch_groups():
+            close_old_connections()
+            return list(Group.objects.filter(telegram_group_id__isnull=False).values(
                 'id', 'name', 'telegram_group_id', 'invite_link', 'is_full', 'course_type'
             ))
-        )
+
+        groups = await asyncio.to_thread(_fetch_groups)
         return groups
     except Exception as e:
         logging.error(f"Error fetching groups from database: {e}")
@@ -46,6 +49,7 @@ async def fetch_student_from_db(telegram_id):
     """Database'dan student ma'lumotlarini olish"""
     try:
         def get_student():
+            close_old_connections()
             try:
                 student = Student.objects.prefetch_related('groups').get(telegram_id=str(telegram_id))
                 groups_data = [{'id': g.id, 'name': g.name} for g in student.groups.all()]
@@ -68,6 +72,7 @@ async def register_student_to_db(telegram_id, full_name, group_id):
     """Student'ni database'ga yozish"""
     try:
         def do_register():
+            close_old_connections()
             student, created = Student.objects.get_or_create(
                 telegram_id=str(telegram_id),
                 defaults={'full_name': full_name}
@@ -567,3 +572,60 @@ async def process_name_change(message: types.Message, state: FSMContext):
                 error_msg = error_data.get("error", "Ismni o'zgartirishda xatolik yuz berdi")
                 await message.answer(f"❌ {error_msg}")
                 await state.finish()
+
+
+# --- RESULTS HANDLER - Show Student Results ---
+@dp.message_handler(IsPrivate(), Text(equals="📊 Natijalarim"), state="*")
+async def show_results(message: types.Message, state: FSMContext):
+    """Show student results by topic"""
+    telegram_id = message.from_user.id
+    
+    # Stateni tozalash
+    try:
+        await state.finish()
+    except (KeyError, Exception):
+        pass
+    
+    async with aiohttp.ClientSession() as session:
+        # Get student results
+        async with session.get(f"{API_BASE_URL}/students/{telegram_id}/results/") as resp:
+            if resp.status != 200:
+                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
+                return
+            
+            results_data = await resp.json()
+            
+            full_name = results_data.get("full_name", "N/A")
+            results = results_data.get("results", [])
+            
+            # Agar vazifa topilmasa
+            if not results:
+                await message.answer(
+                    f"👤 {full_name}\n\n"
+                    f"📊 Natijalar hali yo'q"
+                )
+                return
+            
+            # Jadval formatida natijalar
+            results_text = (
+                f"<b>📊 NATIJALARIM</b>\n\n"
+                f"<b>👤 {full_name}</b>\n\n"
+                f"<pre>"
+                f"┌────────────────────────────┬──────┐\n"
+                f"│ Mavzu                      │ Ball │\n"
+                f"├────────────────────────────┼──────┤\n"
+            )
+            
+            for result in results:
+                topic_title = result.get("topic_title", "N/A")[:25]  # Max 25 chars
+                grade = result.get("grade", 0)
+                # Jadval formatida (fixed width)
+                results_text += f"│ {topic_title:<26} │ {grade:>4} │\n"
+            
+            results_text += (
+                f"└────────────────────────────┴──────┘"
+                f"</pre>"
+            )
+            
+            await message.answer(results_text, parse_mode="HTML")
+

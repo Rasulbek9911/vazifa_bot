@@ -189,12 +189,12 @@ async def activate_topic(message: types.Message):
     # Performance: Faqat kerakli kursdagi guruhlarni olamiz
     if topic.course:
         groups = await sync_to_async(list)(
-            Group.objects.filter(course=topic.course).prefetch_related('students')
+            Group.objects.filter(course=topic.course).prefetch_related('enrolled_students')
         )
     else:
         # Backward compatibility: course_type bo'yicha filter
         groups = await sync_to_async(list)(
-            Group.objects.filter(course_type=topic_course_code).prefetch_related('students')
+            Group.objects.filter(course_type=topic_course_code).prefetch_related('enrolled_students')
         )
     
     # Unique studentlarni to'playmiz (bir student bir nechta guruhda bo'lishi mumkin)
@@ -203,7 +203,7 @@ async def activate_topic(message: types.Message):
                   "📤 Vazifani yuborishingiz mumkin!"
     
     for group in groups:
-        students = await sync_to_async(list)(group.students.all())
+        students = await sync_to_async(list)(group.enrolled_students.all())
         for student in students:
             # Agar bu studentga xabar yuborilmagan bo'lsa
             if student.telegram_id not in notified_students:
@@ -215,41 +215,332 @@ async def activate_topic(message: types.Message):
 
 # --- Barcha userlarga xabar yuborish ---
 @dp.message_handler(IsPrivate(), commands=["broadcast"], user_id=ADMINS)
+@dp.message_handler(IsPrivate(), lambda msg: msg.text == "📢 Broadcast", user_id=ADMINS)
 async def start_broadcast(message: types.Message):
-    """Admin barcha userlarga xabar yuborish uchun"""
+    """Admin broadcast xabarini yozish boshlaydi"""
     await message.answer(
-        "📢 Barcha userlarga yubormoqchi bo'lgan xabaringizni yuboring:\n\n"
+        "📢 Yubormoqchi bo'lgan xabaringizni yuboring:\n\n"
         "⚠️ Xabar matn, rasm, video yoki hujjat bo'lishi mumkin.\n"
-        "Bekor qilish uchun: /cancel"
+        "❌ Bekor qilish uchun: /cancel"
     )
-    await BroadcastState.message.set()
+    await BroadcastState.waiting_for_message.set()
 
 
-@dp.message_handler(IsPrivate(), state=BroadcastState.message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
+@dp.message_handler(IsPrivate(), state=BroadcastState.waiting_for_message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
 async def process_broadcast_message(message: types.Message, state: FSMContext):
-    """Broadcast xabarini qabul qilish va yuborish"""
-    from base_app.models import Student
+    """Broadcast xabarini qabul qilish va guruh tanlashni ko'rsatish"""
+    from base_app.models import Group
     
-    # Barcha studentlarni olish
-    students = await sync_to_async(list)(Student.objects.all())
+    # Xabarni state ga saqlaymiz
+    await state.update_data(
+        message_id=message.message_id,
+        from_chat_id=message.chat.id,
+        selected_groups=[]  # Tanlangan guruhlar ro'yxati
+    )
     
-    if not students:
-        await message.answer("❌ Hech qanday student topilmadi.")
-        try:
-            await state.finish()
-        except KeyError:
-            pass
+    # Barcha guruhlarni olish (course bilan)
+    groups = await sync_to_async(list)(
+        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
+    )
+    
+    if not groups:
+        await message.answer("❌ Hech qanday guruh topilmadi.")
+        await state.finish()
         return
     
-    await message.answer(f"📤 Xabar {len(students)} ta userga yuborilmoqda...")
+    # Inline keyboard yaratish (multiselect)
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    
+    # Har bir guruhni qo'shamiz (checkbox bilan)
+    for group in groups:
+        student_count = await sync_to_async(group.enrolled_students.count)()
+        course_name = group.course.name if group.course else "N/A"
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"☐ {course_name} - {group.name} ({student_count} ta)",
+                callback_data=f"broadcast_toggle_{group.id}"
+            )
+        )
+    
+    # "Barcha guruhlarga" va "Yuborish" tugmalarini qo'shamiz
+    total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
+    keyboard.add(
+        InlineKeyboardButton(
+            text=f"📢 Barcha guruhlarni tanlash ({total_students} ta)",
+            callback_data="broadcast_select_all"
+        )
+    )
+    keyboard.add(
+        InlineKeyboardButton(
+            text="✅ Yuborish (0 ta guruh)",
+            callback_data="broadcast_send"
+        )
+    )
+    
+    await message.answer(
+        "✅ Xabar qabul qilindi!\n\n"
+        "👥 Guruh(lar)ni tanlang:\n"
+        "☐ - tanlanmagan\n"
+        "✅ - tanlangan\n\n"
+        "Bir nechta guruhni tanlashingiz mumkin.",
+        reply_markup=keyboard
+    )
+    
+    await BroadcastState.waiting_for_group_selection.set()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("broadcast_toggle_"), state=BroadcastState.waiting_for_group_selection)
+async def toggle_group_selection(callback: types.CallbackQuery, state: FSMContext):
+    """Guruhni tanlash/bekor qilish (toggle)"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    from base_app.models import Group
+    
+    # Qaysi guruh bosilganini aniqlaymiz
+    group_id = int(callback.data.split("_")[2])
+    
+    # State dan tanlangan guruhlarni olamiz
+    data = await state.get_data()
+    selected_groups = data.get('selected_groups', [])
+    
+    # Toggle: agar tanlangan bo'lsa - olib tashlaymiz, aks holda qo'shamiz
+    if group_id in selected_groups:
+        selected_groups.remove(group_id)
+    else:
+        selected_groups.append(group_id)
+    
+    # State ni yangilaymiz
+    await state.update_data(selected_groups=selected_groups)
+    
+    # Keyboardni yangilaymiz
+    groups = await sync_to_async(list)(
+        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
+    )
+    
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    
+    for group in groups:
+        student_count = await sync_to_async(group.enrolled_students.count)()
+        course_name = group.course.name if group.course else "N/A"
+        # Tanlangan guruhlar uchun ✅, boshqalar uchun ☐
+        checkbox = "✅" if group.id in selected_groups else "☐"
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"{checkbox} {course_name} - {group.name} ({student_count} ta)",
+                callback_data=f"broadcast_toggle_{group.id}"
+            )
+        )
+    
+    # "Barcha guruhlarga" va "Yuborish" tugmalari
+    total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
+    all_group_ids = [g.id for g in groups]
+    all_selected = set(selected_groups) == set(all_group_ids)
+    
+    keyboard.add(
+        InlineKeyboardButton(
+            text=f"{'❌ Barchasini bekor qilish' if all_selected else f'📢 Barcha guruhlarni tanlash ({total_students} ta)'}",
+            callback_data="broadcast_select_all"
+        )
+    )
+    
+    # Tanlangan guruhlardagi studentlar sonini hisoblaymiz
+    selected_student_count = 0
+    for group in groups:
+        if group.id in selected_groups:
+            selected_student_count += await sync_to_async(group.enrolled_students.count)()
+    
+    keyboard.add(
+        InlineKeyboardButton(
+            text=f"✅ Yuborish ({len(selected_groups)} ta guruh, {selected_student_count} ta student)",
+            callback_data="broadcast_send"
+        )
+    )
+    
+    # Xabar matnini ham yangilaymiz - tanlangan guruhlar ko'rinsin
+    message_text = (
+        "✅ Xabar qabul qilindi!\n\n"
+        "👥 Guruh(lar)ni tanlang:\n"
+        "☐ - tanlanmagan\n"
+        "✅ - tanlangan\n\n"
+    )
+    
+    if selected_groups:
+        message_text += f"📊 Tanlandi: {len(selected_groups)} ta guruh, {selected_student_count} ta student"
+    else:
+        message_text += "📭 Hech qanday guruh tanlanmagan"
+    
+    try:
+        await callback.message.edit_text(
+            text=message_text,
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        print(f"Message update error: {e}")
+    
+    await callback.answer(f"{'✅ Tanlandi' if group_id in selected_groups else '❌ Bekor qilindi'}")
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_select_all", state=BroadcastState.waiting_for_group_selection)
+async def select_all_groups(callback: types.CallbackQuery, state: FSMContext):
+    """Barcha guruhlarni tanlash/bekor qilish"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    from base_app.models import Group
+    
+    # State dan tanlangan guruhlarni olamiz
+    data = await state.get_data()
+    selected_groups = data.get('selected_groups', [])
+    
+    # Barcha guruhlarni olamiz
+    groups = await sync_to_async(list)(
+        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
+    )
+    
+    all_group_ids = [g.id for g in groups]
+    
+    # Agar barcha tanlangan bo'lsa - barchasini bekor qilamiz, aks holda barchasini tanlaymiz
+    if set(selected_groups) == set(all_group_ids):
+        selected_groups = []
+    else:
+        selected_groups = all_group_ids.copy()
+    
+    # State ni yangilaymiz
+    await state.update_data(selected_groups=selected_groups)
+    
+    # Keyboardni yangilaymiz
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    
+    for group in groups:
+        student_count = await sync_to_async(group.enrolled_students.count)()
+        course_name = group.course.name if group.course else "N/A"
+        checkbox = "✅" if group.id in selected_groups else "☐"
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"{checkbox} {course_name} - {group.name} ({student_count} ta)",
+                callback_data=f"broadcast_toggle_{group.id}"
+            )
+        )
+    
+    # "Barcha guruhlarga" va "Yuborish" tugmalari
+    total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
+    all_selected = len(selected_groups) == len(all_group_ids)
+    
+    keyboard.add(
+        InlineKeyboardButton(
+            text=f"{'❌ Barchasini bekor qilish' if all_selected else f'📢 Barcha guruhlarni tanlash ({total_students} ta)'}",
+            callback_data="broadcast_select_all"
+        )
+    )
+    
+    # Tanlangan guruhlardagi studentlar sonini hisoblaymiz
+    selected_student_count = 0
+    for group in groups:
+        if group.id in selected_groups:
+            selected_student_count += await sync_to_async(group.enrolled_students.count)()
+    
+    keyboard.add(
+        InlineKeyboardButton(
+            text=f"✅ Yuborish ({len(selected_groups)} ta guruh, {selected_student_count} ta student)",
+            callback_data="broadcast_send"
+        )
+    )
+    
+    # Xabar matnini ham yangilaymiz
+    message_text = (
+        "✅ Xabar qabul qilindi!\n\n"
+        "👥 Guruh(lar)ni tanlang:\n"
+        "☐ - tanlanmagan\n"
+        "✅ - tanlangan\n\n"
+    )
+    
+    if selected_groups:
+        message_text += f"📊 Tanlandi: {len(selected_groups)} ta guruh, {selected_student_count} ta student"
+    else:
+        message_text += "📭 Hech qanday guruh tanlanmagan"
+    
+    try:
+        await callback.message.edit_text(
+            text=message_text,
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        print(f"Message update error: {e}")
+    
+    await callback.answer(f"{'✅ Hammasi tanlandi!' if all_selected else '❌ Hammasi bekor qilindi!'}")
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_send", state=BroadcastState.waiting_for_group_selection)
+async def send_broadcast_to_groups(callback: types.CallbackQuery, state: FSMContext):
+    """Tanlangan guruhlarga broadcast yuborish"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    
+    from base_app.models import Group, Student
+    
+    # State dan xabar va tanlangan guruhlar ma'lumotlarini olamiz
+    data = await state.get_data()
+    message_id = data['message_id']
+    from_chat_id = data['from_chat_id']
+    selected_groups = data.get('selected_groups', [])
+    
+    if not selected_groups:
+        await callback.answer("❌ Hech qanday guruh tanlanmagan!", show_alert=True)
+        return
+    
+    # Tanlangan guruhlarni olamiz
+    groups = await sync_to_async(list)(
+        Group.objects.filter(id__in=selected_groups).select_related('course').prefetch_related('enrolled_students')
+    )
+    
+    if not groups:
+        await callback.answer("❌ Guruhlar topilmadi!", show_alert=True)
+        await state.finish()
+        return
+    
+    # Guruh nomlarini yig'amiz
+    group_names = []
+    for group in groups:
+        course_name = group.course.name if group.course else "N/A"
+        group_names.append(f"{course_name} - {group.name}")
+    
+    # Unique studentlarni yig'amiz (bir student bir nechta guruhda bo'lishi mumkin)
+    unique_students = {}
+    for group in groups:
+        students = await sync_to_async(list)(group.enrolled_students.all())
+        for student in students:
+            unique_students[student.telegram_id] = student
+    
+    students_list = list(unique_students.values())
+    
+    if not students_list:
+        await callback.answer("❌ Tanlangan guruhlarda studentlar yo'q!", show_alert=True)
+        await state.finish()
+        return
+    
+    await callback.message.edit_text(
+        f"📤 Xabar yuborilmoqda...\n\n"
+        f"👥 Tanlangan guruhlar ({len(groups)} ta):\n" +
+        "\n".join([f"  • {name}" for name in group_names[:5]]) +
+        (f"\n  • ... va yana {len(group_names) - 5} ta" if len(group_names) > 5 else "") +
+        f"\n\n📝 Unique studentlar: {len(students_list)} ta"
+    )
     
     success_count = 0
     fail_count = 0
     
-    for student in students:
+    # Xabarni copy qilish
+    for student in students_list:
         try:
-            # Message turini aniqlash va copy qilish
-            await message.copy_to(student.telegram_id)
+            await bot.copy_message(
+                chat_id=student.telegram_id,
+                from_chat_id=from_chat_id,
+                message_id=message_id
+            )
             success_count += 1
         except Exception as e:
             fail_count += 1
@@ -258,17 +549,19 @@ async def process_broadcast_message(message: types.Message, state: FSMContext):
     # Natijani ko'rsatish
     result_text = (
         f"✅ Xabar yuborish tugadi!\n\n"
-        f"📊 Natija:\n"
+        f"👥 Tanlangan guruhlar: {len(groups)} ta\n"
+        f"📋 Guruhlar:\n" +
+        "\n".join([f"  • {name}" for name in group_names[:5]]) +
+        (f"\n  • ... va yana {len(group_names) - 5} ta" if len(group_names) > 5 else "") +
+        f"\n\n📊 Natija:\n"
         f"✅ Muvaffaqiyatli: {success_count}\n"
         f"❌ Xato: {fail_count}\n"
-        f"📝 Jami: {len(students)}"
+        f"📝 Jami: {len(students_list)}"
     )
     
-    await message.answer(result_text)
-    try:
-        await state.finish()
-    except KeyError:
-        pass
+    await callback.message.edit_text(result_text)
+    await state.finish()
+    await callback.answer("✅ Yuborildi!", show_alert=False)
 
 
 @dp.message_handler(IsPrivate(), commands=["cancel"], state="*", user_id=ADMINS)
