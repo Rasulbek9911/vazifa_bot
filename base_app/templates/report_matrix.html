@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ course_name }} — {{ scope }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #f5f7fa; color: #222; }
+
+  .header {
+    background: linear-gradient(135deg, #1A3A6E, #2E5596);
+    color: white;
+    padding: 16px 20px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { font-size: 16px; font-weight: 700; }
+  .header .meta { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .print-btn {
+    background: white; color: #1A3A6E; border: none;
+    padding: 7px 16px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+  }
+  .print-btn:hover { background: #e8edf5; }
+
+  .stats-bar {
+    background: white; padding: 10px 20px; border-bottom: 1px solid #dde3ee;
+    display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  .stat { font-size: 12px; color: #555; }
+  .stat strong { color: #1A3A6E; font-size: 14px; }
+
+  .legend {
+    display: flex; gap: 12px; align-items: center;
+    padding: 8px 20px; background: white; border-bottom: 1px solid #dde3ee;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #555; }
+  .legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #ccc; }
+
+  .table-wrap { overflow-x: auto; padding: 16px; }
+
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  th {
+    background: #1A3A6E; color: white;
+    padding: 8px 6px; text-align: center;
+    font-weight: 600; font-size: 12px;
+    white-space: nowrap; position: sticky; top: 56px;
+    border-right: 1px solid #2E5596;
+  }
+  th.topic-th {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    min-width: 32px; max-width: 40px;
+    height: 120px; vertical-align: bottom;
+    padding: 8px 4px;
+    font-size: 11px;
+    background: #2E5596;
+  }
+  th.num-th { min-width: 36px; background: #1A3A6E; }
+  th.name-th { min-width: 160px; text-align: left; padding-left: 10px; background: #1A3A6E; }
+  th.sub-th  { min-width: 48px; background: #3A6BC4; }
+  th.total-th { min-width: 52px; background: #1B6B3A; }
+
+  tr:nth-child(even) td { background: #f4f7fb; }
+  tr:hover td { background: #e8edf8 !important; }
+
+  td {
+    padding: 6px 5px; text-align: center;
+    border-right: 1px solid #e0e6f0;
+    border-bottom: 1px solid #e0e6f0;
+    font-size: 12px;
+  }
+  td.name-td { text-align: left; padding-left: 10px; font-weight: 500; min-width: 160px; white-space: nowrap; }
+  td.num-td  { color: #888; font-size: 11px; }
+  td.sub-td  { font-weight: 600; color: #1A3A6E; }
+  td.total-td { font-weight: 700; color: #1B6B3A; }
+
+  .score-cell { border-radius: 3px; padding: 3px 4px; display: inline-block; min-width: 36px; font-size: 11px; }
+  .score-sub { font-size: 9px; color: #666; display: block; margin-top: 1px; }
+
+  @media print {
+    body { background: white; font-size: 11px; }
+    .header { position: relative; background: #1A3A6E !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn { display: none; }
+    .table-wrap { padding: 4px; overflow: visible; }
+    th { position: static; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td { background: inherit !important; }
+    tr:nth-child(even) td { background: #f4f7fb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .score-cell { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { size: A3 landscape; margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="h1">{{ course_name }}</div>
+    <div class="meta">🏫 {{ scope }} &nbsp;|&nbsp; 📅 {{ month_label }}</div>
+  </div>
+  <button class="print-btn" onclick="window.print()">🖨️ Chop etish</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat">Talabalar: <strong>{{ total_students }}</strong></div>
+  <div class="stat">Mavzular: <strong>{{ total_topics }}</strong></div>
+</div>
+
+<div class="legend">
+  <span style="font-size:12px; color:#555; font-weight:600;">Rang belgisi:</span>
+  <div class="legend-item"><div class="legend-box" style="background:#d4edda;"></div> ≥70%</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fff3cd;"></div> 50–69%</div>
+  <div class="legend-item"><div class="legend-box" style="background:#f8d7da;"></div> &lt;50%</div>
+  <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div> Topshirmagan</div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="num-th">№</th>
+      <th class="name-th">F.I.Sh</th>
+      {% for topic in topics %}
+      <th class="topic-th" title="{{ topic.title }}">{{ topic.title|truncatechars:25 }}</th>
+      {% endfor %}
+      <th class="sub-th">Topshirdi</th>
+      <th class="total-th">Jami</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td class="num-td">{{ forloop.counter }}</td>
+      <td class="name-td">{{ row.name }}</td>
+      {% for cell in row.cells %}
+      <td>
+        <span class="score-cell" style="background:{{ cell.color }};">
+          {{ cell.text }}
+          {% if cell.sub %}<span class="score-sub">{{ cell.sub }}</span>{% endif %}
+        </span>
+      </td>
+      {% endfor %}
+      <td class="sub-td">{{ row.submitted }}/{{ total_topics }}</td>
+      <td class="total-td">{{ row.total_val }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+</body>
+</html>

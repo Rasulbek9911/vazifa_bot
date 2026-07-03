@@ -15,9 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
+from base_app.urls import followup_urlpatterns, payment_urlpatterns
+from base_app.dashboard_views import home, dashboard, call_history, delete_student, logout_view
+from base_app.report_views import group_matrix_report
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", include("base_app.urls"))
+    path("", home, name="home"),
+    path("dashboard/", dashboard, name="dashboard"),
+    path("calls/", call_history, name="call-history"),
+    path("delete-student/<int:student_id>/", delete_student, name="delete-student"),
+    path("logout/", logout_view, name="logout"),
+    path("mng-panel/", admin.site.urls),
+    path("api/", include("base_app.urls")),
+    path("followup/", include((followup_urlpatterns, "followup"))),
+    path("payments/", include((payment_urlpatterns, "payments"))),
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("report/matrix/<str:token>/", group_matrix_report, name="report-matrix"),
 ]

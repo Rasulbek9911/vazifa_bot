@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ student.full_name }} — To'lovlar</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+  .navbar { background: #1a237e; }
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .money { font-weight: 700; font-family: monospace; font-size: 1.1rem; }
+  .badge-complete { background: #d4edda; color: #155724; border-radius: 20px; padding: 4px 14px; font-weight: 600; }
+  .badge-partial  { background: #fff3cd; color: #856404; border-radius: 20px; padding: 4px 14px; font-weight: 600; }
+  .badge-unpaid   { background: #f8d7da; color: #721c24; border-radius: 20px; padding: 4px 14px; font-weight: 600; }
+  .payment-row { border-left: 3px solid #43a047; padding: 10px 14px; background: #fff; border-radius: 8px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3 py-2 mb-4">
+  <span class="navbar-brand fw-bold">💳 {{ student.full_name }}</span>
+  <a href="/payments/{% if selected_course %}?course_id={{ selected_course.id }}{% endif %}" class="btn btn-outline-light btn-sm">← Ro'yxat</a>
+</nav>
+
+<div class="container" style="max-width:700px">
+
+  <!-- Kurs tanlash (agar bir nechta kurs bo'lsa) -->
+  {% if courses|length > 1 %}
+  <div class="mb-3 d-flex gap-2 flex-wrap">
+    {% for c in courses %}
+      <a href="/payments/{{ student.id }}/?course_id={{ c.id }}"
+         class="btn btn-sm {% if selected_course.id == c.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        {{ c.name }}
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- To'lov rejasi -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fw-bold mb-1">{{ selected_course.name }}</h5>
+          <div class="text-muted small">{{ student.full_name }}</div>
+        </div>
+        {% if plan %}
+          {% if summary.status == 'complete' %}
+            <span class="badge-complete">✅ To'liq to'langan</span>
+          {% elif summary.status == 'partial' %}
+            <span class="badge-partial">🟡 Qisman to'langan</span>
+          {% else %}
+            <span class="badge-unpaid">🔴 To'lanmagan</span>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      {% if plan %}
+      <div class="row g-3 mb-3">
+        <div class="col-4 text-center">
+          <div class="text-muted small mb-1">Jami</div>
+          <div class="money text-dark">{{ plan.total_amount|floatformat:0 }}</div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="text-muted small mb-1">To'langan</div>
+          <div class="money text-success">{{ summary.paid|floatformat:0 }}</div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="text-muted small mb-1">Qolgan</div>
+          <div class="money {% if summary.remaining > 0 %}text-danger{% else %}text-success{% endif %}">{{ summary.remaining|floatformat:0 }}</div>
+        </div>
+      </div>
+      {% if plan.total_amount > 0 %}
+      <div class="progress mb-3" style="height:8px; border-radius:4px">
+        <div class="progress-bar bg-success" style="width:{% widthratio summary.paid plan.total_amount 100 %}%"></div>
+      </div>
+      {% endif %}
+      {% if plan.note %}
+        <div class="text-muted small mb-3">📝 {{ plan.note }}</div>
+      {% endif %}
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" onclick="openPlanModal()">✏️ Rejani o'zgartirish</button>
+        <button class="btn btn-success btn-sm" onclick="openPaymentModal()">+ To'lov qo'shish</button>
+      </div>
+      {% else %}
+      <div class="text-muted mb-3">To'lov rejasi kiritilmagan.</div>
+      <button class="btn btn-primary" onclick="openPlanModal()">📋 To'lov rejasi kiritish</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- To'lovlar tarixi -->
+  {% if plan and summary.payments %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">To'lovlar tarixi</h6>
+      {% for p in summary.payments %}
+      <div class="payment-row d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-semibold">{{ p.amount|floatformat:0 }} so'm</div>
+          <div class="text-muted small">{{ p.paid_at|date:"d.m.Y" }}{% if p.note %} · {{ p.note }}{% endif %}</div>
+          {% if p.entered_by %}
+            <div class="text-muted" style="font-size:.75rem">Kiritdi: {{ p.entered_by.get_full_name|default:p.entered_by.username }}</div>
+          {% endif %}
+        </div>
+        <button class="btn btn-sm btn-outline-danger" onclick="deletePayment({{ p.id }}, this)">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Plan modal -->
+<div class="modal fade" id="planModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">To'lov rejasi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Jami summa (so'm)</label>
+          <input type="number" id="planAmount" class="form-control" value="{{ plan.total_amount|default:'' }}" placeholder="500000">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Izoh (ixtiyoriy)</label>
+          <input type="text" id="planNote" class="form-control" value="{{ plan.note|default:'' }}" placeholder="Chegirma, maxsus narx...">
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor</button>
+        <button type="button" class="btn btn-primary" onclick="savePlan()">Saqlash</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">To'lov qo'shish</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Summa (so'm)</label>
+          <input type="number" id="payAmount" class="form-control" placeholder="100000">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">To'lov sanasi</label>
+          <input type="date" id="payDate" class="form-control" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Izoh (ixtiyoriy)</label>
+          <input type="text" id="payNote" class="form-control" placeholder="Naqd / karta...">
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor</button>
+        <button type="button" class="btn btn-success" onclick="savePayment()">Saqlash</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const CSRF = '{{ csrf_token }}';
+const STUDENT_ID = {{ student.id }};
+const COURSE_ID = {{ selected_course.id }};
+let PLAN_ID = {% if plan %}{{ plan.id }}{% else %}null{% endif %};
+let planModal, paymentModal;
+
+document.addEventListener('DOMContentLoaded', () => {
+  planModal = new bootstrap.Modal(document.getElementById('planModal'));
+  paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+});
+
+function openPlanModal() { planModal.show(); }
+function openPaymentModal() {
+  if (!PLAN_ID) { openPlanModal(); return; }
+  paymentModal.show();
+}
+
+async function savePlan() {
+  const amount = parseInt(document.getElementById('planAmount').value);
+  const note = document.getElementById('planNote').value.trim();
+  if (!amount || amount <= 0) { alert("Summani kiriting"); return; }
+
+  const res = await fetch(`/payments/${STUDENT_ID}/set-plan/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+    body: JSON.stringify({ course_id: COURSE_ID, total_amount: amount, note }),
+  });
+  const data = await res.json();
+  if (data.ok) { location.reload(); }
+  else { alert('Xatolik'); }
+}
+
+async function savePayment() {
+  const amount = parseInt(document.getElementById('payAmount').value);
+  const paid_at = document.getElementById('payDate').value;
+  const note = document.getElementById('payNote').value.trim();
+  if (!amount || amount <= 0) { alert("Summani kiriting"); return; }
+  if (!paid_at) { alert("Sanani kiriting"); return; }
+
+  const res = await fetch(`/payments/add/${PLAN_ID}/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+    body: JSON.stringify({ amount, paid_at, note }),
+  });
+  const data = await res.json();
+  if (data.ok) { location.reload(); }
+  else { alert('Xatolik'); }
+}
+
+async function deletePayment(paymentId, btn) {
+  if (!confirm("Bu to'lovni o'chirasizmi?")) return;
+  btn.disabled = true;
+  const res = await fetch(`/payments/delete/${paymentId}/`, {
+    method: 'POST', headers: { 'X-CSRFToken': CSRF },
+  });
+  const data = await res.json();
+  if (data.ok) { location.reload(); }
+  else { btn.disabled = false; alert('Xatolik'); }
+}
+</script>
+</body>
+</html>

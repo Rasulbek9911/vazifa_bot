@@ -1,631 +1,739 @@
-"""
-User registration flow: start command, full name processing
-No invite code required - direct registration
-Single group with approval link (200 user limit, excluding admins/owners/bots)
-"""
-from aiogram import types
-import aiohttp
 import asyncio
 import logging
 import os
 import sys
-import django
+import time
 
-# Django setup
+import django
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+)
+
 sys.path.insert(0, '/var/www/vazifa_bot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from base_app.models import Group, Student
 from django.db import close_old_connections
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from data.config import ADMINS, API_BASE_URL
+
+from data.config import ADMINS, ATTESTATSIYA_ADMIN
+from keyboards.default.vazifa_keyboard import vazifa_key, admin_key, cancel_key
 from loader import dp, bot
 from states.register_state import RegisterState
-from keyboards.default.vazifa_keyboard import vazifa_key, admin_key, cancel_key
 from filters.is_private import IsPrivate
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+GROUP_MEMBER_LIMIT = 200
+INVITE_EXPIRE_SECONDS = 24 * 3600  # 24 soat
+
+# ---------------------------------------------------------------------------
+# O'zbekiston viloyat → tumanlar ma'lumotlari
+# ---------------------------------------------------------------------------
+REGIONS = {
+    "Toshkent shahri": [
+        "Bektemir", "Chilonzor", "Hamza", "Mirobod", "Mirzo Ulug'bek",
+        "Sergeli", "Shayxontohur", "Olmazor", "Uchtepa", "Yakkasaroy",
+        "Yunusobod", "Yashnobod",
+    ],
+    "Toshkent viloyati": [
+        "Angren", "Bekobod", "Bo'ka", "Bo'stonliq", "Chirchiq", "Chinoz",
+        "Keles", "Ohangaron", "Parkent", "Piskent", "Quyichirchiq",
+        "Toshkent tumani", "Urtachirchiq", "Yuqorichirchiq", "Zangiota", "Yangiyul",
+    ],
+    "Samarqand viloyati": [
+        "Samarqand shahri", "Bulung'ur", "Ishtixon", "Jomboy", "Kattaqo'rg'on",
+        "Narpay", "Nurobod", "Oqdaryo", "Pastdarg'om", "Payariq",
+        "Qo'shrabot", "Toyloq", "Urgut",
+    ],
+    "Buxoro viloyati": [
+        "Buxoro shahri", "Vobkent", "G'ijduvon", "Jondor", "Kogon",
+        "Olot", "Peshku", "Qorovulbozor", "Romitan", "Shofirkon",
+        "Qorako'l",
+    ],
+    "Farg'ona viloyati": [
+        "Farg'ona shahri", "Oltiariq", "Bag'dod", "Beshariq", "Buvayda",
+        "Dang'ara", "Furqat", "Qo'qon", "Marg'ilon", "Quva",
+        "Rishton", "So'x", "Toshloq", "Uchko'prik", "O'zbekiston",
+        "Yozyovon",
+    ],
+    "Andijon viloyati": [
+        "Andijon shahri", "Asaka", "Baliqchi", "Bo'z", "Buloqboshi",
+        "Jalaquduq", "Izboskan", "Qo'rg'ontepa", "Marhamat", "Oltinkol",
+        "Paxtaobod", "Shahrixon", "Ulugnor", "Xo'jaobod",
+    ],
+    "Namangan viloyati": [
+        "Namangan shahri", "Chortoq", "Chust", "Kosonsoy", "Mingbuloq",
+        "Norin", "Pop", "To'raqo'rg'on", "Uchqo'rg'on", "Yangiqo'rg'on",
+    ],
+    "Qashqadaryo viloyati": [
+        "Qarshi shahri", "Chiroqchi", "Dehqonobod", "G'uzor", "Kasbi",
+        "Kitob", "Koson", "Mirishkor", "Muborak", "Nishon",
+        "Shahrisabz", "Yakkabog'",
+    ],
+    "Surxondaryo viloyati": [
+        "Termiz shahri", "Angor", "Bandixon", "Boysun", "Denov",
+        "Jarqo'rg'on", "Muzrabot", "Oltinsoy", "Qiziriq", "Qumqo'rg'on",
+        "Sariosiyo", "Sherobod", "Sho'rchi", "Uzun",
+    ],
+    "Xorazm viloyati": [
+        "Urganch shahri", "Bog'ot", "Gurlan", "Xiva", "Xonqa",
+        "Hazorasp", "Qo'shko'pir", "Shovot", "Tuproqqal'a", "Yangiariq",
+        "Yangibozor",
+    ],
+    "Jizzax viloyati": [
+        "Jizzax shahri", "Arnasoy", "Baxmal", "Do'stlik", "Forish",
+        "G'allaorol", "Mirzacho'l", "Paxtakor", "Sharof Rashidov",
+        "Yangiobod", "Zafarobod", "Zarbdor", "Zo'rdor",
+    ],
+    "Sirdaryo viloyati": [
+        "Guliston shahri", "Baxt", "Boyovut", "Havast", "Mirzaobod",
+        "Oqoltin", "Sardoba", "Sayxunobod", "Shirin", "Xovos",
+    ],
+    "Navoiy viloyati": [
+        "Navoiy shahri", "Karmana", "Konimex", "Navbahor", "Nurota",
+        "Qiziltepa", "Tomdi", "Uchquduq", "Xatirchi",
+    ],
+    "Qoraqalpog'iston": [
+        "Nukus shahri", "Amudaryo", "Beruniy", "Chimboy", "Ellikkala",
+        "Kegeyli", "Mo'ynoq", "Nukus tumani", "Qanliko'l", "Qo'ng'irot",
+        "Qorao'zak", "Shumanay", "Taxtako'pir", "To'rtko'l", "Xo'jayli",
+    ],
+}
+
+ADMIN_CONTACT = "@A_Fayziev"
 
 
-# Helper functions for database access
-async def fetch_groups_from_db():
-    """Database'dan barcha guruhlarni olish"""
-    try:
-        def _fetch_groups():
-            close_old_connections()
-            return list(Group.objects.filter(telegram_group_id__isnull=False).values(
-                'id', 'name', 'telegram_group_id', 'invite_link', 'is_full', 'course_type'
-            ))
+# ---------------------------------------------------------------------------
+# DB yordamchi funksiyalar
+# ---------------------------------------------------------------------------
 
-        groups = await asyncio.to_thread(_fetch_groups)
-        return groups
-    except Exception as e:
-        logging.error(f"Error fetching groups from database: {e}")
-        return []
+async def get_student(telegram_id: int) -> dict:
+    def _get():
+        close_old_connections()
+        try:
+            s = Student.objects.get(telegram_id=str(telegram_id))
+            return {
+                "exists": True,
+                "full_name": s.full_name,
+                "viloyat": s.viloyat,
+                "tuman": s.tuman,
+                "phone": s.phone,
+                "math_score": s.math_score,
+                "groups": [{"id": g.id, "name": g.name} for g in s.groups.all()],
+            }
+        except Student.DoesNotExist:
+            return {"exists": False}
 
-
-async def fetch_student_from_db(telegram_id):
-    """Database'dan student ma'lumotlarini olish"""
-    try:
-        def get_student():
-            close_old_connections()
-            try:
-                student = Student.objects.prefetch_related('groups').get(telegram_id=str(telegram_id))
-                groups_data = [{'id': g.id, 'name': g.name} for g in student.groups.all()]
-                return {
-                    'exists': True,
-                    'full_name': student.full_name,
-                    'telegram_id': student.telegram_id,
-                    'all_groups': groups_data
-                }
-            except Student.DoesNotExist:
-                return {'exists': False}
-        
-        return await asyncio.to_thread(get_student)
-    except Exception as e:
-        logging.error(f"Error fetching student from database: {e}")
-        return {'exists': False}
+    return await asyncio.to_thread(_get)
 
 
-async def register_student_to_db(telegram_id, full_name, group_id):
-    """Student'ni database'ga yozish"""
-    try:
-        def do_register():
-            close_old_connections()
-            student, created = Student.objects.get_or_create(
-                telegram_id=str(telegram_id),
-                defaults={'full_name': full_name}
+async def find_available_group(score: int) -> dict | None:
+    """
+    Score asosida bo'sh guruh topadi, real Telegram a'zolar sonini tekshiradi
+    (admin/owner/botlar hisobga olinmaydi), so'ng 1-martalik 24 soatlik link yaratadi.
+    """
+    def _get_candidates():
+        close_old_connections()
+        if score > 26:
+            qs = Group.objects.filter(
+                score_min__gte=27,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+        else:
+            qs = Group.objects.filter(
+                score_max__lte=26,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+        return [{"id": g.id, "name": g.name, "tgid": g.telegram_group_id} for g in qs]
+
+    candidates = await asyncio.to_thread(_get_candidates)
+
+    for g in candidates:
+        try:
+            total = await bot.get_chat_member_count(g["tgid"])
+            admins = await bot.get_chat_administrators(g["tgid"])
+            regular_members = total - len(admins)
+
+            logging.info(
+                f"Guruh '{g['name']}': jami={total}, adminlar={len(admins)}, oddiy={regular_members}"
             )
-            if not created:
-                student.full_name = full_name
-                student.save()
-            
-            group = Group.objects.get(id=group_id)
-            student.groups.add(group)
-            return True
-        
-        return await asyncio.to_thread(do_register)
-    except Exception as e:
-        logging.error(f"Error registering student to database: {e}")
-        return False
+
+            if regular_members < GROUP_MEMBER_LIMIT:
+                expire_ts = int(time.time()) + INVITE_EXPIRE_SECONDS
+                invite = await bot.create_chat_invite_link(
+                    chat_id=g["tgid"],
+                    member_limit=1,
+                    expire_date=expire_ts,
+                )
+                return {
+                    "id": g["id"],
+                    "name": g["name"],
+                    "invite_link": invite.invite_link,
+                    "count": regular_members,
+                }
+        except Exception as e:
+            logging.warning(f"Guruh '{g['name']}' tekshirishda xatolik: {e}")
+            continue
+
+    return None
 
 
-# --- CANCEL HANDLER ---
+async def save_student(telegram_id: int, data: dict, group_id: int):
+    def _save():
+        close_old_connections()
+        student, _ = Student.objects.get_or_create(telegram_id=str(telegram_id))
+        student.full_name  = data["full_name"]
+        student.viloyat    = data["viloyat"]
+        student.tuman      = data["tuman"]
+        student.phone      = data["phone"]
+        student.math_score = data["math_score"]
+        student.save()
+        group = Group.objects.get(id=group_id)
+        student.groups.add(group)
+
+    await asyncio.to_thread(_save)
+
+
+async def update_student_extra(telegram_id: int, data: dict):
+    """Mavjud student uchun qo'shimcha ma'lumotlarni yangilash."""
+    def _upd():
+        close_old_connections()
+        Student.objects.filter(telegram_id=str(telegram_id)).update(
+            viloyat=data["viloyat"],
+            tuman=data["tuman"],
+            phone=data["phone"],
+            math_score=data["math_score"],
+        )
+
+    await asyncio.to_thread(_upd)
+
+
+# ---------------------------------------------------------------------------
+# Inline keyboard yordamchilari
+# ---------------------------------------------------------------------------
+
+def viloyat_keyboard() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    buttons = [
+        InlineKeyboardButton(text=name, callback_data=f"vil:{name}")
+        for name in REGIONS
+    ]
+    kb.add(*buttons)
+    return kb
+
+
+def tuman_keyboard(viloyat: str) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    tumanlar = REGIONS.get(viloyat, [])
+    buttons = [
+        InlineKeyboardButton(text=t, callback_data=f"tum:{t}")
+        for t in tumanlar
+    ]
+    kb.add(*buttons)
+    kb.add(InlineKeyboardButton(text="⬅️ Orqaga", callback_data="vil:back"))
+    return kb
+
+
+def phone_keyboard() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    kb.add(KeyboardButton(text="📱 Raqamni yuborish", request_contact=True))
+    kb.add(KeyboardButton(text="❌ Bekor qilish"))
+    return kb
+
+
+# ---------------------------------------------------------------------------
+# CANCEL
+# ---------------------------------------------------------------------------
+
 @dp.message_handler(IsPrivate(), Text(equals="❌ Bekor qilish", ignore_case=True), state="*")
 async def cancel_registration(message: types.Message, state: FSMContext):
-    """Ro'yxatdan o'tishni bekor qilish"""
-    current_state = await state.get_state()
-    if current_state is None:
+    cur = await state.get_state()
+    if cur is None:
         return
-    
     await state.finish()
     await message.answer(
-        "❌ Ro'yxatdan o'tish bekor qilindi.\n\n"
-        "Qaytadan boshlash uchun /start ni bosing.",
-        reply_markup=types.ReplyKeyboardRemove()
+        "❌ Bekor qilindi.\n\nQaytadan boshlash uchun /start ni bosing.",
+        reply_markup=ReplyKeyboardRemove(),
     )
 
 
-# --- START - Direct Registration (No Invite Code) ---
+# ---------------------------------------------------------------------------
+# START
+# ---------------------------------------------------------------------------
+
 @dp.message_handler(IsPrivate(), commands=["start"], state="*")
 async def cmd_start(message: types.Message, state: FSMContext):
-    """
-    /start - to'g'ridan-to'g'ri ro'yxatdan o'tish (invite code yo'q)
-    """
-    # Admin bo'lsa, to'g'ridan-to'g'ri admin panel ko'rsatamiz
+    await state.finish()
+
     if str(message.from_user.id) in ADMINS:
-        await message.answer(
-            "👋 Salom, Admin!\n\n"
-            "Admin funksiyalaridan foydalanishingiz mumkin.",
-            reply_markup=admin_key
-        )
-        try:
-            await state.finish()
-        except (KeyError, Exception):
-            pass
+        await message.answer("👋 Salom, Admin!", reply_markup=admin_key)
         return
-    
-    # Avval har qanday holatda bo'lsa ham, pending_registration ni tekshiramiz
-    try:
-        data = await state.get_data()
-        has_pending = data.get("pending_registration")
-        
-        # Agar pending_registration yo'q bo'lsa, har qanday boshqa stateni tozalaymiz
-        if not has_pending:
-            try:
-                await state.finish()
-            except (KeyError, Exception):
-                pass
-        
-        if has_pending:
-            # User link olgan, guruhga qo'shilganini tekshiramiz
-            user_id = data.get("user_id")
-            full_name = data.get("full_name")
-            group_id = data.get("group_id")
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{API_BASE_URL}/groups/") as resp:
-                    groups = await resp.json()
-                
-                group_obj = next((g for g in groups if g["id"] == group_id), None)
-                
-                if group_obj and group_obj.get("telegram_group_id"):
-                    try:
-                        member = await bot.get_chat_member(
-                            group_obj.get("telegram_group_id"), 
-                            user_id
-                        )
-                        
-                        # Agar guruhga qo'shilgan bo'lsa, DBga yozamiz
-                        if member.status in ["member", "administrator", "creator"]:
-                            payload = {
-                                "telegram_id": str(user_id),
-                                "full_name": full_name,
-                                "group_id": group_id
-                            }
-                            
-                            async with aiohttp.ClientSession() as session2:
-                                async with session2.post(f"{API_BASE_URL}/students/register/", json=payload) as resp2:
-                                    if resp2.status == 201:
-                                        # Admin yoki oddiy user ekanligini tekshiramiz
-                                        keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
-                                        await message.answer(
-                                            f"✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!\n\n"
-                                            f"👥 Guruh: {data.get('group_name')}\n\n"
-                                            f"Endi vazifa yuborishingiz mumkin.",
-                                            reply_markup=keyboard
-                                        )
-                                        try:
-                                            await state.finish()
-                                        except (KeyError, Exception):
-                                            pass
-                                        return
-                                    elif resp2.status == 400:
-                                        error_data = await resp2.json()
-                                        error_msg = error_data.get("error", "Ro'yxatdan o'tishda xatolik bo'ldi")
-                                        
-                                        # Agar user allaqachon ro'yxatdan o'tgan bo'lsa
-                                        if "allaqachon ro'yxatdan o'tgan" in error_msg.lower() or "already exists" in error_msg.lower():
-                                            keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
-                                            await message.answer(
-                                                f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
-                                                f"👥 Guruh: {data.get('group_name')}\n\n"
-                                                f"Endi vazifa yuborishingiz mumkin.",
-                                                reply_markup=keyboard
-                                            )
-                                        else:
-                                            await message.answer(f"⚠️ {error_msg}")
-                                        
-                                        try:
-                                            await state.finish()
-                                        except (KeyError, Exception):
-                                            pass
-                                        return
-                                       
-                    except Exception as e:
-                        # Agar bot chat membershipni tekshira olmasa (masalan, bot admin emas)
-                        # DBda user borligini tekshiramiz
-                        async with aiohttp.ClientSession() as check_session:
-                            async with check_session.get(f"{API_BASE_URL}/students/{user_id}/") as check_resp:
-                                if check_resp.status == 200:
-                                    # User allaqachon DBda bor
-                                    student_info = await check_resp.json()
-                                    keyboard = admin_key if str(user_id) in ADMINS else vazifa_key
-                                    
-                                    # Barcha guruhlarni ko'rsatish
-                                    all_groups_info = student_info.get('all_groups', [])
-                                    if all_groups_info:
-                                        groups_text = "\n".join([f"   • {g['name']}" for g in all_groups_info])
-                                        await message.answer(
-                                            f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
-                                            f"👥 Guruhlar:\n{groups_text}\n\n"
-                                            f"Endi vazifa yuborishingiz mumkin.",
-                                            reply_markup=keyboard
-                                        )
-                                    else:
-                                        await message.answer(
-                                            f"✅ Siz allaqachon ro'yxatdan o'tgansiz!\n\n"
-                                            f"Endi vazifa yuborishingiz mumkin.",
-                                            reply_markup=keyboard
-                                        )
-                                    try:
-                                        await state.finish()
-                                    except (KeyError, Exception):
-                                        pass
-                                    return
-            
-            # Agar hali qo'shilmagan bo'lsa, eslatma beramiz
-            await message.answer(
-                "⚠️ Siz hali guruhga qo'shilmagansiz!\n\n"
-                "Avval guruh linkini bosib qo'shiling, keyin /start ni qayta bosing."
-            )
-            # State ni tozalaymiz, chunki guruhga qo'shilmagan
-            try:
-                await state.finish()
-            except (KeyError, Exception):
-                pass
-            return
-    except Exception as e:
-        # Pending registration tekshirishda xatolik bo'lsa, logga yozamiz va davom etamiz
-        logging.error(f"Error checking pending_registration for user {message.from_user.id}: {e}")
-        # State ni tozalaymiz va oddiy ro'yxatdan o'tishga o'tamiz
-        try:
-            await state.finish()
-        except (KeyError, Exception):
-            pass
-    
-    # Student allaqachon ro'yxatdan o'tganmi tekshiramiz (to'g'ridan-to'g'ri DB'dan)
-    try:
-        student_data = await fetch_student_from_db(message.from_user.id)
-        
-        if student_data.get('exists'):
-            # User allaqachon ro'yxatdan o'tgan
-            full_name = student_data.get('full_name')
-            telegram_id = message.from_user.id
-            
-            # Ro'yxatdan o'tgan user - darhol keyboard bilan javob beramiz
-            keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
-            
-            all_groups_data = student_data.get("all_groups", [])
-            if all_groups_data:
-                groups_text = "\n".join([f"   • {g['name']}" for g in all_groups_data])
-                
+
+    student = await get_student(message.from_user.id)
+
+    if student["exists"]:
+        # Barcha ma'lumotlar to'ldirilganmi?
+        has_extra = all([
+            student.get("viloyat"),
+            student.get("tuman"),
+            student.get("phone"),
+            student.get("math_score") is not None,
+        ])
+        if has_extra:
+            groups = student.get("groups", [])
+            if groups:
+                g_text = "\n".join(f"   • {g['name']}" for g in groups)
                 await message.answer(
-                    f"👋 Xush kelibsiz, {full_name}!\n\n"
-                    f"👥 Guruhlar:\n{groups_text}\n\n"
+                    f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
+                    f"👥 Guruhlar:\n{g_text}\n\n"
                     f"📝 Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
-                    reply_markup=keyboard
+                    reply_markup=vazifa_key,
                 )
             else:
-                await message.answer(
-                    f"👋 Xush kelibsiz, {full_name}!\n\n"
-                    f"📝 Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
-                    reply_markup=keyboard
-                )
+                # Ro'yxatdan o'tgan, lekin guruh yo'q — admin hal qilishi kerak
+                score = student.get("math_score")
+                group = await find_available_group(score) if score else None
+
+                if group:
+                    # Avtomatik guruhga biriktirish
+                    def _assign_group():
+                        close_old_connections()
+                        s = Student.objects.get(telegram_id=str(message.from_user.id))
+                        g = Group.objects.get(id=group["id"])
+                        s.groups.add(g)
+
+                    await asyncio.to_thread(_assign_group)
+
+                    await message.answer(
+                        f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
+                        f"✅ Siz <b>{group['name']}</b> guruhiga biriktirilgiz!\n\n"
+                        f"🔗 Guruh havolasi:\n{group['invite_link']}\n\n"
+                        f"📝 Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
+                        parse_mode="HTML",
+                        reply_markup=vazifa_key,
+                    )
+
+                    # Adminga xabar
+                    from data.config import ADMINS as ADMIN_IDS
+                    for admin_id in ADMIN_IDS:
+                        try:
+                            await bot.send_message(
+                                int(admin_id),
+                                f"✅ <b>Avtomatik guruhga biriktirildi</b>\n\n"
+                                f"👤 {student['full_name']} (<code>{message.from_user.id}</code>)\n"
+                                f"📊 Ball: {score}/35\n"
+                                f"👥 Guruh: <b>{group['name']}</b>",
+                                parse_mode="HTML",
+                            )
+                        except Exception:
+                            pass
+                else:
+                    # Mos guruh yo'q — admin hal qiladi
+                    await message.answer(
+                        f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
+                        f"⚠️ Sizga mos bo'sh guruh topilmadi.\n\n"
+                        f"📞 Iltimos, admin bilan bog'laning:\n"
+                        f"{ADMIN_CONTACT}",
+                        parse_mode="HTML",
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+
+                    from data.config import ADMINS as ADMIN_IDS
+                    for admin_id in ADMIN_IDS:
+                        try:
+                            await bot.send_message(
+                                int(admin_id),
+                                f"🔔 <b>Guruhsiz student</b>\n\n"
+                                f"👤 {student['full_name']} (<code>{message.from_user.id}</code>)\n"
+                                f"📊 Ball: {score}/35\n"
+                                f"❌ Mos bo'sh guruh topilmadi\n\n"
+                                f"➕ Django admin orqali qo'lda biriktiring.",
+                                parse_mode="HTML",
+                            )
+                        except Exception:
+                            pass
             return
-        else:
-            # User DBda yo'q - telegram guruhlarini tekshiramiz
-            groups = await fetch_groups_from_db()
-            
-            if not groups:
-                # Hech qanday guruh topilmadi
-                logging.error(f"No groups found in database for user {message.from_user.id}")
-                await message.answer(
-                    "⚠️ Hozircha guruhlar mavjud emas.\n\n"
-                    "Iltimos, keyinroq qayta urinib ko'ring yoki admin bilan bog'laning."
-                )
-                return
-            
-            # ⚡ Faqat telegram_group_id bor guruhlarni tekshirish
-            groups_with_telegram = [g for g in groups if g.get("telegram_group_id")]
-            
-            async def check_new_user_membership(grp):
-                """
-                Yangi user uchun guruhga qo'shilganligini tekshirish.
-                
-                IMPORTANT: Agar user allaqachon telegram guruhida bo'lsa,
-                guruh to'lganligini tekshirmaymiz va to'g'ridan-to'g'ri
-                ro'yxatdan o'tish jarayoniga o'tkazamiz.
-                Chunki user allaqachon guruhga qo'shilgan!
-                """
-                try:
-                    member = await bot.get_chat_member(grp["telegram_group_id"], message.from_user.id)
-                    if member.status in ["member", "administrator", "creator"]:
-                        return {"id": grp["id"], "name": grp["name"]}
-                except Exception:
-                    pass
-                return None
-            
-            # Parallel tekshirish (faqat telegram_group_id bor guruhlar)
-            if groups_with_telegram:
-                check_tasks = [check_new_user_membership(grp) for grp in groups_with_telegram]
-                results = await asyncio.gather(*check_tasks)
-                user_joined_groups = [grp for grp in results if grp is not None]
-            else:
-                user_joined_groups = []
-            
-            # ✅ User allaqachon telegram guruhida bo'lsa:
-            # Guruh to'lganligini TEKSHIRMAYMIZ va to'g'ridan-to'g'ri ro'yxatdan o'tkazamiz
-            # Sabab: User allaqachon guruhga qo'shilgan, joy olgan!
-            if user_joined_groups:
-                await message.answer(
-                    "👋 Salom! Siz guruhda ko'rinasiz, lekin ro'yxatdan o'tmagansiz.\n\n"
-                    "📝 Iltimos, to'liq ismingizni kiriting:\n"
-                    "Masalan: <b>Fayziyev Aslbek Ismoil o'g'li</b>",
-                    parse_mode="HTML",
-                    reply_markup=cancel_key
-                )
-                # Barcha guruh ma'lumotlarini state ga saqlaymiz
-                # Capacity check QILINMAYDI - user allaqachon telegram guruhida!
-                await state.update_data(
-                    auto_register_multi=True,
-                    user_joined_groups=user_joined_groups
-                )
-                await RegisterState.full_name.set()
-                return
-    except Exception as e:
-        # Database xatoliklari uchun
-        logging.error(f"Database error in /start handler for user {message.from_user.id}: {e}")
-        await message.answer(
-            "⚠️ Ma'lumotlar bazasi bilan bog'lanishda xatolik yuz berdi.\n\n"
-            "Iltimos, biroz kutib qaytadan /start buyrug'ini yuboring."
+
+        # Mavjud user, lekin qo'shimcha ma'lumotlar to'ldirilmagan
+        await state.update_data(
+            full_name=student["full_name"],
+            is_existing=True,
         )
+        await message.answer(
+            f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
+            "Bir necha qo'shimcha ma'lumot kerak. "
+            "Iltimos, <b>viloyatingizni</b> tanlang:",
+            parse_mode="HTML",
+            reply_markup=viloyat_keyboard(),
+        )
+        await RegisterState.viloyat.set()
         return
-    
-    # ⚠️ User hech qanday telegram guruhida YO'Q!
-    # Bunday holatda user admin bilan bog'lanishi kerak
-    # Bot avtomatik guruh link bermaydi
+
+    # Yangi user — to'liq forma
     await message.answer(
-        "⚠️ Siz hech qanday guruhda yo'qsiz!\n\n"
-        "📞 Ro'yxatdan o'tish uchun admin bilan bog'laning.\n"
-        "Admin sizni kerakli guruhga qo'shadi.\n\n"
-        "Guruhga qo'shilgandan so'ng /start ni qayta bosing va "
-        "avtomatik ro'yxatdan o'tib, vazifa yuborishingiz mumkin bo'ladi.",
-        reply_markup=types.ReplyKeyboardRemove()
+        "👋 Assalomu alaykum!\n\n"
+        "Ro'yxatdan o'tish uchun bir necha savol beramiz.\n\n"
+        "📝 <b>To'liq ismingizni kiriting:</b>\n"
+        "<i>Masalan: Karimov Jasur Aliyevich</i>",
+        parse_mode="HTML",
+        reply_markup=cancel_key,
     )
-    return
+    await RegisterState.full_name.set()
 
 
-# F.I.Sh qabul qilish va ro'yxatdan o'tkazish
+# ---------------------------------------------------------------------------
+# 1-QADAM: F.I.Sh
+# ---------------------------------------------------------------------------
+
 @dp.message_handler(IsPrivate(), state=RegisterState.full_name)
-async def process_fish(message: types.Message, state: FSMContext):
-    """F.I.Sh qabul qilish va avtomatik ro'yxatdan o'tkazish"""
-    # Bekor qilish tugmasi bosilgan bo'lsa
+async def step_full_name(message: types.Message, state: FSMContext):
     if message.text == "❌ Bekor qilish":
         await state.finish()
-        await message.answer(
-            "❌ Ro'yxatdan o'tish bekor qilindi.\n\n"
-            "Qaytadan boshlash uchun /start ni bosing.",
-            reply_markup=types.ReplyKeyboardRemove()
-        )
+        await message.answer("❌ Bekor qilindi.", reply_markup=ReplyKeyboardRemove())
         return
-    
-    # Admin bo'lsa, ro'yxatdan o'tkazmaymiz
-    if str(message.from_user.id) in ADMINS:
-        await message.answer(
-            "❌ Admin sifatida siz ro'yxatdan o'tishingiz shart emas.",
-            reply_markup=admin_key
-        )
-        await state.finish()
+
+    name = message.text.strip()
+    if len(name) < 5:
+        await message.answer("❌ Ism juda qisqa. Iltimos, to'liq F.I.Sh kiriting:")
         return
-    
-    await state.update_data(full_name=message.text)
-    data = await state.get_data()
-    
-    # ✅ User telegram guruhida mavjud bo'lsa - to'g'ridan-to'g'ri ro'yxatdan o'tkazamiz
-    # Capacity check QILINMAGAN, chunki user allaqachon telegram guruhida!
-    if data.get("auto_register_multi"):
-        user_joined_groups = data.get("user_joined_groups", [])
-        
-        if not user_joined_groups:
-            await message.answer("❌ Siz hech qanday guruhda yo'qsiz!")
-            await state.finish()
-            return
-        
-        # Barchasiga ro'yxatdan o'tkazamiz (database'ga)
-        # MUHIM: Guruh to'lganligini tekshirmaymiz, user allaqachon guruhda!
-        try:
-            for grp in user_joined_groups:
-                await register_student_to_db(
-                    telegram_id=message.from_user.id,
-                    full_name=message.text,
-                    group_id=grp["id"]
-                )
-            
-            groups_text = "\n".join([f"   • {g['name']}" for g in user_joined_groups])
-            await message.answer(
-                f"✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!\n\n"
-                f"👥 Guruhlar:\n{groups_text}\n\n"
-                f"Endi vazifa yuborishingiz mumkin.",
-                reply_markup=vazifa_key
-            )
-            await state.finish()
-            return
-        except Exception as e:
-            logging.error(f"Database error during multi-group registration for user {message.from_user.id}: {e}")
-            await message.answer(
-                "⚠️ Ro'yxatdan o'tishda xatolik yuz berdi.\n\n"
-                "Iltimos, qayta urinib ko'ring yoki admin bilan bog'laning."
-            )
-            await state.finish()
-            return
-    
-    # Eski logika: Agar user allaqachon guruhda bo'lsa (auto_register=True), to'g'ridan-to'g'ri DBga yozamiz
-    if data.get("auto_register"):
-        group_id = data.get("group_id")
-        group_name = data.get("group_name")
-        
-        try:
-            await register_student_to_db(
-                telegram_id=message.from_user.id,
-                full_name=message.text,
-                group_id=group_id
-            )
-            await message.answer(
-                f"✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!\n\n"
-                f"👥 Guruh: {group_name}\n\n"
-                f"Endi vazifa yuborishingiz mumkin.",
-                reply_markup=vazifa_key
-            )
-        except Exception as e:
-            logging.error(f"Database error during registration for user {message.from_user.id}: {e}")
-            await message.answer("❌ Ro'yxatdan o'tishda xatolik bo'ldi.")
-        
-        try:
-            await state.finish()
-        except (KeyError, Exception):
-            pass
+    if len(name) > 100:
+        await message.answer("❌ Ism juda uzun. Qaytadan kiriting:")
         return
-    
-    # ⚠️ IMPORTANT: Bu yerga hech qachon yetib kelmaslik kerak!
-    # Chunki user guruhda bo'lmasa, /start handlerda to'xtatilgan bo'ladi.
-    # Agar bu yerga yetib kelindi bo'lsa - bu xatolik!
-    logging.error(f"Unexpected state in process_fish for user {message.from_user.id}: no auto_register flags set!")
+
+    await state.update_data(full_name=name)
     await message.answer(
-        "❌ Xatolik yuz berdi!\n\n"
-        "Iltimos, /start ni qayta bosing yoki admin bilan bog'laning."
+        "✅ Yaxshi!\n\n🗺 <b>Viloyatingizni tanlang:</b>",
+        parse_mode="HTML",
+        reply_markup=ReplyKeyboardRemove(),
     )
-    try:
+    await message.answer("👇", reply_markup=viloyat_keyboard())
+    await RegisterState.viloyat.set()
+
+
+# ---------------------------------------------------------------------------
+# 2-QADAM: Viloyat (inline callback)
+# ---------------------------------------------------------------------------
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith("vil:"), state=RegisterState.viloyat)
+async def step_viloyat(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    value = callback.data[4:]
+
+    if value == "back":
+        # yangi user → ismga qayt, mavjud user → bu yo'lga kelmaydi
+        data = await state.get_data()
+        if data.get("is_existing"):
+            await callback.message.edit_text("❌ Bekor qilindi.")
+            await state.finish()
+        else:
+            await callback.message.edit_text(
+                "📝 <b>To'liq ismingizni kiriting:</b>",
+                parse_mode="HTML",
+            )
+            await RegisterState.full_name.set()
+        return
+
+    await state.update_data(viloyat=value)
+    await callback.message.edit_text(
+        f"✅ Viloyat: <b>{value}</b>\n\n🏘 <b>Tumaning/shahringizni tanlang:</b>",
+        parse_mode="HTML",
+        reply_markup=tuman_keyboard(value),
+    )
+    await RegisterState.tuman.set()
+
+
+# ---------------------------------------------------------------------------
+# 3-QADAM: Tuman (inline callback)
+# ---------------------------------------------------------------------------
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith("tum:"), state=RegisterState.tuman)
+async def step_tuman(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    tuman = callback.data[4:]
+    data = await state.get_data()
+
+    await state.update_data(tuman=tuman)
+    await callback.message.edit_text(
+        f"✅ Viloyat: <b>{data['viloyat']}</b>\n"
+        f"✅ Tuman: <b>{tuman}</b>\n\n"
+        f"📱 <b>Telefon raqamingizni yuboring:</b>",
+        parse_mode="HTML",
+    )
+    await callback.message.answer(
+        "👇 Tugmani bosing yoki raqamni qo'lda kiriting (+998XXXXXXXXX):",
+        reply_markup=phone_keyboard(),
+    )
+    await RegisterState.phone.set()
+
+
+@dp.callback_query_handler(lambda c: c.data == "vil:back", state=RegisterState.tuman)
+async def step_tuman_back(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_text(
+        "🗺 <b>Viloyatingizni tanlang:</b>",
+        parse_mode="HTML",
+        reply_markup=viloyat_keyboard(),
+    )
+    await RegisterState.viloyat.set()
+
+
+# ---------------------------------------------------------------------------
+# 4-QADAM: Telefon raqam
+# ---------------------------------------------------------------------------
+
+@dp.message_handler(IsPrivate(), content_types=types.ContentType.CONTACT, state=RegisterState.phone)
+async def step_phone_contact(message: types.Message, state: FSMContext):
+    phone = message.contact.phone_number
+    if not phone.startswith("+"):
+        phone = "+" + phone
+    await state.update_data(phone=phone)
+    await _ask_math_score(message, state)
+
+
+@dp.message_handler(IsPrivate(), state=RegisterState.phone)
+async def step_phone_text(message: types.Message, state: FSMContext):
+    if message.text == "❌ Bekor qilish":
         await state.finish()
-    except (KeyError, Exception):
-        pass
+        await message.answer("❌ Bekor qilindi.", reply_markup=ReplyKeyboardRemove())
+        return
+
+    phone = message.text.strip()
+    if not _is_valid_phone(phone):
+        await message.answer(
+            "❌ Noto'g'ri format. Iltimos, +998XXXXXXXXX ko'rinishida kiriting:"
+        )
+        return
+
+    await state.update_data(phone=phone)
+    await _ask_math_score(message, state)
 
 
-# --- PROFILE HANDLER - View and Change Name ---
+def _is_valid_phone(phone: str) -> bool:
+    import re
+    return bool(re.match(r"^\+?998\d{9}$", phone.replace(" ", "").replace("-", "")))
+
+
+async def _ask_math_score(message: types.Message, state: FSMContext):
+    await message.answer(
+        "✅ Telefon raqam saqlandi!\n\n"
+        "📊 <b>Oxirgi attestatsiya imtihonida matematika qismidan "
+        "nechta to'g'ri javob topgansiz?</b>\n\n"
+        "Jami 35 ta savol. <b>Faqat raqam kiriting (1–35):</b>",
+        parse_mode="HTML",
+        reply_markup=cancel_key,
+    )
+    await RegisterState.math_score.set()
+
+
+# ---------------------------------------------------------------------------
+# 5-QADAM: Math score → guruh tanlash
+# ---------------------------------------------------------------------------
+
+@dp.message_handler(IsPrivate(), state=RegisterState.math_score)
+async def step_math_score(message: types.Message, state: FSMContext):
+    if message.text == "❌ Bekor qilish":
+        await state.finish()
+        await message.answer("❌ Bekor qilindi.", reply_markup=ReplyKeyboardRemove())
+        return
+
+    text = message.text.strip()
+    if not text.isdigit():
+        await message.answer("❌ Faqat raqam kiriting (1–35):")
+        return
+
+    score = int(text)
+    if not (1 <= score <= 35):
+        await message.answer("❌ Raqam 1 dan 35 gacha bo'lishi kerak:")
+        return
+
+    await state.update_data(math_score=score)
+    data = await state.get_data()
+
+    await message.answer("⏳ Ma'lumotlar tekshirilmoqda...", reply_markup=ReplyKeyboardRemove())
+
+    group = await find_available_group(score)
+
+    if group is None:
+        # Mos va bo'sh guruh yo'q
+        await message.answer(
+            f"⚠️ Afsuski, hozircha sizning natijangizga (<b>{score}/35</b>) "
+            f"mos bo'sh guruh mavjud emas.\n\n"
+            f"📞 Iltimos, admin bilan bog'laning:\n"
+            f"{ADMIN_CONTACT}",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        # Ma'lumotlarni saqlab qo'yamiz (guruhsiz)
+        if data.get("is_existing"):
+            await update_student_extra(message.from_user.id, data)
+        await state.finish()
+        return
+
+    # Saqlash
+    try:
+        if data.get("is_existing"):
+            await update_student_extra(message.from_user.id, data)
+            # Guruhga qo'shish
+            def _add_group():
+                close_old_connections()
+                s = Student.objects.get(telegram_id=str(message.from_user.id))
+                g = Group.objects.get(id=group["id"])
+                s.groups.add(g)
+            await asyncio.to_thread(_add_group)
+        else:
+            await save_student(message.from_user.id, data, group["id"])
+    except Exception as e:
+        logging.error(f"save_student error for {message.from_user.id}: {e}")
+        await message.answer(
+            "❌ Ma'lumotlarni saqlashda xatolik yuz berdi.\n"
+            "Iltimos, admin bilan bog'laning: " + ADMIN_CONTACT,
+        )
+        await state.finish()
+        return
+
+    await message.answer(
+        f"✅ <b>Ro'yxatdan muvaffaqiyatli o'tdingiz!</b>\n\n"
+        f"👤 Ism: {data['full_name']}\n"
+        f"🗺 Viloyat: {data['viloyat']}\n"
+        f"🏘 Tuman: {data['tuman']}\n"
+        f"📊 Ball: {score}/35\n\n"
+        f"👥 Guruhingiz: <b>{group['name']}</b>\n\n"
+        f"🔗 Guruhga qo'shilish uchun:\n{group['invite_link']}\n\n"
+        f"Guruhga qo'shilgach vazifa yuborishingiz mumkin bo'ladi.",
+        parse_mode="HTML",
+        reply_markup=vazifa_key,
+    )
+    await state.finish()
+
+
+# ---------------------------------------------------------------------------
+# PROFIL
+# ---------------------------------------------------------------------------
+
 @dp.message_handler(IsPrivate(), Text(equals="👤 Profil"), state="*")
 async def show_profile(message: types.Message, state: FSMContext):
-    """Show user profile and option to change name"""
-    telegram_id = message.from_user.id
-    
-    # Stateni tozalash
     try:
         await state.finish()
-    except (KeyError, Exception):
+    except Exception:
         pass
-    
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/students/{telegram_id}/") as resp:
-            if resp.status != 200:
-                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
-                return
-            
-            student_data = await resp.json()
-            full_name = student_data.get("full_name", "N/A")
-            
-            # ✨ YANGI: Barcha guruhlarni ko'rsatish
-            all_groups = student_data.get("all_groups", [])
-            
-            if not all_groups:
-                await message.answer("❌ Sizga guruh biriktirilmagan!")
-                return
-            
-            # Guruhlar va kurslarni formatlash
-            groups_text = ""
-            for idx, grp in enumerate(all_groups, 1):
-                group_name = grp.get("name", "N/A")
-                course_type = grp.get("course_type", "N/A")
-                course_display = "Milliy sertifikat" if course_type == "milliy_sert" else "Attestatsiya"
-                groups_text += f"   {idx}. {group_name} ({course_display})\n"
-            
-            # Profile ma'lumotlarini ko'rsatish
-            profile_text = (
-                f"📋 <b>Profil ma'lumotlari</b>\n\n"
-                f"👤 <b>Ism:</b> {full_name}\n"
-                f"👥 <b>Guruhlar:</b>\n{groups_text}\n"
-                f"Ismingizni o'zgartirish uchun pastdagi tugmani bosing."
-            )
-            
-            # Inline keyboard for name change
-            keyboard = InlineKeyboardMarkup(row_width=1)
-            keyboard.add(
-                InlineKeyboardButton(text="✏️ Ismni o'zgartirish", callback_data="change_name")
-            )
-            
-            await message.answer(profile_text, parse_mode="HTML", reply_markup=keyboard)
+
+    student = await get_student(message.from_user.id)
+    if not student["exists"]:
+        await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
+        return
+
+    groups = student.get("groups", [])
+    g_text = "\n".join(f"   • {g['name']}" for g in groups) if groups else "Guruh biriktirilmagan"
+
+    text = (
+        f"📋 <b>Profil</b>\n\n"
+        f"👤 <b>Ism:</b> {student['full_name']}\n"
+        f"🗺 <b>Viloyat:</b> {student['viloyat'] or '—'}\n"
+        f"🏘 <b>Tuman:</b> {student['tuman'] or '—'}\n"
+        f"📱 <b>Telefon:</b> {student['phone'] or '—'}\n"
+        f"📊 <b>Math ball:</b> {student['math_score'] if student['math_score'] is not None else '—'}/35\n\n"
+        f"👥 <b>Guruhlar:</b>\n{g_text}"
+    )
+
+    kb = InlineKeyboardMarkup()
+    kb.add(InlineKeyboardButton("✏️ Ismni o'zgartirish", callback_data="change_name"))
+
+    await message.answer(text, parse_mode="HTML", reply_markup=kb)
 
 
 @dp.callback_query_handler(Text(equals="change_name"), state="*")
 async def request_name_change(callback: types.CallbackQuery, state: FSMContext):
-    """Request new name from user"""
     await callback.answer()
-    
     await callback.message.answer(
         "✏️ Yangi ism familiyangizni kiriting:\n"
-        "(Misol: Fayziyev Aslbek)\n\n"
-        "Bekor qilish uchun /start ni bosing."
+        "(Misol: Karimov Jasur)\n\nBekor qilish uchun /start ni bosing."
     )
-    
     await RegisterState.change_name.set()
 
 
 @dp.message_handler(IsPrivate(), state=RegisterState.change_name)
 async def process_name_change(message: types.Message, state: FSMContext):
-    """Process the new name and update in database"""
     new_name = message.text.strip()
-    telegram_id = message.from_user.id
-    
-    # Validate name
     if len(new_name) < 3:
         await message.answer("❌ Ism juda qisqa. Qaytadan kiriting:")
         return
-    
     if len(new_name) > 100:
         await message.answer("❌ Ism juda uzun. Qaytadan kiriting:")
         return
-    
-    # Update name in database
-    async with aiohttp.ClientSession() as session:
-        payload = {"full_name": new_name}
-        async with session.patch(f"{API_BASE_URL}/students/{telegram_id}/update_name/", json=payload) as resp:
-            if resp.status == 200:
-                keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
-                await message.answer(
-                    f"✅ Ismingiz muvaffaqiyatli o'zgartirildi!\n\n"
-                    f"👤 Yangi ism: {new_name}\n\n"
-                    f"Davom etish uchun /start ni bosing.",
-                    reply_markup=keyboard
-                )
-                await state.finish()
-            else:
-                error_data = await resp.json() if resp.content_type == 'application/json' else {}
-                error_msg = error_data.get("error", "Ismni o'zgartirishda xatolik yuz berdi")
-                await message.answer(f"❌ {error_msg}")
-                await state.finish()
+
+    telegram_id = message.from_user.id
+
+    def _update():
+        close_old_connections()
+        Student.objects.filter(telegram_id=str(telegram_id)).update(full_name=new_name)
+
+    await asyncio.to_thread(_update)
+
+    keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
+    await message.answer(
+        f"✅ Ismingiz o'zgartirildi!\n\n👤 Yangi ism: {new_name}",
+        reply_markup=keyboard,
+    )
+    await state.finish()
 
 
-# --- RESULTS HANDLER - Show Student Results ---
+# ---------------------------------------------------------------------------
+# NATIJALARIM
+# ---------------------------------------------------------------------------
+
 @dp.message_handler(IsPrivate(), Text(equals="📊 Natijalarim"), state="*")
 async def show_results(message: types.Message, state: FSMContext):
-    """Show student results by topic"""
-    telegram_id = message.from_user.id
-    
-    # Stateni tozalash
+    import aiohttp
+    from data.config import API_BASE_URL
+
     try:
         await state.finish()
-    except (KeyError, Exception):
+    except Exception:
         pass
-    
-    async with aiohttp.ClientSession() as session:
-        # Get student results
-        async with session.get(f"{API_BASE_URL}/students/{telegram_id}/results/") as resp:
-            if resp.status != 200:
-                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
-                return
-            
-            results_data = await resp.json()
-            
-            full_name = results_data.get("full_name", "N/A")
-            results = results_data.get("results", [])
-            
-            # Agar vazifa topilmasa
-            if not results:
-                await message.answer(
-                    f"👤 {full_name}\n\n"
-                    f"📊 Natijalar hali yo'q"
-                )
-                return
-            
-            # Jadval formatida natijalar
-            results_text = (
-                f"<b>📊 NATIJALARIM</b>\n\n"
-                f"<b>👤 {full_name}</b>\n\n"
-                f"<pre>"
-                f"┌────────────────────────────┬──────┐\n"
-                f"│ Mavzu                      │ Ball │\n"
-                f"├────────────────────────────┼──────┤\n"
-            )
-            
-            for result in results:
-                topic_title = result.get("topic_title", "N/A")[:25]  # Max 25 chars
-                grade = result.get("grade", 0)
-                # Jadval formatida (fixed width)
-                results_text += f"│ {topic_title:<26} │ {grade:>4} │\n"
-            
-            results_text += (
-                f"└────────────────────────────┴──────┘"
-                f"</pre>"
-            )
-            
-            await message.answer(results_text, parse_mode="HTML")
 
+    telegram_id = message.from_user.id
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/students/{telegram_id}/results/") as resp:
+            if resp.status == 404:
+                err = await resp.json()
+                if "no groups" in err.get("error", "").lower():
+                    await message.answer(
+                        "⚠️ Sizga guruh biriktirilmagan.\n\n"
+                        f"📞 Admin bilan bog'laning: {ADMIN_CONTACT}"
+                    )
+                else:
+                    await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
+                return
+            elif resp.status != 200:
+                await message.answer("❌ Ma'lumot olishda xatolik. Qayta urinib ko'ring.")
+                return
+            data = await resp.json()
+
+    full_name = data.get("full_name", "N/A")
+    results = data.get("results", [])
+
+    if not results:
+        await message.answer(f"👤 {full_name}\n\n📊 Natijalar hali yo'q")
+        return
+
+    lines = (
+        "<b>📊 NATIJALARIM</b>\n\n"
+        f"<b>👤 {full_name}</b>\n\n"
+        "<pre>"
+        "┌────────────────────────────┬──────┐\n"
+        "│ Mavzu                      │ Ball │\n"
+        "├────────────────────────────┼──────┤\n"
+    )
+    for r in results:
+        title = r.get("topic_title", "N/A")[:25]
+        grade = r.get("grade", 0)
+        lines += f"│ {title:<26} │ {grade:>4} │\n"
+    lines += "└────────────────────────────┴──────┘</pre>"
+
+    await message.answer(lines, parse_mode="HTML")

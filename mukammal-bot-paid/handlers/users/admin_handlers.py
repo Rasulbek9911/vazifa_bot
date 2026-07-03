@@ -3,6 +3,7 @@ Admin-specific handlers: topic management, grading
 """
 from aiogram import types
 import aiohttp
+from django.db.models import F as models_F
 from aiogram.dispatcher import FSMContext
 from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
 from loader import dp, bot
@@ -12,6 +13,43 @@ from utils.safe_send_message import safe_send_message
 from states.broadcast_state import BroadcastState
 from states.update_answers_state import UpdateAnswersState
 from states.add_topic_state import AddTopicState
+from states.grp_test_state import GrpTestState
+
+MONTH_NAMES_UZ = {
+    1: "Yanvar", 2: "Fevral", 3: "Mart", 4: "Aprel",
+    5: "May", 6: "Iyun", 7: "Iyul", 8: "Avgust",
+    9: "Sentabr", 10: "Oktabr", 11: "Noyabr", 12: "Dekabr",
+}
+
+
+async def _get_coin_months(course_id: int, student_ids=None):
+    from base_app.models import CoinTransaction
+    qs = CoinTransaction.objects.filter(wallet__course_id=course_id)
+    if student_ids:
+        qs = qs.filter(wallet__student_id__in=student_ids)
+    return await sync_to_async(list)(qs.dates('created_at', 'month', order='DESC'))
+
+
+async def _get_task_months(topic_ids: list, student_ids=None):
+    from base_app.models import Task
+    qs = Task.objects.filter(
+        topic_id__in=topic_ids, task_type='test'
+    ).exclude(test_answers='').exclude(test_answers__isnull=True)
+    if student_ids:
+        qs = qs.filter(student_id__in=student_ids)
+    return await sync_to_async(list)(qs.dates('submitted_at', 'month', order='DESC'))
+
+
+def _build_month_kb(months: list, gen_prefix: str, back_cb: str) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(InlineKeyboardButton("📋 Barcha vaqt", callback_data=f"{gen_prefix}_0_0"))
+    for d in months:
+        kb.add(InlineKeyboardButton(
+            f"📅 {MONTH_NAMES_UZ[d.month]} {d.year}",
+            callback_data=f"{gen_prefix}_{d.year}_{d.month}"
+        ))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data=back_cb))
+    return kb
 from filters.is_private import IsPrivate
 
 
@@ -100,11 +138,8 @@ async def show_all_topics(message: types.Message):
         await message.answer("❌ Hozircha mavzular mavjud emas.")
         return
 
-    # ✨ Course bo'yicha grouping (backward compatibility bilan)
     def get_course_code(topic):
-        if topic.course:
-            return topic.course.code
-        return topic.course_type or "attestatsiya"
+        return topic.course.code if topic.course else None
     
     # Kurslar bo'yicha guruhlash
     topics_by_course = {}
@@ -157,6 +192,15 @@ async def activate_topic(message: types.Message):
         await message.answer("❌ Bunday ID li mavzu topilmadi.")
         return
 
+    # Nofaol kurs mavzusini activate qilib bo'lmaydi
+    if topic.course and not topic.course.is_active:
+        await message.answer(
+            f"❌ <b>{topic.course.name}</b> kursi yakunlangan.\n"
+            f"Nofaol kurs mavzusini active qilib bo'lmaydi.",
+            parse_mode="HTML"
+        )
+        return
+
     # Agar allaqachon active bo'lsa
     if topic.is_active:
         await message.answer(
@@ -171,12 +215,12 @@ async def activate_topic(message: types.Message):
     await sync_to_async(topic.save)()
 
     # Topic kursini aniqlaymiz (backward compatibility)
-    if topic.course:
-        topic_course_code = topic.course.code
-        topic_course_name = topic.course.name
-    else:
-        topic_course_code = topic.course_type or "attestatsiya"
-        topic_course_name = "Milliy Sertifikat" if topic_course_code == "milliy_sert" else "Attestatsiya"
+    if not topic.course:
+        await message.answer("❌ Bu mavzuga kurs biriktirilmagan. Admin paneldan kurs belgilang.")
+        return
+
+    topic_course_code = topic.course.code
+    topic_course_name = topic.course.name
 
     await message.answer(
         f"✅ <b>{topic.title}</b> mavzu <b>Active</b> qilindi!\n"
@@ -185,17 +229,9 @@ async def activate_topic(message: types.Message):
         parse_mode="HTML"
     )
 
-    # 👥 Faqat o'sha kursdagi studentlarga xabar yuboramiz
-    # Performance: Faqat kerakli kursdagi guruhlarni olamiz
-    if topic.course:
-        groups = await sync_to_async(list)(
-            Group.objects.filter(course=topic.course).prefetch_related('enrolled_students')
-        )
-    else:
-        # Backward compatibility: course_type bo'yicha filter
-        groups = await sync_to_async(list)(
-            Group.objects.filter(course_type=topic_course_code).prefetch_related('enrolled_students')
-        )
+    groups = await sync_to_async(list)(
+        Group.objects.filter(course=topic.course).prefetch_related('enrolled_students')
+    )
     
     # Unique studentlarni to'playmiz (bir student bir nechta guruhda bo'lishi mumkin)
     notified_students = set()
@@ -579,6 +615,1174 @@ async def cancel_broadcast(message: types.Message, state: FSMContext):
     await message.answer("✅ Jarayon bekor qilindi.")
 
 
+# --- ADMIN PANEL ---
+@dp.message_handler(IsPrivate(), commands=["admin"], user_id=ADMINS)
+async def admin_panel(message: types.Message):
+    """Admin panel — barcha buyruqlar inline tugmalar orqali"""
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("➕ Mavzu qo'shish\nYangi mavzu yaratish", callback_data="admin_menu_add_topic"),
+        InlineKeyboardButton("🔧 Javoblarni o'zgartirish\nTest kalitini tahrirlash", callback_data="admin_menu_update_answers"),
+    )
+    kb.add(
+        InlineKeyboardButton("📋 Barcha mavzular\nRo'yxat va holat", callback_data="admin_menu_topics"),
+        InlineKeyboardButton("🧪 Test qo'shish\nMavzuga test biriktirish", callback_data="admin_menu_addtest"),
+    )
+    kb.add(
+        InlineKeyboardButton("📢 Broadcast\nBarcha foydalanuvchilarga xabar", callback_data="admin_menu_broadcast"),
+        InlineKeyboardButton("📊 Test statistikasi\nTopshiriqlar soni va foizi", callback_data="stats:1:all"),
+    )
+    kb.add(
+        InlineKeyboardButton("📁 Hisobotlar\nPDF yuklab olish", callback_data="admin_menu_reports"),
+        InlineKeyboardButton("📊 O'tgan natijalar\nOldingi test natijalari", callback_data="admin_menu_past_results"),
+    )
+    kb.add(
+        InlineKeyboardButton("⏰ Deadline natijalari\nMuddati tugagan testlar", callback_data="admin_menu_deadline_results"),
+        InlineKeyboardButton("📅 Davomat sessiyasi\nDars uchun kod ochish", callback_data="admin_menu_attendance"),
+    )
+    await message.answer("👨‍💼 <b>Admin panel</b>\n\nKerakli amalni tanlang:", reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("admin_menu_"))
+async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    action = callback.data  # admin_menu_xxx
+
+    # Hisobotlar submenyusi — message o'chirilmaydi, edit_text ishlatiladi
+    if action == "admin_menu_reports":
+        await reports_submenu(callback)
+        return
+
+    if action == "admin_menu_pdf":
+        await pdf_select_course(callback)
+        return
+
+    if action == "admin_menu_coin_pdf":
+        await coin_pdf_select_course(callback)
+        return
+
+    await callback.message.delete()
+
+    if action == "admin_menu_add_topic":
+        await add_topic_start(callback.message)
+    elif action == "admin_menu_update_answers":
+        await update_test_answers_start(callback.message)
+    elif action == "admin_menu_broadcast":
+        await start_broadcast(callback.message)
+    elif action == "admin_menu_topics":
+        await show_all_topics(callback.message)
+    elif action == "admin_menu_addtest":
+        from handlers.users.task_handlers import admin_add_test_start
+        await admin_add_test_start(callback.message, state)
+    elif action == "admin_menu_past_results":
+        from handlers.users.task_handlers import admin_send_past_results
+        await admin_send_past_results(callback.message, state)
+    elif action == "admin_menu_deadline_results":
+        from handlers.users.scheduled_tasks import send_deadline_results
+        await callback.message.answer("⏳ Deadline natijalari yuborilmoqda...")
+        try:
+            await send_deadline_results()
+            await callback.message.answer("✅ Deadline natijalari yuborildi!")
+        except Exception as e:
+            await callback.message.answer(f"❌ Xatolik: {str(e)[:200]}")
+    elif action == "admin_menu_attendance":
+        from handlers.users.attendance_handler import _open_attendance_session
+        await _open_attendance_session(callback.message.chat.id)
+
+    await callback.answer()
+
+
+# --- TEST STATISTIKASI ---
+PAGE_SIZE = 8
+
+async def _build_stats_message(page: int, course_filter: str):
+    """Statistika xabari va keyboardini yaratadi. (page 1-based, course_filter: 'all' yoki course.id)"""
+    from base_app.models import Task, Course
+    from django.db.models import Count
+
+    # Kurslarni olamiz (filter tugmalari uchun — faol va nofaol)
+    courses = await sync_to_async(list)(Course.objects.all().order_by('-is_active', 'name'))
+
+    # Asosiy query
+    qs = Task.objects.filter(task_type='test').exclude(test_code__isnull=True).exclude(test_code='')
+
+    if course_filter != 'all':
+        try:
+            qs = qs.filter(topic__course__id=int(course_filter))
+        except (ValueError, TypeError):
+            pass
+
+    # test_code bo'yicha guruhlab, unique studentlar sonini hisoblaymiz
+    stats = await sync_to_async(list)(
+        qs.values('test_code', 'topic__title', 'topic__course__name')
+          .annotate(count=Count('student', distinct=True))
+          .order_by('-topic__id')
+    )
+
+    total = len(stats)
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = max(1, min(page, total_pages))
+
+    start = (page - 1) * PAGE_SIZE
+    page_items = stats[start:start + PAGE_SIZE]
+
+    # Xabar matni
+    course_label = "Barchasi"
+    for c in courses:
+        if str(c.id) == course_filter:
+            course_label = c.name
+            break
+
+    lines = [f"📊 <b>Test statistikasi</b>  ({page}/{total_pages} sahifa, jami {total} ta)\n"
+             f"🗂 Kurs: <b>{course_label}</b>\n"]
+    for item in page_items:
+        code = item['test_code']
+        count = item['count']
+        topic_name = item['topic__title'] or code
+        lines.append(f"🔑 <code>{code}</code> — 👥 <b>{count}</b> kishi\n   📚 {topic_name}")
+
+    text = "\n".join(lines)
+
+    # Keyboard
+    kb = InlineKeyboardMarkup(row_width=3)
+
+    # Kurs filter tugmalari
+    filter_buttons = [InlineKeyboardButton(
+        f"{'✅ ' if course_filter == 'all' else ''}Barchasi",
+        callback_data="stats:1:all"
+    )]
+    for c in courses:
+        prefix = '✅ ' if str(c.id) == course_filter else ''
+        suffix = '' if c.is_active else ' 🔒'
+        label = f"{prefix}{c.name}{suffix}"
+        filter_buttons.append(InlineKeyboardButton(label, callback_data=f"stats:1:{c.id}"))
+    kb.add(*filter_buttons)
+
+    # Navigatsiya tugmalari
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton("◀", callback_data=f"stats:{page-1}:{course_filter}"))
+    nav.append(InlineKeyboardButton(f"{page}/{total_pages}", callback_data="stats_noop"))
+    if page < total_pages:
+        nav.append(InlineKeyboardButton("▶", callback_data=f"stats:{page+1}:{course_filter}"))
+    kb.add(*nav)
+
+    kb.add(InlineKeyboardButton("🔙 Menyuga qaytish", callback_data="admin_back"))
+
+    return text, kb
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("stats:") or c.data == "stats_noop")
+async def stats_handler(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    if callback.data == "stats_noop":
+        await callback.answer()
+        return
+
+    _, page_str, course_filter = callback.data.split(":", 2)
+    text, kb = await _build_stats_message(int(page_str), course_filter)
+
+    try:
+        await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    except Exception:
+        await callback.message.answer(text, reply_markup=kb, parse_mode="HTML")
+
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "admin_back")
+async def admin_back_handler(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    await callback.message.delete()
+    await admin_panel(callback.message)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "admin_menu_reports")
+async def reports_submenu_back(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    await reports_submenu(callback)
+
+
+# --- HISOBOTLAR SUBMENYUSI ---
+
+async def reports_submenu(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        InlineKeyboardButton("📄 Attestat PDF (50-savollik)", callback_data="reports_attestat"),
+        InlineKeyboardButton("👥 Guruh natijalari PDF", callback_data="reports_group_test"),
+        InlineKeyboardButton("🏆 Reyting PDF — Umumiy", callback_data="reports_coin_all"),
+        InlineKeyboardButton("🏆 Reyting PDF — Guruh bo'yicha", callback_data="reports_coin_group"),
+        InlineKeyboardButton("🔙 Orqaga", callback_data="admin_back"),
+    )
+    await callback.message.edit_text(
+        "📁 <b>Hisobotlar</b>\n\nTur tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("reports_"))
+async def reports_dispatch(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    action = callback.data
+    if action == "reports_attestat":
+        await pdf_select_course(callback)
+    elif action == "reports_group_test":
+        await grp_test_select_course(callback)
+    elif action == "reports_coin_all":
+        await coin_pdf_select_course(callback)
+    elif action == "reports_coin_group":
+        await coin_grp_select_course(callback)
+
+
+# ── GURUH NATIJALARI PDF ─────────────────────────────────────────────────────
+
+async def grp_test_select_course(callback: types.CallbackQuery):
+    from base_app.models import Course
+    courses = await sync_to_async(list)(Course.objects.all().order_by('-is_active', 'name'))
+    if not courses:
+        await callback.answer("❌ Kurslar yo'q.", show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(row_width=1)
+    for crs in courses:
+        label = crs.name if crs.is_active else f"🔒 {crs.name}"
+        kb.add(InlineKeyboardButton(label, callback_data=f"grp_test_course_{crs.id}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_reports"))
+    await callback.message.edit_text(
+        "👥 <b>Guruh natijalari PDF</b>\n\nKursni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("grp_test_course_"))
+async def grp_test_select_group(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    course_id = int(callback.data.split("_")[3])
+    from base_app.models import Group
+    groups = await sync_to_async(list)(
+        Group.objects.filter(course_id=course_id).prefetch_related('enrolled_students').order_by('name')
+    )
+    if not groups:
+        await callback.answer("❌ Bu kursda guruhlar yo'q.", show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("📋 Barcha guruhlar", callback_data=f"grp_test_grp_{course_id}_0"))
+    for g in groups:
+        count = await sync_to_async(g.enrolled_students.count)()
+        kb.add(InlineKeyboardButton(f"{g.name} ({count} ta)", callback_data=f"grp_test_grp_{course_id}_{g.id}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="reports_group_test"))
+    await callback.message.edit_text(
+        "👥 <b>Guruh natijalari PDF</b>\n\nGuruhni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("grp_test_grp_"))
+async def grp_test_init_topic_select(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    # format: grp_test_grp_{course_id}_{group_id}  (group_id=0 → barcha)
+    parts = callback.data.split("_")
+    course_id = int(parts[3])
+    group_id = int(parts[4])
+
+    from base_app.models import Topic, Group
+    topics = await sync_to_async(list)(
+        Topic.objects.filter(course_id=course_id, correct_answers__isnull=False).order_by('-id')
+    )
+    topics = [t for t in topics if t.correct_answers]
+    if not topics:
+        await callback.answer("❌ Bu kursda mavzular yo'q.", show_alert=True)
+        return
+
+    group_name = None
+    if group_id != 0:
+        group = await sync_to_async(Group.objects.get)(id=group_id)
+        group_name = group.name
+
+    all_topic_ids = [t.id for t in topics]
+    await state.update_data(
+        course_id=course_id,
+        group_id=group_id,
+        group_name=group_name,
+        all_topic_ids=all_topic_ids,
+        selected_topic_ids=[],
+    )
+    await GrpTestState.selecting_topics.set()
+
+    scope = group_name or "Barcha guruhlar"
+    kb = _build_grp_topic_kb(topics, selected_ids=[], course_id=course_id)
+    await callback.message.edit_text(
+        f"👥 <b>Guruh natijalari PDF</b>\n"
+        f"🏫 Guruh: <b>{scope}</b>\n\n"
+        f"Mavzularni tanlang (bir yoki bir nechta):\n"
+        f"☐ — tanlanmagan  ✅ — tanlangan",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+def _build_grp_topic_kb(topics, selected_ids: list, course_id: int) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=1)
+    for t in topics:
+        code = next(iter(t.correct_answers), "—") if t.correct_answers else "—"
+        check = "✅" if t.id in selected_ids else "☐"
+        kb.add(InlineKeyboardButton(
+            f"{check} {t.title[:28]}  [{code}]",
+            callback_data=f"grptog_{t.id}"
+        ))
+    all_sel = len(selected_ids) == len(topics) and len(topics) > 0
+    kb.add(InlineKeyboardButton(
+        "❌ Barchasini bekor qilish" if all_sel else "✅ Barchasini tanlash",
+        callback_data="grp_selall"
+    ))
+    n = len(selected_ids)
+    kb.add(InlineKeyboardButton(
+        f"📄 PDF yaratish ({n} ta mavzu)" if n else "📄 PDF yaratish (mavzu tanlanmagan)",
+        callback_data="grp_generate"
+    ))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data=f"grp_test_course_{course_id}"))
+    return kb
+
+
+async def _grp_refresh_topic_msg(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    all_ids = data.get('all_topic_ids', [])
+    selected = data.get('selected_topic_ids', [])
+    course_id = data.get('course_id')
+    group_name = data.get('group_name')
+
+    from base_app.models import Topic
+    topics = await sync_to_async(list)(
+        Topic.objects.filter(id__in=all_ids).order_by('-id')
+    )
+    topics = sorted(topics, key=lambda t: all_ids.index(t.id))
+
+    kb = _build_grp_topic_kb(topics, selected, course_id)
+    n = len(selected)
+    scope = group_name or "Barcha guruhlar"
+    await callback.message.edit_text(
+        f"👥 <b>Guruh natijalari PDF</b>\n"
+        f"🏫 Guruh: <b>{scope}</b>\n\n"
+        f"Mavzularni tanlang (bir yoki bir nechta):\n"
+        f"☐ — tanlanmagan  ✅ — tanlangan\n\n"
+        f"{'📌 Tanlandi: <b>' + str(n) + '</b> ta mavzu' if n else '📭 Hech qanday mavzu tanlanmagan'}",
+        reply_markup=kb, parse_mode="HTML"
+    )
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("grptog_"), state=GrpTestState.selecting_topics)
+async def grp_topic_toggle(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    topic_id = int(callback.data.split("_")[1])
+    data = await state.get_data()
+    selected = data.get('selected_topic_ids', [])
+    if topic_id in selected:
+        selected.remove(topic_id)
+        await callback.answer("❌ Bekor qilindi")
+    else:
+        selected.append(topic_id)
+        await callback.answer("✅ Tanlandi")
+    await state.update_data(selected_topic_ids=selected)
+    await _grp_refresh_topic_msg(callback, state)
+
+
+@dp.callback_query_handler(lambda c: c.data == "grp_selall", state=GrpTestState.selecting_topics)
+async def grp_select_all(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    data = await state.get_data()
+    all_ids = data.get('all_topic_ids', [])
+    selected = data.get('selected_topic_ids', [])
+    if set(selected) == set(all_ids):
+        selected = []
+        await callback.answer("❌ Barchasi bekor qilindi")
+    else:
+        selected = all_ids.copy()
+        await callback.answer(f"✅ {len(selected)} ta mavzu tanlandi")
+    await state.update_data(selected_topic_ids=selected)
+    await _grp_refresh_topic_msg(callback, state)
+
+
+@dp.callback_query_handler(lambda c: c.data == "grp_generate", state=GrpTestState.selecting_topics)
+async def grp_go_to_month(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    data = await state.get_data()
+    selected = data.get('selected_topic_ids', [])
+    if not selected:
+        await callback.answer("⚠️ Kamida 1 ta mavzu tanlang!", show_alert=True)
+        return
+
+    group_id = data.get('group_id', 0)
+    group_name = data.get('group_name')
+
+    student_ids = None
+    if group_id != 0:
+        from base_app.models import Group
+        grp = await sync_to_async(Group.objects.prefetch_related('enrolled_students').get)(id=group_id)
+        student_ids = await sync_to_async(
+            lambda: list(grp.enrolled_students.values_list('id', flat=True))
+        )()
+
+    months = await _get_task_months(selected, student_ids)
+    if not months:
+        # Ma'lumot bor, lekin oy yo'q — to'g'ridan generate
+        import asyncio
+        await state.finish()
+        status_msg = await callback.message.edit_text("⏳ PDF tayyorlanmoqda...")
+        await callback.answer()
+        asyncio.create_task(_generate_and_send_group_matrix_pdf(
+            callback.from_user.id, callback.message.chat.id, status_msg.message_id,
+            selected, group_id, group_name, 0, 0
+        ))
+        return
+
+    await GrpTestState.selecting_month.set()
+    scope = group_name or "Barcha guruhlar"
+    kb = _build_month_kb(months, "grpmo", "grp_generate_back")
+    await callback.message.edit_text(
+        f"👥 <b>Guruh natijalari PDF</b>\n🏫 {scope}\n\nOyni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "grp_generate_back", state=GrpTestState.selecting_month)
+async def grp_month_back(callback: types.CallbackQuery, state: FSMContext):
+    await GrpTestState.selecting_topics.set()
+    await _grp_refresh_topic_msg(callback, state)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("grpmo_"), state=GrpTestState.selecting_month)
+async def grp_month_selected(callback: types.CallbackQuery, state: FSMContext):
+    import asyncio
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer()
+        return
+    # format: grpmo_{year}_{month}
+    parts = callback.data.split("_")
+    year, month = int(parts[1]), int(parts[2])
+    data = await state.get_data()
+    selected = data.get('selected_topic_ids', [])
+    group_id = data.get('group_id', 0)
+    group_name = data.get('group_name')
+    await state.finish()
+    status_msg = await callback.message.edit_text("⏳ PDF tayyorlanmoqda...")
+    await callback.answer()
+    asyncio.create_task(_generate_and_send_group_matrix_pdf(
+        callback.from_user.id, callback.message.chat.id, status_msg.message_id,
+        selected, group_id, group_name, year, month
+    ))
+
+
+async def _generate_and_send_group_matrix_pdf(
+    user_id: int, chat_id: int, status_msg_id: int,
+    topic_ids: list, group_id: int, group_name: str,
+    year: int = 0, month: int = 0
+):
+    from base_app.models import Topic, Task, Group
+    from utils.pdf_report import generate_group_matrix_pdf
+    from aiogram.types import InputFile
+    try:
+        topics = await sync_to_async(list)(
+            Topic.objects.select_related('course').filter(id__in=topic_ids)
+        )
+        topics = sorted(topics, key=lambda t: topic_ids.index(t.id))
+
+        def _task_qs(base_qs):
+            if year and month:
+                base_qs = base_qs.filter(submitted_at__year=year, submitted_at__month=month)
+            return base_qs.exclude(test_answers__isnull=True).exclude(test_answers='')
+
+        if group_id == 0:
+            tasks = await sync_to_async(list)(
+                _task_qs(Task.objects.filter(topic_id__in=topic_ids, task_type='test'))
+                    .select_related('student')
+            )
+            student_map = {t.student_id: t.student for t in tasks}
+            students = sorted(student_map.values(), key=lambda s: s.full_name)
+        else:
+            group = await sync_to_async(
+                Group.objects.prefetch_related('enrolled_students').get
+            )(id=group_id)
+            students = await sync_to_async(list)(
+                group.enrolled_students.all().order_by('full_name')
+            )
+            student_ids = [s.id for s in students]
+            tasks = await sync_to_async(list)(
+                _task_qs(Task.objects.filter(
+                    topic_id__in=topic_ids, task_type='test', student_id__in=student_ids
+                )).select_related('student')
+            )
+
+        if not tasks:
+            no_data = "❌ Bu oyda test topshiruvchilar yo'q." if (year and month) else "❌ Bu bo'yicha hali test topshiruvchilar yo'q."
+            await bot.edit_message_text(no_data, chat_id=chat_id, message_id=status_msg_id)
+            return
+
+        tasks_map = {}
+        for task in tasks:
+            tasks_map.setdefault(task.topic_id, {})[task.student_id] = task
+
+        month_label = f"{MONTH_NAMES_UZ[month]} {year}" if (year and month) else None
+        scope = group_name or "Barcha guruhlar"
+        codes = [next(iter(t.correct_answers), t.title[:8]) for t in topics[:4]]
+        caption_topics = ", ".join(codes) + (f" +{len(topics)-4}" if len(topics) > 4 else "")
+        month_line = f"📅 {month_label}\n" if month_label else ""
+        base_caption = (
+            f"👥 <b>Guruh natijalari</b>\n"
+            f"🏫 Guruh: {scope}\n"
+            f"{month_line}"
+            f"📚 Mavzular: {caption_topics}\n"
+            f"👥 {len(students)} ta student"
+        )
+
+        # Web havola (har doim yuboriladi)
+        from base_app.report_views import generate_matrix_token
+        token = await sync_to_async(generate_matrix_token)(
+            group_id, topic_ids, year, month, group_name
+        )
+        web_url = f"http://vazifa.matematikapro.uz/report/matrix/{token}/"
+        web_caption = base_caption + f"\n\n🌐 <a href=\"{web_url}\">Brauzerda ko'rish</a> (7 kun)"
+
+        # 10 ta va undan kam mavzu → PDF ham yuboriladi
+        if len(topics) <= 10:
+            pdf_buffer = await sync_to_async(generate_group_matrix_pdf)(
+                group_name=group_name,
+                topics=topics,
+                tasks_map=tasks_map,
+                students=students,
+                month_label=month_label,
+            )
+            await bot.send_document(
+                user_id,
+                InputFile(pdf_buffer, filename=f"natijalar_{scope[:20]}.pdf"),
+                caption=web_caption,
+                parse_mode="HTML"
+            )
+        else:
+            await bot.send_message(
+                user_id,
+                web_caption,
+                parse_mode="HTML",
+                disable_web_page_preview=True
+            )
+        await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+    except Exception as e:
+        try:
+            await bot.edit_message_text(
+                f"❌ Xatolik: {str(e)[:200]}",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+        except Exception:
+            pass
+
+
+# ── TANGA REYTINGI GURUH BO'YICHA ───────────────────────────────────────────
+
+async def coin_grp_select_course(callback: types.CallbackQuery):
+    from base_app.models import Course
+    courses = await sync_to_async(list)(Course.objects.all().order_by('-is_active', 'name'))
+    if not courses:
+        await callback.answer("❌ Kurslar yo'q.", show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(row_width=1)
+    for crs in courses:
+        label = crs.name if crs.is_active else f"🔒 {crs.name}"
+        kb.add(InlineKeyboardButton(label, callback_data=f"coin_grp_course_{crs.id}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_reports"))
+    await callback.message.edit_text(
+        "🏆 <b>Reyting PDF — Guruh bo'yicha</b>\n\nKursni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("coin_grp_course_"))
+async def coin_grp_select_group(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    course_id = int(callback.data.split("_")[3])
+    from base_app.models import Group
+    groups = await sync_to_async(list)(
+        Group.objects.filter(course_id=course_id).prefetch_related('enrolled_students').order_by('name')
+    )
+    if not groups:
+        await callback.answer("❌ Bu kursda guruhlar yo'q.", show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("📋 Barcha guruhlar (umumiy)", callback_data=f"coin_grp_gen_{course_id}_0"))
+    for g in groups:
+        count = await sync_to_async(g.enrolled_students.count)()
+        kb.add(InlineKeyboardButton(f"{g.name} ({count} ta)", callback_data=f"coin_grp_gen_{course_id}_{g.id}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="reports_coin_group"))
+    await callback.message.edit_text(
+        "🏆 <b>Reyting PDF</b>\n\nGuruhni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("coin_grp_gen_"))
+async def coin_grp_select_month(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    # format: coin_grp_gen_{course_id}_{group_id}
+    parts = callback.data.split("_")
+    course_id, group_id = int(parts[3]), int(parts[4])
+
+    student_ids = None
+    group_name = None
+    if group_id != 0:
+        from base_app.models import Group
+        grp = await sync_to_async(Group.objects.prefetch_related('enrolled_students').get)(id=group_id)
+        student_ids = await sync_to_async(
+            lambda: list(grp.enrolled_students.values_list('id', flat=True))
+        )()
+        group_name = grp.name
+
+    months = await _get_coin_months(course_id, student_ids)
+    if not months:
+        status_msg = await callback.message.edit_text("⏳ Reyting PDF tayyorlanmoqda...")
+        await callback.answer()
+        import asyncio
+        asyncio.create_task(_generate_and_send_coin_grp_pdf(
+            callback.from_user.id, callback.message.chat.id, status_msg.message_id,
+            course_id, group_id, 0, 0
+        ))
+        return
+
+    scope = group_name or "Barcha guruhlar"
+    kb = _build_month_kb(months, f"cgrp_mo_{course_id}_{group_id}", f"coin_grp_course_{course_id}")
+    await callback.message.edit_text(
+        f"🏆 <b>Reyting PDF</b>\n🏫 {scope}\n\nOyni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("cgrp_mo_"))
+async def coin_grp_month_selected(callback: types.CallbackQuery):
+    import asyncio
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    # format: cgrp_mo_{course_id}_{group_id}_{year}_{month}
+    parts = callback.data.split("_")
+    course_id, group_id, year, month = int(parts[2]), int(parts[3]), int(parts[4]), int(parts[5])
+    status_msg = await callback.message.edit_text("⏳ Reyting PDF tayyorlanmoqda...")
+    await callback.answer()
+    asyncio.create_task(_generate_and_send_coin_grp_pdf(
+        callback.from_user.id, callback.message.chat.id, status_msg.message_id,
+        course_id, group_id, year, month
+    ))
+
+
+async def _generate_and_send_coin_grp_pdf(
+    user_id: int, chat_id: int, status_msg_id: int,
+    course_id: int, group_id: int, year: int = 0, month: int = 0
+):
+    from base_app.models import Course, CoinWallet, CoinTransaction, Group
+    from utils.pdf_report import generate_coin_rating_pdf, generate_coin_monthly_pdf
+    from django.db.models import Sum
+    from aiogram.types import InputFile
+    try:
+        course = await sync_to_async(Course.objects.get)(id=course_id)
+
+        # Guruh student IDlari
+        student_ids = None
+        group_name = None
+        if group_id != 0:
+            group = await sync_to_async(Group.objects.prefetch_related('enrolled_students').get)(id=group_id)
+            student_ids = await sync_to_async(
+                lambda: list(group.enrolled_students.values_list('id', flat=True))
+            )()
+            group_name = group.name
+
+        scope = group_name or "Umumiy"
+
+        if year and month:
+            qs_w2 = CoinWallet.objects.filter(course_id=course_id).select_related('student')
+            if student_ids is not None:
+                qs_w2 = qs_w2.filter(student_id__in=student_ids)
+            all_wallets = await sync_to_async(list)(qs_w2[:600])
+            if not all_wallets:
+                await bot.edit_message_text(
+                    "❌ Bu bo'yicha hali tanga reyting yo'q.",
+                    chat_id=chat_id, message_id=status_msg_id
+                )
+                return
+            txn_qs = CoinTransaction.objects.filter(
+                wallet__course_id=course_id,
+                created_at__year=year, created_at__month=month
+            )
+            if student_ids is not None:
+                txn_qs = txn_qs.filter(wallet__student_id__in=student_ids)
+            monthly = await sync_to_async(lambda: dict(
+                txn_qs.values('wallet__student_id')
+                      .annotate(s=Sum('total_coins'))
+                      .values_list('wallet__student_id', 's')
+            ))()
+            rows = sorted(
+                [{'wallet__student__full_name': w.student.full_name,
+                  'oylik': monthly.get(w.student_id, 0)} for w in all_wallets],
+                key=lambda r: r['oylik'], reverse=True
+            )
+            month_label = f"{MONTH_NAMES_UZ[month]} {year}"
+            pdf_buffer = await sync_to_async(generate_coin_monthly_pdf)(course, rows, group_name, month_label)
+            safe_name = course.name.replace('/', '-')[:30]
+            safe_scope = scope.replace('/', '-')[:15]
+            await bot.send_document(
+                user_id,
+                InputFile(pdf_buffer, filename=f"reyting_{safe_name}_{safe_scope}_{year}_{month}.pdf"),
+                caption=(
+                    f"🏆 <b>{course.name}</b>\n"
+                    f"🏫 Guruh: {scope}\n"
+                    f"📅 {month_label}\n"
+                    f"👥 {len(rows)} ta student"
+                ),
+                parse_mode="HTML"
+            )
+            await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+            return
+
+        # Barcha vaqt — CoinWallet (streak bilan)
+        qs_w = CoinWallet.objects.filter(course_id=course_id).select_related('student')
+        if student_ids:
+            qs_w = qs_w.filter(student_id__in=student_ids)
+        wallets = await sync_to_async(list)(qs_w.order_by('-total_coins', '-longest_streak'))
+
+        if not wallets:
+            await bot.edit_message_text(
+                "❌ Bu bo'yicha hali tanga reyting yo'q.",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+            return
+
+        pdf_buffer = await sync_to_async(generate_coin_rating_pdf)(course, wallets, group_name)
+        safe_name = course.name.replace('/', '-')[:35]
+        safe_scope = scope.replace('/', '-')[:20]
+        await bot.send_document(
+            user_id,
+            InputFile(pdf_buffer, filename=f"reyting_{safe_name}_{safe_scope}.pdf"),
+            caption=(
+                f"🏆 <b>{course.name}</b>\n"
+                f"🏫 Guruh: {scope}\n"
+                f"👥 {len(wallets)} ta student"
+            ),
+            parse_mode="HTML"
+        )
+        await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+    except Exception as e:
+        try:
+            await bot.edit_message_text(
+                f"❌ Xatolik: {str(e)[:200]}",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+        except Exception:
+            pass
+
+
+# --- PDF HISOBOT ---
+@dp.callback_query_handler(lambda c: c.data == "admin_menu_pdf")
+async def pdf_select_course(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+    courses = await sync_to_async(list)(Course.objects.all().order_by('-is_active', 'name'))
+
+    if not courses:
+        await callback.answer("❌ Kurslar yo'q.", show_alert=True)
+        return
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for c in courses:
+        label = c.name if c.is_active else f"🔒 {c.name}"
+        kb.add(InlineKeyboardButton(label, callback_data=f"pdf_course_{c.id}_1"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_back"))
+
+    await callback.message.edit_text("📄 <b>PDF hisobot</b>\n\nKursni tanlang:", reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+PDF_TOPICS_PAGE_SIZE = 8
+
+@dp.callback_query_handler(lambda c: c.data.startswith("pdf_course_"))
+async def pdf_select_topic(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    # format: pdf_course_{course_id}_{page}
+    parts = callback.data.split("_")
+    course_id = int(parts[2])
+    page = int(parts[3]) if len(parts) > 3 else 1
+
+    from base_app.models import Topic
+    from utils.pdf_report import _parse_answers
+
+    all_topics = await sync_to_async(list)(
+        Topic.objects.filter(course_id=course_id, correct_answers__isnull=False).order_by('-id')
+    )
+
+    fifty_topics = []
+    for t in all_topics:
+        if not t.correct_answers:
+            continue
+        code = next(iter(t.correct_answers), None)
+        if not code:
+            continue
+        if len(_parse_answers(t.correct_answers[code])) == 50:
+            fifty_topics.append(t)
+
+    if not fifty_topics:
+        await callback.answer("❌ Bu kursda 50 savollik topiclar yo'q.", show_alert=True)
+        return
+
+    total = len(fifty_topics)
+    total_pages = max(1, (total + PDF_TOPICS_PAGE_SIZE - 1) // PDF_TOPICS_PAGE_SIZE)
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * PDF_TOPICS_PAGE_SIZE
+    page_items = fifty_topics[start:start + PDF_TOPICS_PAGE_SIZE]
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for t in page_items:
+        code = next(iter(t.correct_answers), "—")
+        kb.add(InlineKeyboardButton(f"{t.title}  [{code}]", callback_data=f"pdf_topic_{t.id}"))
+
+    # Navigatsiya
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton("◀", callback_data=f"pdf_course_{course_id}_{page - 1}"))
+    nav.append(InlineKeyboardButton(f"{page}/{total_pages}", callback_data="stats_noop"))
+    if page < total_pages:
+        nav.append(InlineKeyboardButton("▶", callback_data=f"pdf_course_{course_id}_{page + 1}"))
+    if len(nav) > 1:
+        kb.add(*nav)
+
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_pdf"))
+
+    await callback.message.edit_text(
+        f"📄 <b>PDF hisobot</b>\n\nMavzuni tanlang ({page}/{total_pages}, jami {total} ta):",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+async def _generate_and_send_pdf(user_id: int, chat_id: int, status_msg_id: int, topic_id: int):
+    """Background task: PDF generatsiya qiladi va yuboradi."""
+    from base_app.models import Topic, Task
+    from utils.pdf_report import generate_topic_pdf
+    from aiogram.types import InputFile
+
+    try:
+        topic = await sync_to_async(
+            Topic.objects.select_related('course').get
+        )(id=topic_id)
+
+        tasks = await sync_to_async(list)(
+            Task.objects.filter(topic_id=topic_id, task_type='test')
+                .select_related('student')
+                .exclude(test_answers__isnull=True)
+                .exclude(test_answers='')
+        )
+
+        if not tasks:
+            await bot.edit_message_text(
+                "❌ Bu mavzu bo'yicha test topshiruvchilar yo'q.",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+            return
+
+        pdf_buffer = await sync_to_async(generate_topic_pdf)(topic, tasks)
+
+        safe_title = topic.title.replace('/', '-').replace('\\', '-')[:40]
+        await bot.send_document(
+            user_id,
+            InputFile(pdf_buffer, filename=f"{safe_title}.pdf"),
+            caption=f"📄 <b>{topic.title}</b>\n👥 {len(tasks)} ta student",
+            parse_mode="HTML"
+        )
+        await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+
+    except Exception as e:
+        try:
+            await bot.edit_message_text(
+                f"❌ Xatolik: {str(e)[:200]}",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+        except Exception:
+            pass
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("pdf_topic_"))
+async def pdf_generate(callback: types.CallbackQuery):
+    import asyncio
+
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    topic_id = int(callback.data.split("_")[2])
+
+    status_msg = await callback.message.edit_text("⏳ PDF tayyorlanmoqda, biroz kuting...")
+    await callback.answer()
+
+    asyncio.create_task(
+        _generate_and_send_pdf(
+            user_id=callback.from_user.id,
+            chat_id=callback.message.chat.id,
+            status_msg_id=status_msg.message_id,
+            topic_id=topic_id,
+        )
+    )
+
+
+# --- TANGA REYTING PDF ---
+@dp.callback_query_handler(lambda c: c.data == "admin_menu_coin_pdf")
+async def coin_pdf_select_course(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+    courses = await sync_to_async(list)(Course.objects.all().order_by('-is_active', 'name'))
+
+    if not courses:
+        await callback.answer("❌ Kurslar yo'q.", show_alert=True)
+        return
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for course in courses:
+        label = course.name if course.is_active else f"🔒 {course.name}"
+        kb.add(InlineKeyboardButton(label, callback_data=f"coin_pdf_course_{course.id}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_back"))
+
+    await callback.message.edit_text(
+        "🏆 <b>Tanga reyting PDF</b>\n\nKursni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("coin_pdf_course_"))
+async def coin_pdf_select_month(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    course_id = int(callback.data.split("_")[3])
+    months = await _get_coin_months(course_id)
+    if not months:
+        status_msg = await callback.message.edit_text("⏳ Reyting PDF tayyorlanmoqda...")
+        await callback.answer()
+        import asyncio
+        asyncio.create_task(_generate_and_send_coin_pdf(
+            callback.from_user.id, callback.message.chat.id, status_msg.message_id, course_id, 0, 0
+        ))
+        return
+    kb = _build_month_kb(months, f"coin_mo_{course_id}", "reports_coin_all")
+    await callback.message.edit_text(
+        "🏆 <b>Reyting PDF — Umumiy</b>\n\nOyni tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("coin_mo_"))
+async def coin_pdf_month_selected(callback: types.CallbackQuery):
+    import asyncio
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    # format: coin_mo_{course_id}_{year}_{month}
+    parts = callback.data.split("_")
+    course_id, year, month = int(parts[2]), int(parts[3]), int(parts[4])
+    status_msg = await callback.message.edit_text("⏳ Reyting PDF tayyorlanmoqda...")
+    await callback.answer()
+    asyncio.create_task(_generate_and_send_coin_pdf(
+        callback.from_user.id, callback.message.chat.id, status_msg.message_id, course_id, year, month
+    ))
+
+
+async def _generate_and_send_coin_pdf(
+    user_id: int, chat_id: int, status_msg_id: int,
+    course_id: int, year: int = 0, month: int = 0
+):
+    from base_app.models import Course, CoinWallet, CoinTransaction
+    from utils.pdf_report import generate_coin_rating_pdf, generate_coin_monthly_pdf
+    from django.db.models import Sum
+    from aiogram.types import InputFile
+
+    try:
+        course = await sync_to_async(Course.objects.get)(id=course_id)
+
+        if year and month:
+            # Barcha walletlar (kurs bo'yicha)
+            all_wallets = await sync_to_async(list)(
+                CoinWallet.objects.filter(course_id=course_id)
+                    .select_related('student')[:600]
+            )
+            if not all_wallets:
+                await bot.edit_message_text(
+                    "❌ Bu kursda hali tanga reyting yo'q.",
+                    chat_id=chat_id, message_id=status_msg_id
+                )
+                return
+            # Oylik sumlar: {student_id: oylik_coins}
+            monthly = await sync_to_async(lambda: dict(
+                CoinTransaction.objects
+                    .filter(wallet__course_id=course_id,
+                            created_at__year=year, created_at__month=month)
+                    .values('wallet__student_id')
+                    .annotate(s=Sum('total_coins'))
+                    .values_list('wallet__student_id', 's')
+            ))()
+            rows = sorted(
+                [{'wallet__student__full_name': w.student.full_name,
+                  'oylik': monthly.get(w.student_id, 0)} for w in all_wallets],
+                key=lambda r: r['oylik'], reverse=True
+            )
+            month_label = f"{MONTH_NAMES_UZ[month]} {year}"
+            pdf_buffer = await sync_to_async(generate_coin_monthly_pdf)(course, rows, None, month_label)
+            safe_name = course.name.replace('/', '-')[:30]
+            await bot.send_document(
+                user_id,
+                InputFile(pdf_buffer, filename=f"reyting_{safe_name}_{year}_{month}.pdf"),
+                caption=f"🏆 <b>{course.name}</b>\n📅 {month_label}\n👥 {len(rows)} ta student",
+                parse_mode="HTML"
+            )
+            await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+            return
+
+        wallets = await sync_to_async(list)(
+            CoinWallet.objects.filter(course_id=course_id)
+            .select_related('student')
+            .order_by('-total_coins', '-longest_streak')[:600]
+        )
+
+        if not wallets:
+            await bot.edit_message_text(
+                "❌ Bu kursda hali tanga reyting yo'q.",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+            return
+
+        pdf_buffer = await sync_to_async(generate_coin_rating_pdf)(course, wallets)
+
+        safe_name = course.name.replace('/', '-').replace('\\', '-')[:40]
+        await bot.send_document(
+            user_id,
+            InputFile(pdf_buffer, filename=f"reyting_{safe_name}.pdf"),
+            caption=f"🏆 <b>{course.name}</b> — Tanga reytingi\n👥 {len(wallets)} ta student",
+            parse_mode="HTML"
+        )
+        await bot.delete_message(chat_id=chat_id, message_id=status_msg_id)
+
+    except Exception as e:
+        try:
+            await bot.edit_message_text(
+                f"❌ Xatolik: {str(e)[:200]}",
+                chat_id=chat_id, message_id=status_msg_id
+            )
+        except Exception:
+            pass
+
+
+def _recalculate_coins_for_tasks(tasks_to_update):
+    """
+    Grade o'zgargan tasklar uchun CoinTransaction va CoinWallet ni yangilaydi.
+    Faqat result_coins (= grade) o'zgaradi; streak_coins o'zgarmaydi.
+    CoinTransaction bo'lmasa — retroaktiv yaratiladi (result_coins, streak_coins=0).
+    """
+    import logging
+    from django.db import transaction as db_transaction
+    from base_app.models import CoinTransaction, CoinWallet
+
+    logger = logging.getLogger(__name__)
+
+    with db_transaction.atomic():
+        for task in tasks_to_update:
+            new_result_coins = max(0, task.grade)
+            course = task.topic.course
+            if not course:
+                continue
+
+            try:
+                txn = CoinTransaction.objects.select_for_update().get(
+                    wallet__student=task.student,
+                    topic=task.topic,
+                    task_type='test',
+                )
+            except CoinTransaction.DoesNotExist:
+                # Avval tanga tizimi bo'lmagan — retroaktiv yaratamiz
+                try:
+                    wallet, _ = CoinWallet.objects.select_for_update().get_or_create(
+                        student=task.student, course=course
+                    )
+                    CoinTransaction.objects.create(
+                        wallet=wallet,
+                        topic=task.topic,
+                        task_type='test',
+                        result_coins=new_result_coins,
+                        streak_coins=0,
+                        total_coins=new_result_coins,
+                        streak_after=wallet.current_streak,
+                        deadline_penalty=False,
+                    )
+                    CoinWallet.objects.filter(pk=wallet.pk).update(
+                        total_coins=models_F('total_coins') + new_result_coins
+                    )
+                except Exception as e:
+                    logger.error(f"Retroaktiv CoinTransaction yaratishda xato: {e}")
+                continue
+
+            old_result_coins = txn.result_coins
+            coin_diff = new_result_coins - old_result_coins
+            if coin_diff == 0:
+                continue
+
+            txn.result_coins = new_result_coins
+            txn.total_coins = new_result_coins + txn.streak_coins
+            txn.save(update_fields=['result_coins', 'total_coins'])
+
+            # total_coins manfiy bo'lib ketmasligi uchun
+            wallet = CoinWallet.objects.select_for_update().get(pk=txn.wallet_id)
+            new_total = max(0, wallet.total_coins + coin_diff)
+            wallet.total_coins = new_total
+            wallet.save(update_fields=['total_coins'])
+
+
 # --- TEST JAVOBLARINI O'ZGARTIRISH ---
 @dp.message_handler(IsPrivate(), lambda msg: msg.text == "🔧 Test javoblarini o'zgartirish", user_id=ADMINS)
 async def update_test_answers_start(message: types.Message):
@@ -763,146 +1967,129 @@ async def process_new_answers(message: types.Message, state: FSMContext):
         filtered = ''.join(ch for ch in new_answers if ch.isalpha() or ch == 'x')
         correct_answers_list = [[ch] for ch in filtered]
     
+    import asyncio
+
     # Barcha bu mavzu bo'yicha test topshirgan studentlarning natijasini qayta hisoblaymiz
     tasks = await sync_to_async(list)(
         Task.objects.filter(topic_id=topic_id, task_type='test', test_code=test_code).select_related('student')
     )
-    
-    # Topic deadline ni olamiz
+
     topic_deadline = topic.deadline
-    
-    updated_count = 0
-    deadline_penalty_count = 0  # Deadline tufayli jazolangan studentlar soni
-    grade_changes = []  # Baho o'zgarishlarini saqlaymiz
-    
+
+    tasks_to_update = []
+    notifications = []
+    deadline_penalty_count = 0
+    grade_changes = []
+
     for task in tasks:
-        # Student javoblarini parse qilish
         student_answers = task.test_answers.lower().strip()
-        
-        # ✅ FIX: Test kod prefixini olib tashlash (masalan: "19-dbcaa..." -> "dbcaa...")
+
         if '-' in student_answers:
             parts = student_answers.split('-', 1)
             if len(parts) == 2 and parts[0].replace('_', '').isdigit():
-                # Test kod prefixi mavjud, uni olib tashlaymiz
                 student_answers = parts[1]
-        
-        student_answers_list = []
-        
-        # Raqam bor-yo'qligini tekshirish
+
         has_numbers = bool(re.search(r'\d', student_answers))
-        
+
         if has_numbers:
-            # Format 2: raqam+harf (1a2b3c -> [a, b, c])
-            # Raqamlar bor - formatli parse: 1a2b3c (har bir raqamdan keyin BITTA harf)
-            for match in re.finditer(r'\d+([a-zx])', student_answers):
-                student_answers_list.append(match.group(1))
+            student_answers_list = [m.group(1) for m in re.finditer(r'\d+([a-zx])', student_answers)]
         elif re.match(r'^[a-zx]+$', student_answers):
-            # Format 1: faqat harflar (abc -> [a, b, c])
             student_answers_list = list(student_answers)
         else:
-            # Noma'lum format - barcha kichik harflarni olamiz
-            filtered = ''.join(ch for ch in student_answers if ch.isalpha() or ch == 'x')
-            student_answers_list = list(filtered)
-        
-        # Uzunliklarni tekshirish
+            student_answers_list = [ch for ch in student_answers if ch.isalpha() or ch == 'x']
+
         if not student_answers_list or len(student_answers_list) != answer_count:
             continue
-            
-        # Yangi bahoni hisoblaymiz
+
         old_grade = task.grade
         correct_count = 0
-        bekor_count = 0  # Bekor qilingan savollar soni
-        
+        bekor_count = 0
+
         for i in range(answer_count):
-            student_ans = student_answers_list[i]
             correct_ans_list = correct_answers_list[i]
-            
-            # Agar admin 'x' deb belgilagan bo'lsa (savol bekor qilindi)
             if correct_ans_list == ['x']:
-                # Bu savol bekor, HAMMA studentlar ball oladi
                 correct_count += 1
                 bekor_count += 1
-            # Student javobi to'g'ri javoblar ichida bormi?
-            # Student BITTA harf yozadi (a, b, c, d yoki x)
-            elif student_ans in correct_ans_list:
+            elif student_answers_list[i] in correct_ans_list:
                 correct_count += 1
-        
+
         new_grade = correct_count
-        
-        # ✅ Deadline tekshiruvi: agar deadline dan keyin topshirgan bo'lsa 80% ball
+
         is_late = False
-        if topic_deadline and task.submitted_at:
-            # submitted_at va deadline ni solishtirish
-            # submitted_at - datetime object, deadline - ham datetime object
-            if task.submitted_at > topic_deadline:
-                is_late = True
-                # 80% ball berish (yaxlitlab)
-                new_grade = int(new_grade * 0.8)
-                deadline_penalty_count += 1
-        
-        if old_grade != new_grade:
-            task.grade = new_grade
-            # ✅ Faqat grade fieldini update qilamiz (optimizatsiya)
-            await sync_to_async(task.save)(update_fields=['grade'])
-            updated_count += 1
-            
-            # Student ma'lumotlarini olamiz (task.student allaqachon select_related bilan yuklangan)
-            student_full_name = task.student.full_name
-            student_telegram_id = task.student.telegram_id
-            
-            # Baho farqini saqlaymiz
-            diff = new_grade - old_grade
-            grade_changes.append({
-                'student': student_full_name,
-                'old': old_grade,
-                'new': new_grade,
-                'diff': diff,
-                'is_late': is_late
-            })
-            
-            # Studentga xabar yuboramiz
-            change_symbol = "📈" if diff > 0 else "📉"
-            bekor_msg = ""
-            if bekor_count > 0:
-                bekor_msg = f"\n\n🎁 {bekor_count} ta savol bekor qilindi (test xatosi tuzatildi)"
-            
-            deadline_msg = ""
-            if is_late:
-                deadline_msg = f"\n\n⚠️ Siz testni deadline dan keyin topshirgansiz, shuning uchun 80% ball berildi"
-            
-            await safe_send_message(
-                student_telegram_id,
-                f"{change_symbol} Test natijangiz o'zgardi!\n\n"
-                f"📚 Mavzu: {topic_title}\n"
-                f"❌ Eski baho: {old_grade}/{answer_count}\n"
-                f"✅ Yangi baho: {new_grade}/{answer_count}\n"
-                f"{'➕' if diff > 0 else '➖'} Farq: {abs(diff)} ball"
-                f"{bekor_msg}"
-                f"{deadline_msg}"
-            )
-    
-    # Adminga statistika
-    stats_text = f"✅ Yangilash tugadi!\n\n"
-    stats_text += f"📊 Statistika:\n"
+        if topic_deadline and task.submitted_at and task.submitted_at > topic_deadline:
+            is_late = True
+            new_grade = int(new_grade * 0.8)
+            deadline_penalty_count += 1
+
+        if old_grade == new_grade:
+            continue
+
+        task.grade = new_grade
+        tasks_to_update.append(task)
+
+        diff = new_grade - old_grade
+        grade_changes.append({
+            'student': task.student.full_name,
+            'old': old_grade,
+            'new': new_grade,
+            'diff': diff,
+            'is_late': is_late,
+        })
+
+        change_symbol = "📈" if diff > 0 else "📉"
+        bekor_msg = f"\n\n🎁 {bekor_count} ta savol bekor qilindi (test xatosi tuzatildi)" if bekor_count > 0 else ""
+        deadline_msg = "\n\n⚠️ Siz testni deadline dan keyin topshirgansiz, shuning uchun 80% ball berildi" if is_late else ""
+
+        notifications.append((
+            task.student.telegram_id,
+            f"{change_symbol} Test natijangiz o'zgardi!\n\n"
+            f"📚 Mavzu: {topic_title}\n"
+            f"❌ Eski baho: {old_grade}/{answer_count}\n"
+            f"✅ Yangi baho: {new_grade}/{answer_count}\n"
+            f"{'➕' if diff > 0 else '➖'} Farq: {abs(diff)} ball"
+            f"{bekor_msg}{deadline_msg}"
+        ))
+
+    # 1 ta bulk UPDATE — N ta save() o'rniga
+    if tasks_to_update:
+        await sync_to_async(Task.objects.bulk_update)(tasks_to_update, ['grade'])
+
+    # Tangalarni qayta hisoblash: grade o'zgargan har bir task uchun
+    if tasks_to_update:
+        await sync_to_async(_recalculate_coins_for_tasks)(tasks_to_update)
+
+    # Parallel xabar yuborish (semaphore bilan Telegram rate limit himoya)
+    if notifications:
+        sem = asyncio.Semaphore(20)
+
+        async def _send(tid, txt):
+            async with sem:
+                try:
+                    await safe_send_message(tid, txt)
+                except Exception:
+                    pass
+
+        await asyncio.gather(*[_send(tid, txt) for tid, txt in notifications])
+
+    updated_count = len(tasks_to_update)
+
+    stats_text = "✅ Yangilash tugadi!\n\n📊 Statistika:\n"
     stats_text += f"• Qayta hisoblangan testlar: {updated_count} ta\n"
     stats_text += f"• Jami baholangan testlar: {len(tasks)} ta\n"
     if deadline_penalty_count > 0:
         stats_text += f"• ⚠️ Deadline dan keyin (80% ball): {deadline_penalty_count} ta\n"
     stats_text += "\n"
-    
+
     if grade_changes:
         stats_text += f"📋 Baho o'zgargan studentlar ({len(grade_changes)} ta):\n"
-        for change in grade_changes[:10]:  # Faqat birinchi 10 tasini ko'rsatamiz
+        for change in grade_changes[:10]:
             symbol = "📈" if change['diff'] > 0 else "📉"
             late_mark = " ⚠️" if change.get('is_late', False) else ""
             stats_text += f"{symbol} {change['student']}: {change['old']} → {change['new']} ({change['diff']:+d} ball){late_mark}\n"
-        
         if len(grade_changes) > 10:
             stats_text += f"\n... va yana {len(grade_changes) - 10} ta student"
-    
+
     await message.answer(stats_text)
-    
-    # State ni tozalaymiz
     await state.finish()
 
 
@@ -992,46 +2179,27 @@ async def process_topic_title(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(lambda c: c.data == "skip_deadline", state=AddTopicState.waiting_for_title)
 async def skip_deadline(callback: types.CallbackQuery, state: FSMContext):
-    """Deadline ni o'tkazib yuborish va mavzuni yaratish"""
+    """Deadline ni o'tkazib yuborish va show_detailed_results so'rash"""
     if str(callback.from_user.id) not in ADMINS:
         await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
         return
-    
-    data = await state.get_data()
-    course_id = data['course_id']
-    course_name = data['course_name']
-    title = data['title']
-    
-    # Mavzuni API orqali yaratish
-    async with aiohttp.ClientSession() as session:
-        payload = {
-            "course_id": course_id,
-            "title": title,
-            "is_active": False  # Default: inactive
-        }
-        
-        async with session.post(f"{API_BASE_URL}/topics/create/", json=payload) as resp:
-            if resp.status == 201:
-                topic_data = await resp.json()
-                topic_id = topic_data['id']
-                
-                await callback.message.edit_text(
-                    f"✅ Yangi mavzu muvaffaqiyatli yaratildi!\n\n"
-                    f"📚 Kurs: {course_name}\n"
-                    f"📝 Mavzu: {title}\n"
-                    f"🆔 ID: {topic_id}\n"
-                    f"📅 Deadline: Yo'q\n"
-                    f"🔴 Status: Inactive\n\n"
-                    f"Mavzuni active qilish uchun: /activate {topic_id}"
-                )
-                
-                await state.finish()
-                await callback.answer("✅ Mavzu yaratildi!", show_alert=False)
-            else:
-                error_text = await resp.text()
-                await callback.message.edit_text(f"❌ Xatolik yuz berdi:\n{error_text}")
-                await state.finish()
-                await callback.answer("❌ Xatolik!", show_alert=True)
+
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton(text="✅ Ha", callback_data="detailed_yes"),
+        InlineKeyboardButton(text="❌ Yo'q", callback_data="detailed_no")
+    )
+
+    await callback.message.edit_text(
+        "📊 Batafsil natijalarni ko'rsatish?\n\n"
+        "Agar <b>Ha</b> deb tanlasangiz, talabalar testni topshirgandan so'ng har bir savol to'g'ri/noto'g'ri ekanligini ko'radi.\n\n"
+        "Agar <b>Yo'q</b> deb tanlasangiz, faqat umumiy natija (umumiy ball) ko'rinadi.",
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+    await AddTopicState.waiting_for_detailed_results.set()
+    await callback.answer()
 
 
 @dp.callback_query_handler(lambda c: c.data == "set_deadline", state=AddTopicState.waiting_for_title)
@@ -1085,41 +2253,82 @@ async def process_deadline(message: types.Message, state: FSMContext):
         )
         return
     
-    data = await state.get_data()
-    course_id = data['course_id']
-    course_name = data['course_name']
-    title = data['title']
-    
-    # Mavzuni API orqali yaratish
-    async with aiohttp.ClientSession() as session:
-        payload = {
-            "course_id": course_id,
-            "title": title,
-            "deadline": deadline_iso,
-            "is_active": False  # Default: inactive
-        }
-        
-        async with session.post(f"{API_BASE_URL}/topics/create/", json=payload) as resp:
-            if resp.status == 201:
-                topic_data = await resp.json()
-                topic_id = topic_data['id']
-                
-                # Deadline ni odam tushunadigan formatga o'zgartirish
-                deadline_readable = dt.strftime("%d.%m.%Y %H:%M")
-                
-                await message.answer(
-                    f"✅ Yangi mavzu muvaffaqiyatli yaratildi!\n\n"
-                    f"📚 Kurs: {course_name}\n"
-                    f"📝 Mavzu: {title}\n"
-                    f"🆔 ID: {topic_id}\n"
-                    f"📅 Deadline: {deadline_readable}\n"
-                    f"🔴 Status: Inactive\n\n"
-                    f"Mavzuni active qilish uchun: /activate {topic_id}"
-                )
-                
-                await state.finish()
-            else:
-                error_text = await resp.text()
-                await message.answer(f"❌ Xatolik yuz berdi:\n{error_text}")
-                await state.finish()
+    # Deadline ni odam tushunadigan formatga o'zgartirish
+    deadline_readable = dt.strftime("%d.%m.%Y %H:%M")
 
+    await state.update_data(deadline_iso=deadline_iso, deadline_readable=deadline_readable)
+
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton(text="✅ Ha", callback_data="detailed_yes"),
+        InlineKeyboardButton(text="❌ Yo'q", callback_data="detailed_no")
+    )
+
+    await message.answer(
+        f"✅ Deadline: {deadline_readable}\n\n"
+        "📊 Batafsil natijalarni ko'rsatish?\n\n"
+        "Agar <b>Ha</b> deb tanlasangiz, talabalar testni topshirgandan so'ng har bir savol to'g'ri/noto'g'ri ekanligini ko'radi.\n\n"
+        "Agar <b>Yo'q</b> deb tanlasangiz, faqat umumiy natija (umumiy ball) ko'rinadi.",
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+    await AddTopicState.waiting_for_detailed_results.set()
+
+
+@dp.callback_query_handler(lambda c: c.data in ("detailed_yes", "detailed_no"), state=AddTopicState.waiting_for_detailed_results)
+async def process_detailed_results(callback: types.CallbackQuery, state: FSMContext):
+    """show_detailed_results tanlash va mavzuni yaratish"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    await callback.answer()
+
+    show_detailed = callback.data == "detailed_yes"
+    data = await state.get_data()
+    course_id = data.get('course_id')
+    course_name = data.get('course_name')
+    title = data.get('title')
+    deadline_iso = data.get('deadline_iso')
+    deadline_readable = data.get('deadline_readable', "Yo'q")
+
+    if not course_id or not title:
+        await callback.message.answer("❌ Ma'lumotlar topilmadi. Qaytadan boshlang.")
+        await state.finish()
+        return
+
+    payload = {
+        "course_id": course_id,
+        "title": title,
+        "is_active": False,
+        "show_detailed_results": show_detailed,
+    }
+    if deadline_iso:
+        payload["deadline"] = deadline_iso
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{API_BASE_URL}/topics/create/", json=payload) as resp:
+                if resp.status == 201:
+                    topic_data = await resp.json()
+                    topic_id = topic_data['id']
+                    detailed_label = "✅ Ha" if show_detailed else "❌ Yo'q"
+
+                    await callback.message.edit_text(
+                        f"✅ Yangi mavzu muvaffaqiyatli yaratildi!\n\n"
+                        f"📚 Kurs: {course_name}\n"
+                        f"📝 Mavzu: {title}\n"
+                        f"🆔 ID: {topic_id}\n"
+                        f"📅 Deadline: {deadline_readable}\n"
+                        f"📊 Batafsil natijalar: {detailed_label}\n"
+                        f"🔴 Status: Inactive\n\n"
+                        f"Mavzuni active qilish uchun: /activate {topic_id}"
+                    )
+                else:
+                    error_text = await resp.text()
+                    await callback.message.edit_text(f"❌ Xatolik yuz berdi (status {resp.status}):\n{error_text[:300]}")
+    except Exception as e:
+        await callback.message.answer(f"❌ Xatolik: {e}")
+    finally:
+        await state.finish()

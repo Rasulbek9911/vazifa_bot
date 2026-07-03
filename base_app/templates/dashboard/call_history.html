@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call tarixi</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+  .navbar { background: #4a148c; }
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  table thead th { background: #f8f9fa; font-weight: 600; font-size: .85rem; color: #555; }
+  table tbody tr:hover { background: #f5f5f5; }
+  .result-badge { border-radius: 20px; padding: 2px 10px; font-size: .78rem; font-weight: 600; }
+  .res-answered    { background: #d4edda; color: #155724; }
+  .res-not_answered{ background: #f8d7da; color: #721c24; }
+  .res-callback    { background: #fff3cd; color: #856404; }
+  .res-other       { background: #e9ecef; color: #495057; }
+  .note-text { font-size: .82rem; color: #555; font-style: italic; }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3 py-2 mb-4">
+  <a href="/dashboard/" class="navbar-brand fw-bold">← Call tarixi</a>
+  <span class="text-white-50 small">Jami: {{ total_count }} ta</span>
+</nav>
+
+<div class="container-fluid px-4">
+
+  <!-- Operator statistikasi -->
+  {% if op_stats %}
+  <div class="card mb-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">Operator</th>
+              <th class="text-center">Bugun</th>
+              <th class="text-center">Hafta</th>
+              <th class="text-center">Jami</th>
+              <th class="text-center">✅ Ko'tardi</th>
+              <th class="text-center pe-3">📵 Ko'tarmadi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for op in op_stats %}
+            <tr>
+              <td class="ps-3 align-middle fw-semibold">
+                {% if op.operator__first_name %}{{ op.operator__first_name }} {{ op.operator__last_name }}{% else %}{{ op.operator__username }}{% endif %}
+                <a href="?operator_id={{ op.operator__id }}" class="text-muted ms-1 small">→</a>
+              </td>
+              <td class="text-center align-middle">
+                <span class="badge {% if op.today > 0 %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill">{{ op.today }}</span>
+              </td>
+              <td class="text-center align-middle">
+                <span class="badge bg-info text-dark rounded-pill">{{ op.this_week }}</span>
+              </td>
+              <td class="text-center align-middle fw-bold">{{ op.total }}</td>
+              <td class="text-center align-middle text-success fw-semibold">{{ op.answered }}</td>
+              <td class="text-center align-middle text-danger pe-3 fw-semibold">{{ op.not_answered }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filter -->
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Operator</label>
+          <select name="operator_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Hammasi —</option>
+            {% for op in operators %}
+              <option value="{{ op.id }}" {% if selected_operator == op.id|stringformat:"s" %}selected{% endif %}>
+                {{ op.get_full_name|default:op.username }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Natija</label>
+          <select name="result" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Hammasi —</option>
+            {% for val, label in result_choices %}
+              <option value="{{ val }}" {% if result_filter == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Sana</label>
+          <input type="date" name="date" class="form-control form-control-sm" value="{{ date_filter }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Qidiruv</label>
+          <input type="text" name="q" class="form-control form-control-sm" placeholder="Ism..." value="{{ request.GET.q }}">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">Qidir</button>
+        </div>
+        {% if selected_operator or result_filter or date_filter or request.GET.q %}
+        <div class="col-auto">
+          <a href="/calls/" class="btn btn-outline-secondary btn-sm">✕ Tozalash</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Jadval -->
+  <div class="card">
+    <div class="card-body p-0">
+      {% if page.object_list %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">#</th>
+              <th>Operator</th>
+              <th>Student</th>
+              <th>Sana/Vaqt</th>
+              <th>Natija</th>
+              <th class="pe-3">Izoh</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ch in page.object_list %}
+            <tr>
+              <td class="ps-3 text-muted small align-middle">{{ forloop.counter }}</td>
+              <td class="align-middle fw-semibold">
+                {{ ch.operator.get_full_name|default:ch.operator.username }}
+              </td>
+              <td class="align-middle">
+                <div class="fw-semibold">{{ ch.student.full_name }}</div>
+                {% if ch.student.phone %}<div class="text-muted small">{{ ch.student.phone }}</div>{% endif %}
+              </td>
+              <td class="align-middle text-muted small">{{ ch.called_at|date:"d.m.Y H:i" }}</td>
+              <td class="align-middle">
+                <span class="result-badge res-{{ ch.result }}">
+                  {% if ch.result == 'answered' %}✅ Ko'tardi
+                  {% elif ch.result == 'not_answered' %}📵 Ko'tarmadi
+                  {% elif ch.result == 'callback' %}🔄 Qayta
+                  {% else %}— Boshqa
+                  {% endif %}
+                </span>
+              </td>
+              <td class="pe-3 align-middle note-text">{{ ch.note|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem">📞</div>
+        <div class="mt-2">Hech qanday natija topilmadi</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if paginator.num_pages > 1 %}
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small">{{ page.start_index }}–{{ page.end_index }} / {{ total_count }} ta</div>
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}&operator_id={{ selected_operator }}&result={{ result_filter }}&date={{ date_filter }}&q={{ request.GET.q }}">‹</a></li>
+        {% endif %}
+        {% for num in paginator.page_range %}
+          {% if page.number == num %}
+            <li class="page-item active"><span class="page-link" style="background:#4a148c;border-color:#4a148c">{{ num }}</span></li>
+          {% elif num >= page.number|add:"-2" and num <= page.number|add:"2" %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&operator_id={{ selected_operator }}&result={{ result_filter }}&date={{ date_filter }}&q={{ request.GET.q }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}&operator_id={{ selected_operator }}&result={{ result_filter }}&date={{ date_filter }}&q={{ request.GET.q }}">›</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

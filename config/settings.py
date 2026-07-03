@@ -26,7 +26,9 @@ SECRET_KEY = "django-insecure-axqgte^q+)6!x=i0r2@^2ckd^jix2p!*e4=ug*eq-!cb^b5)xe
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["45.138.159.37", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["45.138.159.37", "localhost", "127.0.0.1","185.191.141.71","matematikapro.uz","vazifa.matematikapro.uz","10.10.1.3"]
+
+LOGIN_REDIRECT_URL = "/"
 
 
 # Application definition
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "base_app",
 ]
 
@@ -81,9 +84,9 @@ DATABASES = {
         "NAME": "vazifa_bot",  # Database nomi
         "USER": "vazifa_user",  # PostgreSQL user
         "PASSWORD": "vazifa_bot_2025",  # User paroli
-        "HOST": "localhost",  # Database server manzili (local serverda)
-        "PORT": "5432",  # PostgreSQL default porti
-        "CONN_MAX_AGE": 600,  # Connection pooling: 10 daqiqa connection reuse
+        "HOST": "localhost",  # PgBouncer orqali
+        "PORT": "6432",  # PgBouncer port (PostgreSQL 5432 emas)
+        "CONN_MAX_AGE": 0,  # Har bir request uchun yangi connection (bot uchun xavfsiz)
         "OPTIONS": {
             "connect_timeout": 10,  # Connection timeout: 10 soniya
         },
@@ -142,3 +145,28 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Admin panel uchun ko'p tasklar bilan ishlash
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
+LOGIN_URL = '/mng-panel/login/'
+
+# Session va CSRF sozlamalari (HTTP orqali ishlaydi)
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 86400  # 1 kun
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = [
+    "http://185.191.141.71",
+    "https://185.191.141.71",
+    "http://vazifa.matematikapro.uz",
+    "https://vazifa.matematikapro.uz",
+    "http://10.10.1.3",
+    "https://10.10.1.3",
+]
+
+# DRF — bot API uchun session auth o'chirilgan (CSRF kerak emas)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
+}

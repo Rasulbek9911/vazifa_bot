@@ -1,8 +1,10 @@
 """
-Scheduled tasks: weekly reports, unsubmitted task warnings
+Scheduled tasks: weekly reports, unsubmitted task warnings, attendance CSV
 """
 import aiohttp
 import logging
+from datetime import datetime, timedelta
+import pytz
 from data.config import ADMINS, API_BASE_URL
 from loader import bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -18,6 +20,14 @@ async def send_weekly_reports():
     """Har hafta guruh bo'yicha PDF report yuborish (faqat active mavzu bo'lsa)"""
     logger.info("📊 Haftalik report yuborish jarayoni boshlandi")
     try:
+        from base_app.models import Topic
+        from django.db import close_old_connections
+        close_old_connections()
+        active_count = await sync_to_async(Topic.objects.filter(is_active=True).count)()
+        if active_count == 0:
+            logger.info("ℹ️ Active mavzular yo'q — haftalik report yuborilmadi")
+            return
+
         timeout = aiohttp.ClientTimeout(total=60)  # 60 sekund timeout
         async with aiohttp.ClientSession(timeout=timeout) as session:
             # Guruhlarni olib kelamiz
@@ -83,16 +93,21 @@ async def send_unsubmitted_warnings():
 
         close_old_connections()
 
+        active_count = await sync_to_async(Topic.objects.filter(is_active=True).count)()
+        if active_count == 0:
+            logger.info("ℹ️ Active mavzular yo'q — eslatma yuborilmadi")
+            return
+
         # ⚡ OPTIMIZATSIYA: Barcha ma'lumotlarni bitta querysetda prefetch qilamiz
         students = await sync_to_async(list)(
-            Student.objects.all()
+            Student.objects.filter(is_blocked=False)
             .prefetch_related('groups__course')
-            .only('id', 'telegram_id', 'full_name')
+            .only('id', 'telegram_id', 'full_name', 'phone')
         )
         
-        # Active topiclarni bir marta olamiz (har student uchun qayta-qayta emas)
+        # Active topiclarni bir marta olamiz — faqat faol kurslar (har student uchun qayta-qayta emas)
         active_topics = await sync_to_async(list)(
-            Topic.objects.filter(is_active=True)
+            Topic.objects.filter(is_active=True, course__is_active=True)
             .select_related('course')
             .only('id', 'title', 'deadline', 'correct_answers', 'course')
         )
@@ -119,10 +134,8 @@ async def send_unsubmitted_warnings():
                 # Student kurslarini yig'amiz
                 student_courses = set()
                 for grp in all_groups:
-                    if grp.course:
+                    if grp.course and grp.course.is_active:
                         student_courses.add(grp.course.code)
-                    elif grp.course_type:
-                        student_courses.add(grp.course_type)
                 
                 if not student_courses:
                     continue
@@ -176,11 +189,11 @@ async def send_unsubmitted_warnings():
                     await safe_send_message(student_tg_id, msg)
                     logger.info(f"✅ Student {student_full_name} ({student_tg_id}) ga eslatma yuborildi")
                     
-                    # 3 tadan ko'p bo'lsa, admin uchun yig'ma hisobotga qo'shamiz
-                    if len(unsubmitted) >= 3:
+                    if len(unsubmitted) >= 1:
                         students_with_unsubmitted.append({
                             'full_name': student_full_name,
                             'telegram_id': student_tg_id,
+                            'phone': student.phone,
                             'unsubmitted_count': len(unsubmitted),
                             'unsubmitted_info': unsubmitted_info
                         })
@@ -189,30 +202,37 @@ async def send_unsubmitted_warnings():
                 continue
         
         # ✨ YANGI: Barcha studentlar uchun yig'ma hisobot adminlarga yuborish
-        # Admin uchun yig'ma hisobotni yuborish (har 20 student)
         if students_with_unsubmitted:
-            batch_size = 20
-            for i in range(0, len(students_with_unsubmitted), batch_size):
-                batch = students_with_unsubmitted[i:i+batch_size]
-                msg = f"🚨 <b>Vazifa topshirmaganlar hisobot (batch {i//batch_size+1})</b>\n\n"
-                for s in batch:
-                    msg += f"<b>{s['full_name']}</b> (<code>{s['telegram_id']}</code>) - <b>{s['unsubmitted_count']}</b> ta\n"
-                    for info in s['unsubmitted_info']:
-                        msg += f"  • {info['title']}"
-                        if info['deadline']:
-                            msg += f" (Deadline: {info['deadline'].strftime('%d.%m.%Y %H:%M')})"
-                        msg += "\n"
-                    # Chatga o'tish tugmasi
-                    msg += f"<a href='tg://user?id={s['telegram_id']}'>Chatga o'tish</a>\n\n"
-                # Inline tugma emas, HTML link
-                for admin_id in ADMINS:
-                    try:
-                        # Admin ID ni integer ga o'tkazish
-                        admin_id_int = int(admin_id)
-                        await bot.send_message(admin_id_int, msg, parse_mode="HTML", disable_web_page_preview=True)
-                        logger.info(f"✅ Admin {admin_id} ga yig'ma hisobot yuborildi")
-                    except Exception as e:
-                        logger.error(f"⚠️ Admin {admin_id} ga yig'ma hisobot yuborishda xatolik: {e}", exc_info=True)
+            import io
+            from aiogram.types import InputFile
+            from datetime import datetime as dt
+
+            lines = [f"Vazifa topshirmaganlar — {dt.now().strftime('%d.%m.%Y %H:%M')}\n"]
+            lines.append(f"Jami: {len(students_with_unsubmitted)} ta student\n")
+            lines.append("=" * 50 + "\n")
+            for idx, s in enumerate(students_with_unsubmitted, 1):
+                phone_str = s['phone'] if s['phone'] else "—"
+                lines.append(f"{idx}. {s['full_name']}\n")
+                lines.append(f"   Telegram: {s['telegram_id']} | Tel: {phone_str}\n")
+                lines.append(f"   Topshirilmagan: {s['unsubmitted_count']} ta\n")
+                for info in s['unsubmitted_info']:
+                    deadline_str = f" (Deadline: {info['deadline'].strftime('%d.%m.%Y %H:%M')})" if info['deadline'] else ""
+                    lines.append(f"   - {info['title']}{deadline_str}\n")
+                lines.append("\n")
+
+            file_content = "".join(lines).encode("utf-8")
+            caption = f"🚨 Vazifa topshirmaganlar: <b>{len(students_with_unsubmitted)} ta</b>"
+
+            for admin_id in ADMINS:
+                try:
+                    admin_id_int = int(admin_id)
+                    file_obj = io.BytesIO(file_content)
+                    file_obj.name = f"topshirmaganlar_{dt.now().strftime('%Y%m%d')}.txt"
+                    await bot.send_document(admin_id_int, InputFile(file_obj, filename=file_obj.name),
+                                            caption=caption, parse_mode="HTML")
+                    logger.info(f"✅ Admin {admin_id} ga fayl hisobot yuborildi")
+                except Exception as e:
+                    logger.error(f"⚠️ Admin {admin_id} ga fayl yuborishda xatolik: {e}", exc_info=True)
         
         logger.info(f"⚠️ Vazifa topshirmaganlarga eslatma yakunlandi: {len(students_with_unsubmitted)} student uchun hisobot yuborildi")
     except Exception as e:
@@ -370,7 +390,7 @@ async def send_deadline_results():
             logger.info(f"  ✅ {topic_title} uchun natijalar yuborildi")
         
         logger.info(f"📊 Deadline natijalarini yuborish yakunlandi: {total_sent} yuborildi, {total_errors} xato")
-        
+
         # Adminga hisobot
         if total_sent > 0:
             report_msg = (
@@ -384,6 +404,129 @@ async def send_deadline_results():
                     await bot.send_message(int(admin_id), report_msg, parse_mode="HTML")
                 except Exception as e:
                     logger.error(f"⚠️ Admin {admin_id} ga hisobot yuborishda xatolik: {e}")
-        
+
     except Exception as e:
         logger.error(f"❌ Deadline natijalarini yuborishda critical xatolik: {e}", exc_info=True)
+
+
+# ─── Har 2 kunda 21:00 — followup eslatma ────────────────────────────────────
+
+async def send_followup_reminders():
+    """Qo'ng'iroq qilingan lekin hali vazifa bajarmaganlar haqida eslatma"""
+    logger.info("📞 Followup eslatmalari tekshirish boshlandi")
+    try:
+        from base_app.models import FollowUp, Task, Topic
+        from django.db import close_old_connections
+        close_old_connections()
+
+        # Barcha qo'ng'iroq qilingan followuplar (bloklangan studentlar tashqari)
+        followups = await sync_to_async(list)(
+            FollowUp.objects.filter(called_at__isnull=False, student__is_blocked=False)
+            .select_related('student')
+        )
+
+        if not followups:
+            logger.info("ℹ️ Hech qanday followup yozuvi yo'q")
+            return
+
+        # Active topiclar IDlari
+        active_topic_ids = await sync_to_async(
+            lambda: list(Topic.objects.filter(is_active=True, course__is_active=True).values_list('id', flat=True))
+        )()
+
+        if not active_topic_ids:
+            logger.info("ℹ️ Active mavzular yo'q")
+            return
+
+        import pytz
+        local_tz = pytz.timezone('Asia/Tashkent')
+
+        still_not_done = []
+        for fu in followups:
+            submitted_ids = await sync_to_async(
+                lambda s=fu.student: set(
+                    Task.objects.filter(student=s, topic_id__in=active_topic_ids).values_list('topic_id', flat=True)
+                )
+            )()
+            unsubmitted_count = len(set(active_topic_ids) - submitted_ids)
+            if unsubmitted_count >= 3:
+                from django.utils import timezone as tz
+                days_since = (tz.now() - fu.called_at).days
+                still_not_done.append({
+                    'name': fu.student.full_name,
+                    'phone': fu.student.phone or '—',
+                    'days_since': days_since,
+                    'unsubmitted_count': unsubmitted_count,
+                    'note': fu.note,
+                    'called_at': fu.called_at.astimezone(local_tz).strftime('%d.%m.%Y'),
+                })
+
+        if not still_not_done:
+            logger.info("✅ Barcha qo'ng'iroq qilingan talabalar vazifa bajardi")
+            return
+
+        msg = f"📞 <b>Ogohlantirish eslatmasi</b>\n\n"
+        msg += f"Qo'ng'iroq qilingan, lekin hali vazifa bajarmaganlar:\n\n"
+        for i, item in enumerate(still_not_done, 1):
+            msg += f"{i}. <b>{item['name']}</b>\n"
+            msg += f"   📞 Tel: {item['phone']}\n"
+            msg += f"   ⏰ {item['days_since']} kun oldin qo'ng'iroq qilingan ({item['called_at']})\n"
+            msg += f"   📚 Topshirilmagan: {item['unsubmitted_count']} ta\n"
+            if item['note']:
+                msg += f"   📝 {item['note']}\n"
+            msg += "\n"
+        msg += f"Jami: <b>{len(still_not_done)} ta</b>\n"
+        msg += f"\n🔗 Sahifa: http://vazifa.matematikapro.uz/followup/"
+
+        for admin_id in ADMINS:
+            try:
+                await bot.send_message(int(admin_id), msg, parse_mode="HTML")
+                logger.info(f"✅ Admin {admin_id} ga followup eslatma yuborildi")
+            except Exception as e:
+                logger.error(f"⚠️ Admin {admin_id} ga followup eslatma yuborishda xatolik: {e}")
+
+        logger.info(f"📞 Followup eslatma yakunlandi: {len(still_not_done)} ta talaba")
+    except Exception as e:
+        logger.error(f"❌ Followup eslatma yuborishda critical xatolik: {e}", exc_info=True)
+
+
+# ─── Yakshanba 07:00 — haftalik davomat CSV ───────────────────────────────────
+
+async def send_attendance_csv():
+    """Haftalik davomat hisobotini CSV ko'rinishda adminga yuboradi (Dush–Shan)"""
+    logger.info("📋 Haftalik davomat CSV yuborish boshlandi")
+    try:
+        tz = pytz.timezone("Asia/Tashkent")
+        today = datetime.now(tz)
+        # Yakshanba: oxirgi 7 kunni olish (Dush–Shan)
+        from_dt = (today - timedelta(days=6)).strftime("%Y-%m-%d")
+        to_dt = today.strftime("%Y-%m-%d")
+
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(
+                f"{API_BASE_URL}/attendance/csv/",
+                params={"from": from_dt, "to": to_dt},
+            ) as resp:
+                if resp.status == 200:
+                    csv_bytes = await resp.read()
+                    filename = f"davomat_{from_dt}_{to_dt}.csv"
+                    caption = (
+                        f"📋 <b>Haftalik davomat hisobot</b>\n"
+                        f"📅 {from_dt} — {to_dt}"
+                    )
+                    for admin_id in ADMINS:
+                        try:
+                            await bot.send_document(
+                                int(admin_id),
+                                (filename, csv_bytes),
+                                caption=caption,
+                                parse_mode="HTML",
+                            )
+                            logger.info(f"✅ Admin {admin_id} ga davomat CSV yuborildi")
+                        except Exception as e:
+                            logger.error(f"⚠️ Admin {admin_id} ga CSV yuborishda xatolik: {e}")
+                else:
+                    logger.error(f"❌ CSV olishda xatolik: status={resp.status}")
+    except Exception as e:
+        logger.error(f"❌ Davomat CSV yuborishda critical xatolik: {e}", exc_info=True)

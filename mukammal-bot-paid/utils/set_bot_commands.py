@@ -8,10 +8,7 @@ async def set_default_commands(dp):
     
     # Adminlar uchun
     admin_commands = [
-        types.BotCommand("topics", "O'tilgan mavzuni belgilash"),
-        types.BotCommand("addtest", "Mavzuga test qo'shish"),
-        types.BotCommand("broadcast", "Barcha userlarga xabar yuborish"),
-        # types.BotCommand("help", "Yordam"),
+        types.BotCommand("admin", "Admin panel"),
     ]
     
     for admin_id in ADMINS:

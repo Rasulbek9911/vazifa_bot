@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To'lovlar boshqaruvi</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+  .navbar { background: #1a237e; }
+  .stat-card { border-radius: 12px; padding: 18px 22px; color: #fff; }
+  .stat-card .num { font-size: 1.6rem; font-weight: 700; }
+  .stat-card .lbl { font-size: 0.82rem; opacity: 0.85; }
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .badge-complete { background: #d4edda; color: #155724; border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 600; }
+  .badge-partial  { background: #fff3cd; color: #856404; border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 600; }
+  .badge-unpaid   { background: #f8d7da; color: #721c24; border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 600; }
+  .badge-noplan   { background: #e9ecef; color: #495057; border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 600; }
+  .progress-thin { height: 6px; border-radius: 3px; }
+  table thead th { background: #f8f9fa; font-weight: 600; font-size: .85rem; color: #555; }
+  table tbody tr:hover { background: #f8f9fa; cursor: pointer; }
+  .search-input { border-radius: 8px; border: 1px solid #ddd; }
+  .money { font-weight: 600; font-family: monospace; }
+  .group-tag { display: inline-block; background: #f3e5f5; color: #6a1b9a; border-radius: 6px;
+               padding: 1px 7px; font-size: .75rem; margin: 1px; text-decoration: none; }
+  .group-tag:hover { background: #e1bee7; color: #4a148c; }
+  .btn-tg { background: #229ED9; color: #fff; border-radius: 8px; font-size: .82rem; border: none; padding: 4px 8px; }
+  .btn-tg:hover { background: #1a8bbf; color: #fff; }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3 py-2 mb-4">
+  <span class="navbar-brand fw-bold">💳 To'lovlar boshqaruvi</span>
+  <div class="d-flex gap-2 align-items-center">
+    <a href="/dashboard/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid"></i> Bosh sahifa</a>
+    <a href="/followup/" class="btn btn-outline-light btn-sm">📋 Followup</a>
+    <a href="/calls/" class="btn btn-outline-light btn-sm"><i class="bi bi-clock-history"></i> Tarix</a>
+  </div>
+</nav>
+
+<div class="container-fluid px-4">
+
+  <!-- Statistika -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#1a237e,#283593)">
+        <div class="num">{{ total_students }}</div>
+        <div class="lbl">Jami studentlar</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#2e7d32,#43a047)">
+        <div class="num">{{ complete_count }}</div>
+        <div class="lbl">To'liq to'lagan</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#e65100,#fb8c00)">
+        <div class="num">{{ partial_count }}</div>
+        <div class="lbl">Qisman to'lagan</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#c62828,#e53935)">
+        <div class="num">{{ unpaid_count }}</div>
+        <div class="lbl">To'lamagan</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#00695c,#00897b)">
+        <div class="num">{{ total_paid|floatformat:0 }}</div>
+        <div class="lbl">Kelib tushgan (so'm)</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="background: linear-gradient(135deg,#6a1b9a,#8e24aa)">
+        <div class="num">{{ total_remaining|floatformat:0 }}</div>
+        <div class="lbl">Qolgan (so'm)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card mb-0" style="border-radius: 12px 12px 0 0;">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Kurs</label>
+          <select name="course_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Barcha kurslar —</option>
+            {% for c in courses %}
+              <option value="{{ c.id }}" {% if selected_course_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Guruh</label>
+          <select name="group_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Barcha guruhlar —</option>
+            {% for g in groups %}
+              <option value="{{ g.id }}" {% if selected_group_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Holat</label>
+          <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Barchasi —</option>
+            <option value="complete" {% if status_filter == 'complete' %}selected{% endif %}>✅ To'liq</option>
+            <option value="partial"  {% if status_filter == 'partial'  %}selected{% endif %}>🟡 Qisman</option>
+            <option value="unpaid"   {% if status_filter == 'unpaid'   %}selected{% endif %}>🔴 To'lanmagan</option>
+            <option value="no_plan"  {% if status_filter == 'no_plan'  %}selected{% endif %}>⚫ To'lov qo'shilmagan</option>
+          </select>
+        </div>
+        {% if selected_course_id or selected_group_id or status_filter %}
+        <div class="col-auto">
+          <a href="?" class="btn btn-outline-secondary btn-sm">✕ Tozalash</a>
+        </div>
+        {% endif %}
+        <div class="col-auto ms-auto d-flex gap-2">
+          <input type="text" name="q" value="{{ request.GET.q }}"
+                 class="search-input form-control form-control-sm"
+                 placeholder="🔍 Ism qidirish..." style="width:200px">
+          <button type="submit" class="btn btn-primary btn-sm">Qidir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Jadval -->
+  <div class="card" style="border-radius: 0 0 12px 12px;">
+    <div class="card-body p-0">
+      {% if rows %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">#</th>
+              <th>F.I.Sh</th>
+              <th>Guruh</th>
+              <th>Jami (so'm)</th>
+              <th>To'langan</th>
+              <th>Qolgan</th>
+              <th>Holat</th>
+              <th class="pe-3">Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr onclick="window.location='/payments/{{ row.student.id }}/?course_id={{ row.course.id }}'" style="cursor:pointer">
+              <td class="ps-3 text-muted small align-middle">
+                {% with offset=page.start_index|add:forloop.counter0 %}{{ offset }}{% endwith %}
+              </td>
+              <td class="align-middle fw-semibold">{{ row.student.full_name }}</td>
+              <td class="align-middle">
+                {% for g in row.groups_list %}
+                  {% if g.invite_link %}
+                    <a href="{{ g.invite_link }}" target="_blank" class="group-tag" onclick="event.stopPropagation()">{{ g.name }}</a>
+                  {% else %}
+                    <span class="group-tag">{{ g.name }}</span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td class="align-middle money">
+                {% if row.plan %}{{ row.plan.total_amount|floatformat:0 }}{% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              <td class="align-middle money text-success">
+                {% if row.plan %}{{ row.summary.paid|floatformat:0 }}{% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              <td class="align-middle money text-danger">
+                {% if row.plan %}{{ row.summary.remaining|floatformat:0 }}{% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              <td class="align-middle">
+                {% if row.summary.status == 'complete' %}
+                  <span class="badge-complete">✅ To'liq</span>
+                {% elif row.summary.status == 'partial' %}
+                  <span class="badge-partial">🟡 Qisman</span>
+                  {% if row.plan %}
+                  <div class="progress progress-thin mt-1" style="width:80px">
+                    <div class="progress-bar bg-warning" style="width:{% widthratio row.summary.paid row.plan.total_amount 100 %}%"></div>
+                  </div>
+                  {% endif %}
+                {% elif row.summary.status == 'unpaid' %}
+                  <span class="badge-unpaid">🔴 To'lanmagan</span>
+                {% else %}
+                  <span class="badge-noplan">⚫ To'lov qo'shilmagan</span>
+                {% endif %}
+              </td>
+              <td class="pe-3 align-middle" onclick="event.stopPropagation()">
+                <div class="d-flex gap-1">
+                  <a href="/payments/{{ row.student.id }}/?course_id={{ row.course.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button class="btn-tg btn btn-sm" onclick="openTg({{ row.student.id }})" title="Telegramda yozish">
+                    <i class="bi bi-telegram"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem">💳</div>
+        <div class="mt-2 fw-semibold">Hech qanday natija topilmadi</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if paginator.num_pages > 1 %}
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small">{{ page.start_index }}–{{ page.end_index }} / {{ total_students }} ta</div>
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">‹</a></li>
+        {% endif %}
+        {% for num in paginator.page_range %}
+          {% if page.number == num %}
+            <li class="page-item active"><span class="page-link" style="background:#1a237e;border-color:#1a237e">{{ num }}</span></li>
+          {% elif num >= page.number|add:"-2" and num <= page.number|add:"2" %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">›</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    <div class="text-muted small">{% now "d.m.Y H:i" %}</div>
+  </div>
+  {% endif %}
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+async function openTg(studentId) {
+  try {
+    const res = await fetch(`/followup/tg-link/${studentId}/`);
+    const data = await res.json();
+    if (data.url) window.open(data.url, '_blank');
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

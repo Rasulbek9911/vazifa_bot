@@ -42,23 +42,9 @@ class Course(models.Model):
 
 
 class Group(models.Model):
-    # DEPRECATED: Eski maydon (migration uchun saqlanadi)
-    COURSE_CHOICES = [
-        ('milliy_sert', 'Milliy sertifikat'),
-        ('attestatsiya', 'Attestatsiya'),
-    ]
-    course_type = models.CharField(
-        max_length=20, 
-        choices=COURSE_CHOICES, 
-        null=True,
-        blank=True,
-        help_text="DEPRECATED: Iltimos 'course' dan foydalaning"
-    )
-    
-    # YANGI maydon: Dinamik course
     course = models.ForeignKey(
-        Course, 
-        on_delete=models.PROTECT, 
+        Course,
+        on_delete=models.PROTECT,
         related_name="groups",
         null=True,
         blank=True,
@@ -69,23 +55,41 @@ class Group(models.Model):
     telegram_group_id = models.CharField(
         max_length=50, unique=True, null=True, blank=True, default=None)
     invite_link = models.URLField(max_length=255, null=True, blank=True, default=None)
+    max_students = models.PositiveIntegerField(
+        default=30,
+        help_text="Guruh maksimal talabalar soni"
+    )
+    score_min = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Bu guruhga kiradigan minimal math_score (masalan: 1, 23, 28)"
+    )
+    score_max = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Bu guruhga kiradigan maksimal math_score (masalan: 22, 27, 35)"
+    )
     is_full = models.BooleanField(
-        default=True, 
-        help_text="Guruh to'lganmi (50/50)"
+        default=False,
+        help_text="Guruh to'lganmi (avtomatik hisoblanadi)"
     )
 
     def __str__(self):
         if self.course:
             return f"{self.name} ({self.course.name})"
-        elif self.course_type:
-            return f"{self.name} ({self.get_course_type_display()})"
         return self.name
 
 
 class Student(models.Model):
     telegram_id = models.CharField(max_length=50, unique=True)
     full_name = models.CharField(max_length=255)
-    
+    viloyat = models.CharField(max_length=100, blank=True, default='')
+    tuman = models.CharField(max_length=100, blank=True, default='')
+    phone = models.CharField(max_length=20, blank=True, default='')
+    math_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_blocked = models.BooleanField(
+        default=False,
+        help_text="True bo'lsa student botda vazifa yubora olmaydi"
+    )
+
     # Ko'p guruh (ko'p kurs) uchun
     groups = models.ManyToManyField(
         Group, related_name="enrolled_students", blank=True,
@@ -105,13 +109,10 @@ class Student(models.Model):
         return list(self.groups.all())
     
     def get_all_courses(self):
-        """Barcha kurslarni qaytarish"""
         courses = set()
         for grp in self.groups.all():
             if grp.course:
                 courses.add(grp.course.code)
-            elif grp.course_type:
-                courses.add(grp.course_type)
         return list(courses)
 
 
@@ -143,12 +144,20 @@ class Topic(models.Model):
         default=False,
         help_text="True bo'lsa - har bir savol to'g'ri/noto'g'ri ko'rinadi. False bo'lsa - faqat umumiy natija"
     )
+    activated_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="is_active=True bo'lgan vaqt (streak hisoblash uchun)"
+    )
+
+    def save(self, *args, **kwargs):
+        if self.is_active and self.activated_at is None:
+            from django.utils import timezone
+            self.activated_at = timezone.now()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.course:
             return f"{self.title} ({self.course.name})"
-        elif self.course_type:
-            return f"{self.title} ({self.get_course_type_display()})"
         return self.title
 
 
@@ -188,6 +197,43 @@ class Task(models.Model):
         return f"{self.student.full_name} → {self.topic.title} ({self.get_task_type_display()}) ({self.grade or 'Baholanmagan'})"
 
 
+class AttendanceSession(models.Model):
+    """Admin har dars uchun ochgan davomat sessiyasi"""
+    code = models.CharField(max_length=20)
+    created_by = models.CharField(max_length=50, help_text="Admin telegram_id")
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(help_text="Sessiya tugash vaqti")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Davomat sessiyasi"
+        verbose_name_plural = "Davomat sessiyalari"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Sessiya {self.code} ({self.created_at.strftime('%d.%m.%Y %H:%M')})"
+
+
+class Attendance(models.Model):
+    """Talabaning davomat yozuvi"""
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name="attendances"
+    )
+    session = models.ForeignKey(
+        AttendanceSession, on_delete=models.CASCADE, related_name="attendances"
+    )
+    marked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "session")
+        verbose_name = "Davomat"
+        verbose_name_plural = "Davomatlar"
+        ordering = ["-marked_at"]
+
+    def __str__(self):
+        return f"{self.student.full_name} — {self.session.code} ({self.marked_at.strftime('%d.%m.%Y %H:%M')})"
+
+
 class InviteCode(models.Model):
     code = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
     created_by = models.CharField(max_length=50)  # Admin telegram_id
@@ -198,3 +244,187 @@ class InviteCode(models.Model):
 
     def __str__(self):
         return f"{self.code} - {'Ishlatilgan' if self.is_used else 'Yangi'}"
+
+
+class FollowUp(models.Model):
+    """Admin qo'ng'iroq qilgan talabalar ro'yxati"""
+    student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='followup')
+    called_at = models.DateTimeField(null=True, blank=True)
+    called_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='followup_calls', help_text="Oxirgi qo'ng'iroq qilgan operator"
+    )
+    locked_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='followup_locks', help_text="Hozir ishlayotgan operator"
+    )
+    locked_until = models.DateTimeField(null=True, blank=True, help_text="Blok tugash vaqti")
+    note = models.TextField(blank=True, default='')
+    topic_ids_at_call = models.JSONField(null=True, blank=True, default=None,
+        help_text="Qo'ng'iroq vaqtidagi topshirilmagan mavzular ID ro'yxati")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Ogohlantirish"
+        verbose_name_plural = "Ogohlantirishlar"
+        ordering = ['-called_at']
+
+    def is_locked(self):
+        from django.utils import timezone
+        return self.locked_by_id and self.locked_until and self.locked_until > timezone.now()
+
+    def __str__(self):
+        status = f"qo'ng'iroq qilindi ({self.called_at.strftime('%d.%m.%Y')})" if self.called_at else "qo'ng'iroq qilinmagan"
+        return f"{self.student.full_name} — {status}"
+
+
+class CallHistory(models.Model):
+    """Har bir qo'ng'iroq urinishi tarixi"""
+    RESULT_CHOICES = [
+        ('answered', 'Javob berdi'),
+        ('not_answered', 'Ko\'tarmadi'),
+        ('callback', 'Keyinroq qo\'ng\'iroq qiladi'),
+        ('other', 'Boshqa'),
+    ]
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='call_history')
+    operator = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, related_name='call_history'
+    )
+    called_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(blank=True, default='')
+    result = models.CharField(max_length=20, choices=RESULT_CHOICES, default='answered')
+
+    class Meta:
+        verbose_name = "Qo'ng'iroq tarixi"
+        verbose_name_plural = "Qo'ng'iroq tarixi"
+        ordering = ['-called_at']
+
+    def __str__(self):
+        op = self.operator.get_full_name() or self.operator.username if self.operator else '?'
+        return f"{self.student.full_name} ← {op} ({self.called_at.strftime('%d.%m.%Y %H:%M')})"
+
+
+class CoinWallet(models.Model):
+    """Student uchun kurs bo'yicha tanga hamyoni"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="coin_wallets")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="coin_wallets")
+    total_coins = models.PositiveIntegerField(default=0)
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    last_topic = models.ForeignKey(
+        Topic, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    last_submitted_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Foydalanuvchi oxirgi topshirgan vaqt (streak batch aniqlash uchun)"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("student", "course")
+        verbose_name = "Tanga hamyoni"
+        verbose_name_plural = "Tanga hamyonlari"
+        ordering = ["-total_coins"]
+
+    def __str__(self):
+        return f"{self.student.full_name} — {self.course.name}: {self.total_coins} tanga"
+
+
+class CoinTransaction(models.Model):
+    """Har bir tanga berilganda log"""
+    wallet = models.ForeignKey(CoinWallet, on_delete=models.CASCADE, related_name="transactions")
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="coin_transactions")
+    task_type = models.CharField(max_length=20, default='test')
+    result_coins = models.PositiveIntegerField(default=0)
+    streak_coins = models.PositiveIntegerField(default=0)
+    total_coins = models.PositiveIntegerField(default=0)
+    streak_after = models.PositiveIntegerField(default=0)
+    deadline_penalty = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("wallet", "topic", "task_type")
+        verbose_name = "Tanga tranzaksiyasi"
+        verbose_name_plural = "Tanga tranzaksiyalari"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.wallet.student.full_name} +{self.total_coins} tanga ({self.topic.title})"
+
+
+class PaymentPlan(models.Model):
+    """Har bir student uchun kurs bo'yicha jami to'lashi kerak summa"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payment_plans')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='payment_plans')
+    total_amount = models.PositiveIntegerField(help_text="Jami to'lashi kerak summa (so'm)")
+    note = models.TextField(blank=True, default='', help_text="Izoh (chegirma, maxsus narx va h.k.)")
+    created_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, related_name='created_plans'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'course')
+        verbose_name = "To'lov rejasi"
+        verbose_name_plural = "To'lov rejalari"
+        ordering = ['-created_at']
+
+    def paid_total(self):
+        return sum(p.amount for p in self.payments.all())
+
+    def remaining(self):
+        return max(0, self.total_amount - self.paid_total())
+
+    def is_complete(self):
+        return self.paid_total() >= self.total_amount
+
+    def status(self):
+        paid = self.paid_total()
+        if paid == 0:
+            return 'unpaid'
+        if paid >= self.total_amount:
+            return 'complete'
+        return 'partial'
+
+    def __str__(self):
+        return f"{self.student.full_name} — {self.course.name}: {self.total_amount:,} so'm"
+
+
+class Payment(models.Model):
+    """Har bir to'lov yozuvi"""
+    plan = models.ForeignKey(PaymentPlan, on_delete=models.CASCADE, related_name='payments')
+    amount = models.PositiveIntegerField(help_text="To'langan summa (so'm)")
+    paid_at = models.DateField(help_text="To'lov sanasi")
+    note = models.TextField(blank=True, default='')
+    entered_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, related_name='entered_payments'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "To'lov"
+        verbose_name_plural = "To'lovlar"
+        ordering = ['-paid_at', '-created_at']
+
+    def __str__(self):
+        return f"{self.plan.student.full_name}: {self.amount:,} so'm ({self.paid_at})"
+
+
+class OperatorProfile(models.Model):
+    """Operator uchun qo'shimcha profil — biriktirilgan guruhlar"""
+    user = models.OneToOneField(
+        'auth.User', on_delete=models.CASCADE, related_name='operator_profile'
+    )
+    assigned_groups = models.ManyToManyField(
+        Group, blank=True, related_name='operators',
+        verbose_name='Biriktirilgan guruhlar'
+    )
+
+    class Meta:
+        verbose_name = "Operator profili"
+        verbose_name_plural = "Operator profillari"
+
+    def __str__(self):
+        return f"{self.user.username} — operator profili"

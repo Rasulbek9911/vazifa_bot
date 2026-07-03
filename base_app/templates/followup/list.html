@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vazifa bajarmaganlar — Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+  .navbar { background: #1a237e; }
+  .stat-card { border-radius: 12px; padding: 20px 24px; color: #fff; }
+  .stat-card .num { font-size: 2rem; font-weight: 700; }
+  .stat-card .lbl { font-size: 0.85rem; opacity: 0.85; }
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .topic-tag { display: inline-block; background: #e3f2fd; color: #0d47a1; border-radius: 6px;
+               padding: 2px 8px; font-size: .78rem; margin: 2px; }
+  .btn-call { background: #1a237e; color: #fff; border-radius: 8px; font-size: .85rem; }
+  .btn-call:hover { background: #283593; color: #fff; }
+  .btn-uncall { background: transparent; color: #888; border: 1px solid #ddd; border-radius: 8px; font-size: .82rem; }
+  .btn-uncall:hover { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+  .btn-tg { background: #229ED9; color: #fff; border-radius: 8px; font-size: .82rem; }
+  .btn-tg:hover { background: #1a8bbf; color: #fff; }
+  .btn-locked { background: #e0e0e0; color: #888; border-radius: 8px; font-size: .82rem; cursor: not-allowed; }
+  .btn-warn { background: #ff8f00; color: #fff; border-radius: 8px; font-size: .85rem; }
+  .btn-warn:hover { background: #e65100; color: #fff; }
+  .note-text { font-size: .8rem; color: #666; font-style: italic; margin-top: 3px; }
+  .called-at { font-size: .78rem; color: #155724; }
+  .days-badge { display: inline-block; background: #fff3cd; color: #856404; border-radius: 10px;
+                padding: 1px 8px; font-size: .75rem; font-weight: 600; }
+  .days-badge.danger { background: #f8d7da; color: #721c24; }
+  .progress-badge { display: inline-block; border-radius: 10px; padding: 2px 10px; font-size: .78rem; font-weight: 600; margin-top: 4px; }
+  .progress-badge.partial { background: #d4edda; color: #155724; }
+  .progress-badge.none { background: #f8d7da; color: #721c24; }
+  .op-badge { display: inline-block; background: #e8eaf6; color: #3949ab; border-radius: 10px;
+              padding: 1px 8px; font-size: .72rem; font-weight: 600; }
+  .warn-badge { display: inline-block; background: #fff3cd; color: #856404; border-radius: 10px;
+                padding: 1px 8px; font-size: .72rem; font-weight: 600; }
+  .lock-badge { display: inline-block; background: #fce4ec; color: #c62828; border-radius: 10px;
+                padding: 1px 8px; font-size: .72rem; font-weight: 600; }
+  table thead th { background: #f8f9fa; font-weight: 600; font-size: .85rem; color: #555; }
+  table tbody tr:hover { background: #f8f9fa; }
+  .search-input { border-radius: 8px; border: 1px solid #ddd; padding: 8px 14px; }
+  .nav-tabs .nav-link { color: #555; font-weight: 500; border-radius: 8px 8px 0 0; }
+  .nav-tabs .nav-link.active { color: #1a237e; font-weight: 700; border-bottom-color: #fff; }
+  .group-tag { display: inline-block; background: #f3e5f5; color: #6a1b9a; border-radius: 6px;
+               padding: 1px 7px; font-size: .75rem; margin: 1px; text-decoration: none; }
+  .group-tag:hover { background: #e1bee7; color: #4a148c; }
+  .badge-complete { background: #d4edda; color: #155724; border-radius: 20px; padding: 2px 9px; font-size: .76rem; font-weight: 600; }
+  .badge-partial  { background: #fff3cd; color: #856404; border-radius: 20px; padding: 2px 9px; font-size: .76rem; font-weight: 600; }
+  .badge-unpaid   { background: #f8d7da; color: #721c24; border-radius: 20px; padding: 2px 9px; font-size: .76rem; font-weight: 600; }
+  .badge-noplan   { background: #e9ecef; color: #495057; border-radius: 20px; padding: 2px 9px; font-size: .76rem; font-weight: 600; }
+  .money { font-weight: 600; font-family: monospace; }
+  .btn-block { background: transparent; color: #b71c1c; border: 1px solid #ef9a9a; border-radius: 8px; font-size: .82rem; }
+  .btn-block:hover { background: #ffebee; color: #b71c1c; border-color: #e53935; }
+  .btn-unblock { background: transparent; color: #2e7d32; border: 1px solid #a5d6a7; border-radius: 8px; font-size: .82rem; }
+  .btn-unblock:hover { background: #e8f5e9; color: #2e7d32; border-color: #43a047; }
+  .blocked-badge { display: inline-block; background: #ffcdd2; color: #b71c1c; border-radius: 10px;
+                   padding: 1px 8px; font-size: .72rem; font-weight: 600; }
+  .stats-row { background: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;
+               box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  @media (max-width: 768px) {
+    .stat-card .num { font-size: 1.5rem; }
+    table { font-size: .82rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3 py-2 mb-4">
+  <span class="navbar-brand fw-bold">📋 Vazifa bajarmaganlar</span>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white-50 small">
+      {{ request.user.get_full_name|default:request.user.username }}
+      {% if is_super %}<span class="badge bg-warning text-dark ms-1">Superadmin</span>{% endif %}
+    </span>
+    {% if is_super %}
+    <a href="/dashboard/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid"></i> Bosh sahifa</a>
+    <a href="/payments/" class="btn btn-outline-light btn-sm"><i class="bi bi-credit-card"></i> To'lovlar</a>
+    <a href="/calls/" class="btn btn-outline-light btn-sm"><i class="bi bi-clock-history"></i> Tarix</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="container-fluid px-4">
+
+  <!-- Operator guruhlari -->
+  {% if not is_super and operator_groups %}
+  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <span class="text-muted small fw-semibold">Sizning guruhlaringiz:</span>
+    {% for grp in operator_groups %}
+      <a href="?tab={{ tab }}&group_id={{ grp.id }}"
+         class="group-tag {% if selected_group_id == grp.id|stringformat:'s' %}active{% endif %}"
+         style="{% if selected_group_id == grp.id|stringformat:'s' %}background:#6a1b9a;color:#fff;{% endif %}">
+        {{ grp.name }}
+      </a>
+    {% endfor %}
+    {% if selected_group_id %}
+      <a href="?tab={{ tab }}" class="text-muted small ms-1">✕ Barchasi</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#1a237e,#283593)">
+        <div class="num" id="stat-total">{{ total_unsubmitted }}</div>
+        <div class="lbl">Jami bajarmagan</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#c62828,#e53935)">
+        <div class="num" id="stat-not-called">{{ total_not_called }}</div>
+        <div class="lbl">Qo'ng'iroq qilinmagan</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#e65100,#fb8c00)">
+        <div class="num" id="stat-called">{{ total_called }}</div>
+        <div class="lbl">{% if is_super %}Qo'ng'iroq qilindi{% else %}Mening chaqiruvlarim{% endif %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#2e7d32,#43a047)">
+        <div class="num" id="stat-pct">
+          {% if total_unsubmitted > 0 %}{% widthratio total_called total_unsubmitted 100 %}%{% else %}—{% endif %}
+        </div>
+        <div class="lbl">Qo'ng'iroq foizi</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Superadmin operator statistikasi -->
+  {% if is_super and stats %}
+  <div class="stats-row mb-3">
+    <div class="fw-semibold mb-2 small text-muted">📊 Operator statistikasi (bugun / jami)</div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for s in stats %}
+      <div class="border rounded px-3 py-2 small">
+        <span class="fw-semibold">{{ s.operator__first_name|default:s.operator__username }} {{ s.operator__last_name }}</span>
+        <span class="ms-2 text-success fw-bold">{{ s.today_count }}</span>
+        <span class="text-muted"> / {{ s.total_count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filter -->
+  <div class="card mb-0" style="border-radius: 12px 12px 0 0;">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Kurs</label>
+          <select name="course_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Barcha kurslar —</option>
+            {% for course in courses %}
+              <option value="{{ course.id }}" {% if selected_course_id == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small fw-semibold mb-1">Guruh</label>
+          <select name="group_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Barcha guruhlar —</option>
+            {% for g in groups %}
+              <option value="{{ g.id }}" {% if selected_group_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if selected_course_id or selected_group_id %}
+        <div class="col-auto">
+          <a href="?tab={{ tab }}" class="btn btn-outline-secondary btn-sm">✕ Tozalash</a>
+        </div>
+        {% endif %}
+        <div class="col-auto ms-auto d-flex gap-2">
+          <input type="text" name="q" value="{{ request.GET.q }}"
+                 class="search-input form-control form-control-sm"
+                 placeholder="🔍 Ism qidirish..." style="width:200px">
+          <button type="submit" class="btn btn-primary btn-sm">Qidir</button>
+          {% if request.GET.q %}
+            <a href="?tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}" class="btn btn-outline-secondary btn-sm">✕</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs px-3" style="background:#fff; border-left:1px solid #dee2e6; border-right:1px solid #dee2e6;">
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'not_called' %}active{% endif %}"
+         href="?tab=not_called{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+        ❌ Qo'ng'iroq qilinmaganlar
+        <span class="badge bg-danger ms-1">{{ total_not_called }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'called_pending' %}active{% endif %}"
+         href="?tab=called_pending{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+        ⚠️ {% if is_super %}Qo'ng'iroq qilindi{% else %}Mening chaqiruvlarim{% endif %}
+        <span class="badge ms-1 {% if total_called > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ total_called }}</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Table -->
+  <div class="card" style="border-radius: 0 0 12px 12px;">
+    <div class="card-body p-0">
+      {% if students_data %}
+      <div class="table-responsive">
+        <table class="table mb-0" id="mainTable">
+          <thead>
+            <tr>
+              <th class="ps-3">#</th>
+              <th>F.I.Sh</th>
+              <th>Telefon</th>
+              <th>Guruhlar</th>
+              <th>Bajarmagan mavzular</th>
+              {% if tab == 'called_pending' %}<th>Qo'ng'iroq</th>{% endif %}
+              <th class="pe-3">Amal</th>
+              {% if can_block %}<th class="pe-3">Blok</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in students_data %}
+            <tr id="row-{{ item.student.id }}" data-name="{{ item.student.full_name|lower }}">
+              <td class="ps-3 text-muted small align-middle">
+                {% with offset=page.start_index|add:forloop.counter0 %}{{ offset }}{% endwith %}
+              </td>
+              <td class="align-middle">
+                <div class="fw-semibold">{{ item.student.full_name }}</div>
+              </td>
+              <td class="align-middle">
+                {% if item.student.phone %}
+                  <a href="tel:{{ item.student.phone }}" class="text-decoration-none fw-semibold" style="color:#1a237e">
+                    📞 {{ item.student.phone }}
+                  </a>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+              <td class="align-middle" style="max-width:160px">
+                {% for g in item.groups_list %}
+                  {% if g.invite_link %}
+                    <a href="{{ g.invite_link }}" target="_blank" class="group-tag" title="Telegram guruhiga o'tish">{{ g.name }}</a>
+                  {% else %}
+                    <span class="group-tag">{{ g.name }}</span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td class="align-middle" style="max-width:260px">
+                {% for topic in item.unsubmitted %}
+                  <span class="topic-tag">{{ topic.title }}</span>
+                {% endfor %}
+              </td>
+              {% if tab == 'called_pending' %}
+              <td class="align-middle" id="status-{{ item.student.id }}" style="min-width:130px">
+                {% if item.followup and item.followup.called_at %}
+                  <div class="called-at">{{ item.followup.called_at|date:"d.m.Y H:i" }}</div>
+                  {% if is_super and item.followup.called_by %}
+                    <span class="op-badge">{{ item.followup.called_by.get_full_name|default:item.followup.called_by.username }}</span>
+                  {% endif %}
+                  {% with days=item.followup.called_at|timesince %}
+                    <div><span class="days-badge {% if item.followup.called_at|timesince|slice:':2' != '0 ' %}danger{% endif %}">{{ days }} oldin</span></div>
+                  {% endwith %}
+                  {% if item.followup.note %}
+                    <div class="note-text">📝 {{ item.followup.note }}</div>
+                  {% endif %}
+                  {% if item.original_count %}
+                    {% if item.progress > 0 %}
+                      <div><span class="progress-badge partial">✅ {{ item.progress }}/{{ item.original_count }} bajardi</span></div>
+                    {% else %}
+                      <div><span class="progress-badge none">❌ Hech bajarmadi</span></div>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              </td>
+              {% endif %}
+              <td class="pe-3 align-middle">
+                <div class="d-flex gap-1 flex-wrap align-items-center">
+                  {% if item.lock == 'locked_by_other' %}
+                    <button class="btn btn-locked btn-sm" disabled title="Boshqa operator ishlayapti">
+                      🔒 Band
+                    </button>
+                  {% elif tab == 'called_pending' %}
+                    {% if item.called_today_other %}
+                      <button class="btn btn-warn btn-sm"
+                              onclick="openModal({{ item.student.id }}, '{{ item.student.full_name|escapejs }}', '{{ item.followup.note|default:""|escapejs }}', true, true)">
+                        ⚠️ Qayta
+                      </button>
+                    {% else %}
+                      <button class="btn btn-call btn-sm"
+                              onclick="openModal({{ item.student.id }}, '{{ item.student.full_name|escapejs }}', '{{ item.followup.note|default:""|escapejs }}', true, false)">
+                        🔄 Qayta
+                      </button>
+                    {% endif %}
+                    {% if is_super %}
+                      <button class="btn btn-uncall btn-sm" onclick="unmarkCall({{ item.student.id }})">↩</button>
+                    {% endif %}
+                  {% else %}
+                    {% if item.called_today_other %}
+                      <button class="btn btn-warn btn-sm"
+                              onclick="openModal({{ item.student.id }}, '{{ item.student.full_name|escapejs }}', '', false, true)">
+                        ⚠️ Qo'ng'iroq
+                      </button>
+                    {% else %}
+                      <button class="btn btn-call btn-sm"
+                              onclick="openModal({{ item.student.id }}, '{{ item.student.full_name|escapejs }}', '', false, false)">
+                        📞 Qo'ng'iroq
+                      </button>
+                    {% endif %}
+                  {% endif %}
+                  <button class="btn btn-tg btn-sm" title="Telegramda yozish" onclick="openTg({{ item.student.id }})">
+                    <i class="bi bi-telegram"></i>
+                  </button>
+                </div>
+                {% if item.lock == 'locked_by_other' and item.followup.locked_by %}
+                  <div class="lock-badge mt-1">{{ item.followup.locked_by.get_full_name|default:item.followup.locked_by.username }} ishlayapti</div>
+                {% endif %}
+                {% if item.called_today_other and item.followup.called_by %}
+                  <div class="warn-badge mt-1">Bugun {{ item.followup.called_by.get_full_name|default:item.followup.called_by.username }} chaqirgan</div>
+                {% endif %}
+              </td>
+              {% if can_block %}
+              <td class="pe-3 align-middle" id="block-cell-{{ item.student.id }}">
+                {% if item.student.is_blocked %}
+                  <span class="blocked-badge d-block mb-1">🚫 Bloklangan</span>
+                  <button class="btn btn-unblock btn-sm"
+                          onclick="toggleBlock({{ item.student.id }}, false)">
+                    ✅ Ochish
+                  </button>
+                {% else %}
+                  <button class="btn btn-block btn-sm"
+                          onclick="toggleBlock({{ item.student.id }}, true)">
+                    🚫 Bloklash
+                  </button>
+                {% endif %}
+              </td>
+              {% endif %}{# can_block #}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem">{% if tab == 'called_pending' %}🎉{% else %}✅{% endif %}</div>
+        <div class="mt-2 fw-semibold">
+          {% if tab == 'called_pending' %}Chaqirilgan talabalarning barchasi vazifa bajardi!
+          {% else %}Barcha talabalar qo'ng'iroq qilingan yoki vazifa bajargan!{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if paginator.num_pages > 1 %}
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small">
+      {{ page.start_index }}–{{ page.end_index }} /
+      {% if tab == 'called_pending' %}{{ total_called }}{% else %}{{ total_not_called }}{% endif %} ta talaba
+    </div>
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1&tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">«</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}&tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">‹</a></li>
+        {% endif %}
+        {% for num in paginator.page_range %}
+          {% if page.number == num %}
+            <li class="page-item active"><span class="page-link" style="background:#1a237e;border-color:#1a237e">{{ num }}</span></li>
+          {% elif num >= page.number|add:"-2" and num <= page.number|add:"2" %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}&tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">›</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}&tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">»</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    <div class="text-muted small">
+      {% now "d.m.Y H:i" %} &nbsp;|&nbsp;
+      <a href="?tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}" class="text-decoration-none">🔄 Yangilash</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="mt-3 text-muted small text-end">
+    {% now "d.m.Y H:i" %} &nbsp;|&nbsp;
+    <a href="?tab={{ tab }}{% if selected_course_id %}&course_id={{ selected_course_id }}{% endif %}{% if selected_group_id %}&group_id={{ selected_group_id }}{% endif %}" class="text-decoration-none">🔄 Yangilash</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="callModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-1">
+        <h5 class="modal-title fw-bold" id="modalTitle"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="warnBanner" class="alert alert-warning small py-2 mb-3 d-none"></div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Natija</label>
+          <select id="resultSelect" class="form-select form-select-sm">
+            <option value="answered">✅ Javob berdi</option>
+            <option value="not_answered">📵 Ko'tarmadi</option>
+            <option value="callback">🕐 Keyinroq qo'ng'iroq qiladi</option>
+            <option value="other">📝 Boshqa</option>
+          </select>
+        </div>
+        <label class="form-label small fw-semibold">Izoh <span class="text-muted fw-normal">(ixtiyoriy)</span></label>
+        <textarea id="noteInput" class="form-control" rows="3" placeholder="Masalan: Telefon ko'tarmadi..."></textarea>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
+        <button type="button" class="btn btn-call px-4" id="saveBtn" onclick="saveCall()">✅ Saqlash</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const CSRF = '{{ csrf_token }}';
+let currentStudentId = null;
+let callModal = null;
+let isRecall = false;
+let isForce = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  callModal = new bootstrap.Modal(document.getElementById('callModal'));
+});
+
+async function openModal(studentId, name, existingNote, recall, warnToday) {
+  // Lock qilish
+  try {
+    const lockRes = await fetch(`/followup/lock/${studentId}/`, {
+      method: 'POST', headers: { 'X-CSRFToken': CSRF }
+    });
+    const lockData = await lockRes.json();
+    if (!lockData.ok) {
+      alert(`🔒 ${lockData.locked_by} hozir bu student bilan ishlayapti (${lockData.remaining} daqiqa qoldi)`);
+      return;
+    }
+  } catch(e) {}
+
+  currentStudentId = studentId;
+  isRecall = !!recall;
+  isForce = false;
+
+  document.getElementById('modalTitle').textContent = (isRecall ? '🔄 ' : '📞 ') + name;
+  document.getElementById('noteInput').value = existingNote || '';
+  document.getElementById('resultSelect').value = 'answered';
+
+  const warn = document.getElementById('warnBanner');
+  if (warnToday) {
+    warn.textContent = '⚠️ Bu student bugun boshqa operator tomonidan chaqirilgan. Baribir saqlamoqchimisiz?';
+    warn.classList.remove('d-none');
+    isForce = true;
+  } else {
+    warn.classList.add('d-none');
+  }
+
+  callModal.show();
+}
+
+async function saveCall() {
+  if (!currentStudentId) return;
+  const note = document.getElementById('noteInput').value.trim();
+  const result = document.getElementById('resultSelect').value;
+  const sid = currentStudentId;
+  const recall = isRecall;
+  const btn = document.getElementById('saveBtn');
+
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda...'; }
+
+    const res = await fetch(`/followup/mark/${sid}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ note, result, force: isForce }),
+    });
+    const data = await res.json();
+
+    if (!data.ok && data.warn) {
+      // Warn qaytdi lekin modal ochiq — force bilan qayta yuborish
+      if (confirm(data.message + '\n\nBaribir saqlasinmi?')) {
+        isForce = true;
+        btn.disabled = false;
+        btn.textContent = '✅ Saqlash';
+        await saveCall();
+      } else {
+        btn.disabled = false;
+        btn.textContent = '✅ Saqlash';
+      }
+      return;
+    }
+
+    if (!data.ok) throw new Error(data.error || 'Server xatosi');
+
+    callModal.hide();
+    setTimeout(() => {
+      if (recall) {
+        const statusCell = document.getElementById('status-' + sid);
+        if (statusCell) {
+          statusCell.innerHTML =
+            '<div class="called-at">' + data.called_at + '</div>' +
+            '<span class="days-badge">Hozirgina</span>' +
+            (note ? '<div class="note-text">📝 ' + escHtml(note) + '</div>' : '');
+        }
+      } else {
+        removeRow(sid);
+        updateStats(-1, 1);
+      }
+    }, 300);
+
+  } catch (e) {
+    alert('Xatolik: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Saqlash'; }
+  }
+}
+
+async function unmarkCall(studentId) {
+  if (!confirm("Qo'ng'iroq belgisini olib tashlaysizmi?")) return;
+  try {
+    const res = await fetch(`/followup/unmark/${studentId}/`, {
+      method: 'POST', headers: { 'X-CSRFToken': CSRF },
+    });
+    const data = await res.json();
+    if (data.ok) { removeRow(studentId); updateStats(1, -1); }
+  } catch (e) { alert('Xatolik: ' + e.message); }
+}
+
+function removeRow(studentId) {
+  const row = document.getElementById('row-' + studentId);
+  if (row) row.remove();
+  const tbody = document.querySelector('#mainTable tbody');
+  if (tbody && tbody.querySelectorAll('tr').length === 0) {
+    document.querySelector('.table-responsive').innerHTML =
+      '<div class="text-center py-5 text-muted"><div style="font-size:2rem">✅</div><div class="mt-2">Ro\'yxat bo\'shadi</div></div>';
+  }
+}
+
+function updateStats(notCalledDelta, calledDelta) {
+  const ncEl = document.getElementById('stat-not-called');
+  const cEl  = document.getElementById('stat-called');
+  const tEl  = document.getElementById('stat-total');
+  const pEl  = document.getElementById('stat-pct');
+  const total     = parseInt(tEl.textContent) || 0;
+  const notCalled = Math.max(0, (parseInt(ncEl.textContent) || 0) + notCalledDelta);
+  const called    = Math.max(0, (parseInt(cEl.textContent)  || 0) + calledDelta);
+  ncEl.textContent = notCalled;
+  cEl.textContent  = called;
+  pEl.textContent  = total > 0 ? Math.round(called / total * 100) + '%' : '—';
+}
+
+async function openTg(studentId) {
+  try {
+    const res = await fetch(`/followup/tg-link/${studentId}/`);
+    const data = await res.json();
+    window.open(data.url, '_blank');
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function toggleBlock(studentId, block) {
+  const action = block ? 'bloklash' : 'blokdan chiqarish';
+  if (!confirm(`Bu studentni ${action}ni xohlaysizmi?`)) return;
+  const url = block ? `/followup/block/${studentId}/` : `/followup/unblock/${studentId}/`;
+  try {
+    const res = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
+    const data = await res.json();
+    if (!data.ok) { alert(data.error || 'Xatolik'); return; }
+    const cell = document.getElementById('block-cell-' + studentId);
+    if (cell) {
+      if (data.blocked) {
+        cell.innerHTML = '<span class="blocked-badge d-block mb-1">🚫 Bloklangan</span>' +
+          '<button class="btn btn-unblock btn-sm" onclick="toggleBlock(' + studentId + ', false)">✅ Ochish</button>';
+      } else {
+        cell.innerHTML = '<button class="btn btn-block btn-sm" onclick="toggleBlock(' + studentId + ', true)">🚫 Bloklash</button>';
+      }
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+</script>
+</body>
+</html>

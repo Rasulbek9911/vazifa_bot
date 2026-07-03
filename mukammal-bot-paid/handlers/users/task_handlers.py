@@ -59,21 +59,28 @@ async def _ask_course_type(message: types.Message, state: FSMContext, task_name:
             def get_student_groups_and_courses(telegram_id):
                 """Student guruh va kurslarini olish (async-safe)"""
                 student_obj = Student.objects.get(telegram_id=telegram_id)
+                if student_obj.is_blocked:
+                    return 'blocked', None
                 all_groups = student_obj.get_all_groups()
-                
+
                 if not all_groups:
                     return None, None
-                
+
                 student_courses = set()
                 for grp in all_groups:
-                    if grp.course:
+                    if grp.course and grp.course.is_active:
                         student_courses.add(grp.course.code)
-                    elif grp.course_type:
-                        student_courses.add(grp.course_type)
-                
+
                 return list(all_groups), list(student_courses)
-            
+
             all_groups, student_courses = await get_student_groups_and_courses(telegram_id)
+
+            if all_groups == 'blocked':
+                await message.answer(
+                    "🚫 Sizning akkauntingiz bloklangan.\n\n"
+                    "Qo'shimcha ma'lumot uchun admin bilan bog'laning."
+                )
+                return
             
             if all_groups is None:
                 await message.answer(
@@ -198,11 +205,7 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
             continue
         
         # Mavzuning kursini aniqlaymiz
-        topic_course_code = None
-        if t.get("course"):
-            topic_course_code = t["course"]["code"]
-        elif t.get("course_type"):
-            topic_course_code = t["course_type"]
+        topic_course_code = t["course"]["code"] if t.get("course") else None
         
         # Agar topic student kurslarida bo'lsa, qo'shamiz
         if topic_course_code in student_courses:
@@ -216,7 +219,7 @@ async def _check_group_and_send_topics(message: types.Message, state: FSMContext
     # ✨ YANGI: Kurs bo'yicha grouping qilamiz
     topics_by_course = {}
     for t in available_topics:
-        course_code = t.get("course", {}).get("code") if t.get("course") else t.get("course_type", "attestatsiya")
+        course_code = t["course"]["code"] if t.get("course") else None
         course_name = t.get("course", {}).get("name") if t.get("course") else ("Milliy Sertifikat" if course_code == "milliy_sert" else "Attestatsiya")
         
         if course_code not in topics_by_course:
@@ -536,15 +539,14 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                 error_text = await resp.text()
                 print(f"❌ Test saqlashda xatolik. Status: {resp.status}, Error: {error_text}")
                 print(f"Payload: {payload}")
-                
-                # Parse JSON error if possible
+
                 try:
                     import json
                     error_data = json.loads(error_text)
                     error_detail = str(error_data)
                 except:
                     error_detail = error_text[:200]
-                
+
                 await message.answer(
                     f"❌ Test javoblarini saqlashda xatolik!\n\n"
                     f"Status: {resp.status}\n"
@@ -552,7 +554,22 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                     f"Iltimos, admin bilan bog'laning.",
                     reply_markup=vazifa_key
                 )
-    
+            else:
+                resp_data = await resp.json()
+                coin_info = resp_data.get("coin_info")
+                if coin_info:
+                    coin_text = (
+                        f"\n\n🪙 <b>Tanga hisoblash:</b>\n"
+                        f"  📚 Natija tangasi: +{coin_info['result_coins']}\n"
+                        f"  🔥 Streak tangasi: +{coin_info['streak_coins']} "
+                        f"(ketma-ket {coin_info['new_streak']}-chi)\n"
+                        f"  ━━━━━━━━━━━━━━\n"
+                        f"  💰 Jami: +{coin_info['total']} tanga\n"
+                        f"  💼 Hamyon: {coin_info['total_wallet']} 🪙  "
+                        f"🔥Rekord: {coin_info['longest_streak']}"
+                    )
+                    await message.answer(coin_text, parse_mode="HTML")
+
     await state.finish()
 
 
@@ -623,10 +640,8 @@ async def process_file(message: types.Message, state: FSMContext):
                 if topic_data.get("course"):
                     course_admin_id = topic_data["course"].get("admin_telegram_id")
                 
-                # Fallback: eski MILLIY_ADMIN va ATTESTATSIYA_ADMIN
                 if not course_admin_id:
-                    topic_course_type = topic_data.get("course_type", "milliy_sert")
-                    course_admin_id = MILLIY_ADMIN if topic_course_type == "milliy_sert" else ATTESTATSIYA_ADMIN
+                    course_admin_id = ATTESTATSIYA_ADMIN
                 
                 # Adminlarga ham yuboramiz (barcha adminlar ko'rishi uchun)
                 admins_to_notify = [course_admin_id] + ADMINS
@@ -671,22 +686,40 @@ async def process_file(message: types.Message, state: FSMContext):
 # --- ADMIN TEST QO'SHISH ---
 @dp.message_handler(IsPrivate(), Command("addtest"), user_id=ADMINS)
 async def admin_add_test_start(message: types.Message, state: FSMContext):
-    # Faqat adminlar
     try:
         await state.finish()
     except Exception:
         pass
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/topics/") as resp:
+        async with session.get(f"{API_BASE_URL}/courses/") as resp:
+            courses = await resp.json()
+    if not courses:
+        await message.answer("❌ Kurslar topilmadi.")
+        return
+    kb = types.InlineKeyboardMarkup()
+    for c in courses:
+        kb.add(types.InlineKeyboardButton(text=c["name"], callback_data=f"addtest_course_{c['id']}"))
+    await message.answer("📚 Kursni tanlang:", reply_markup=kb)
+    await state.set_state("addtest_course")
+
+@dp.callback_query_handler(lambda c: c.data.startswith("addtest_course_"), state="addtest_course")
+async def admin_add_test_course(callback: types.CallbackQuery, state: FSMContext):
+    course_id = int(callback.data.split("_")[-1])
+    await state.update_data(course_id=course_id)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/topics/?all=1&course_id={course_id}") as resp:
             topics = await resp.json()
     if not topics:
-        await message.answer("❌ Mavzular topilmadi.")
+        await callback.message.answer("❌ Bu kursda mavzu topilmadi.")
+        await callback.answer()
         return
     kb = types.InlineKeyboardMarkup()
     for t in topics:
-        kb.add(types.InlineKeyboardButton(text=t["title"], callback_data=f"addtest_topic_{t['id']}"))
-    await message.answer("📝 Test qo'shmoqchi bo'lgan mavzuni tanlang:", reply_markup=kb)
+        status = "" if t.get("is_active") else "🔴 "
+        kb.add(types.InlineKeyboardButton(text=f"{status}{t['title']}", callback_data=f"addtest_topic_{t['id']}"))
+    await callback.message.answer("📝 Mavzuni tanlang:\n(🔴 = inactive)", reply_markup=kb)
     await state.set_state("addtest_topic")
+    await callback.answer()
 
 @dp.callback_query_handler(lambda c: c.data.startswith("addtest_topic_"), state="addtest_topic")
 async def admin_add_test_topic(callback: types.CallbackQuery, state: FSMContext):

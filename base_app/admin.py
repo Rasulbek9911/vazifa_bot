@@ -4,8 +4,10 @@ from django.template.response import TemplateResponse
 from django import forms
 from django.db.models import Avg, Count, Q
 from django.http import HttpResponse
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 import csv
-from .models import Course, Group, Student, Topic, Task
+from .models import Course, Group, Student, Topic, Task, AttendanceSession, Attendance, FollowUp, OperatorProfile
 
 
 class CourseAdmin(admin.ModelAdmin):
@@ -339,7 +341,7 @@ class TopicAdmin(admin.ModelAdmin):
         for task in all_tasks:
             student_id = task.student.id
             topic_id = task.topic_id
-            
+
             if student_id not in students_data:
                 students_data[student_id] = {
                     'student': task.student,
@@ -347,10 +349,13 @@ class TopicAdmin(admin.ModelAdmin):
                     'total_score': 0,
                     'total_tasks': 0,
                 }
-            
+
             # Har bir student+topic kombinatsiyasi uchun faqat birinchi taskni olish
             if topic_id not in students_data[student_id]['topics']:
-                students_data[student_id]['topics'][topic_id] = task.grade
+                students_data[student_id]['topics'][topic_id] = {
+                    'grade': task.grade,
+                    'submitted_at': task.submitted_at,
+                }
                 students_data[student_id]['total_score'] += task.grade
                 students_data[student_id]['total_tasks'] += 1
         
@@ -359,7 +364,7 @@ class TopicAdmin(admin.ModelAdmin):
         for student_id in students_data:
             for topic_id in topic_ids:
                 if topic_id not in students_data[student_id]['topics']:
-                    students_data[student_id]['topics'][topic_id] = None
+                    students_data[student_id]['topics'][topic_id] = None  # topshirmagan
             
             # O'rtacha ball - barcha active mavzular soniga bo'lish
             if total_topics_count > 0:
@@ -397,18 +402,19 @@ class TopicAdmin(admin.ModelAdmin):
         
         writer = csv.writer(response)
         
-        # Header - har bir topic uchun alohida ustun
+        # Header - har bir topic uchun ball va vaqt ustunlari
         header = ['№', 'F.I.Sh', 'Guruh']
         for topic_id in topic_ids:
             topic = topics_dict[topic_id]
-            header.append(topic.title)
-        
+            header.append(f"{topic.title} (ball)")
+            header.append(f"{topic.title} (vaqt)")
+
         # Task type ga qarab label
         tasks_label = "Vazifalar soni" if task_type == "assignment" else "Testlar soni"
         header.extend(["O'rtacha ball", tasks_label])
-        
+
         writer.writerow(header)
-        
+
         # Ma'lumotlar
         for idx, data in enumerate(sorted_students, start=1):
             student = data['student']
@@ -419,12 +425,18 @@ class TopicAdmin(admin.ModelAdmin):
                 student.full_name,
                 first_group.name if first_group else "Yo'q",
             ]
-            
-            # Har bir topic bo'yicha ball
+
+            # Har bir topic bo'yicha ball va vaqt
             for topic_id in topic_ids:
-                grade = data['topics'].get(topic_id)
-                row.append(grade if grade is not None else '-')
-            
+                topic_data = data['topics'].get(topic_id)
+                if topic_data is None:
+                    row.append('-')
+                    row.append('-')
+                else:
+                    row.append(topic_data['grade'])
+                    submitted = topic_data['submitted_at']
+                    row.append(submitted.strftime('%d.%m.%Y %H:%M') if submitted else '-')
+
             # O'rtacha va jami
             row.append(data['avg_grade'])
             row.append(data['total_tasks'])
@@ -684,8 +696,102 @@ class TopicAdmin(admin.ModelAdmin):
     
     subtract_points_from_topic_tests.short_description = "Bu topiklarning barcha testlaridan ball ayirish"
 
+class AttendanceInline(admin.TabularInline):
+    model = Attendance
+    extra = 0
+    readonly_fields = ('student', 'marked_at')
+    can_delete = False
+
+
+class AttendanceSessionAdmin(admin.ModelAdmin):
+    list_display = ('code', 'created_by', 'created_at', 'expires_at', 'is_active', 'attendance_count')
+    list_filter = ('is_active',)
+    search_fields = ('code', 'created_by')
+    readonly_fields = ('created_at',)
+    list_editable = ('is_active',)
+    ordering = ('-created_at',)
+    inlines = [AttendanceInline]
+    actions = ['export_attendance_csv']
+
+    def attendance_count(self, obj):
+        return obj.attendances.count()
+    attendance_count.short_description = 'Qatnashganlar'
+
+    def export_attendance_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="davomat.csv"'
+        response.write('﻿')
+        writer = csv.writer(response)
+        writer.writerow(['Sessiya kodi', 'Sana', 'F.I.Sh', 'Telefon', 'Vaqt'])
+        for session in queryset:
+            for att in session.attendances.select_related('student').all():
+                import pytz
+                tz = pytz.timezone('Asia/Tashkent')
+                writer.writerow([
+                    session.code,
+                    session.created_at.astimezone(tz).strftime('%d.%m.%Y'),
+                    att.student.full_name,
+                    att.student.phone or '—',
+                    att.marked_at.astimezone(tz).strftime('%d.%m.%Y %H:%M'),
+                ])
+        return response
+    export_attendance_csv.short_description = 'Tanlangan sessiyalar davomatini CSV yuklab olish'
+
+
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = ('student', 'session_code', 'session_date', 'marked_at')
+    list_filter = ('session__created_at',)
+    search_fields = ('student__full_name', 'student__telegram_id', 'session__code')
+    readonly_fields = ('student', 'session', 'marked_at')
+    ordering = ('-marked_at',)
+
+    def session_code(self, obj):
+        return obj.session.code
+    session_code.short_description = 'Sessiya kodi'
+
+    def session_date(self, obj):
+        import pytz
+        tz = pytz.timezone('Asia/Tashkent')
+        return obj.session.created_at.astimezone(tz).strftime('%d.%m.%Y')
+    session_date.short_description = 'Dars sanasi'
+
+
+class FollowUpAdmin(admin.ModelAdmin):
+    list_display = ('student', 'called_at', 'note', 'updated_at')
+    list_filter = ('called_at',)
+    search_fields = ('student__full_name', 'student__telegram_id')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-called_at',)
+
+
+class OperatorProfileInline(admin.StackedInline):
+    model = OperatorProfile
+    can_delete = False
+    verbose_name = "Operator sozlamalari"
+    verbose_name_plural = "Operator sozlamalari"
+    filter_horizontal = ('assigned_groups',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('assigned_groups')
+
+
+class CustomUserAdmin(UserAdmin):
+    inlines = [OperatorProfileInline]
+
+    def get_inline_instances(self, request, obj=None):
+        if not obj:
+            return []
+        return super().get_inline_instances(request, obj)
+
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
+
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Topic, TopicAdmin)
 admin.site.register(Task, TaskAdmin)
+admin.site.register(AttendanceSession, AttendanceSessionAdmin)
+admin.site.register(Attendance, AttendanceAdmin)
+admin.site.register(FollowUp, FollowUpAdmin)

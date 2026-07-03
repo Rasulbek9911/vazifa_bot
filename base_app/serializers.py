@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, Group, Student, Topic, Task, InviteCode
+from .models import Course, Group, Student, Topic, Task, InviteCode, AttendanceSession, Attendance
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -18,13 +18,11 @@ class GroupSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     
-    # Backward compatibility
     course_type = serializers.SerializerMethodField()
-    
+
     def get_course_type(self, obj):
-        """Backward compatibility: course.code qaytarish"""
-        return obj.course.code if obj.course else obj.course_type
-    
+        return obj.course.code if obj.course else None
+
     class Meta:
         model = Group
         fields = ["id", "name", "telegram_group_id", "invite_link", "course", "course_id", "course_type", "is_full"]
@@ -74,13 +72,11 @@ class TopicSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     
-    # Backward compatibility
     course_type = serializers.SerializerMethodField()
-    
+
     def get_course_type(self, obj):
-        """Backward compatibility: course.code qaytarish"""
-        return obj.course.code if obj.course else obj.course_type
-    
+        return obj.course.code if obj.course else None
+
     class Meta:
         model = Topic
         fields = ["id", "title", "is_active", "course", "course_id", "course_type", "correct_answers", "deadline", "show_detailed_results", "created_at"]
@@ -113,3 +109,15 @@ class InviteCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = InviteCode
         fields = ["id", "code", "created_by", "is_used", "used_by", "created_at", "used_at"]
+
+
+class AttendanceSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttendanceSession
+        fields = ["id", "code", "created_by", "created_at", "expires_at", "is_active"]
+
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attendance
+        fields = ["id", "student", "session", "marked_at"]

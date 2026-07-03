@@ -4,16 +4,19 @@ from reportlab.lib.pagesizes import A4, landscape
 from django.http import HttpResponse
 from django.utils.timezone import now, timedelta
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Flowable
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Student, Task, Group, Topic
+from .models import Student, Task, Group, Topic, CoinWallet, CoinTransaction, AttendanceSession, Attendance
 from .serializers import StudentSerializer, TaskSerializer
+from .coins import award_task_coins
 
 logger = logging.getLogger(__name__)
 
@@ -247,7 +250,7 @@ class GroupsListView(APIView):
 
     def get(self, request):
         from .serializers import GroupSerializer
-        groups = Group.objects.all()
+        groups = Group.objects.filter(course__is_active=True)
         serializer = GroupSerializer(groups, many=True)
         # current_size ni ham qo'shamiz
         data = serializer.data
@@ -282,13 +285,17 @@ class TopicsListView(APIView):
                 if grp.course:
                     course_ids.add(grp.course.id)
             
-            # Active topiclarni filter qilish
-            topics = Topic.objects.filter(is_active=True, course_id__in=course_ids).order_by('id')
+            # Active topiclarni filter qilish (faqat faol kurslar)
+            topics = Topic.objects.filter(is_active=True, course_id__in=course_ids, course__is_active=True).order_by('id')
         else:
-            # Agar course_id query parametresi bo'lsa, course bo'yicha filter qilamiz
             course_id = request.query_params.get('course_id')
-            if course_id:
+            show_all = request.query_params.get('all')  # admin: barcha topiclar (inactive ham)
+            if show_all and course_id:
+                topics = Topic.objects.filter(course_id=course_id).order_by('id')
+            elif course_id:
                 topics = Topic.objects.filter(is_active=True, course_id=course_id).order_by('id')
+            elif show_all:
+                topics = Topic.objects.filter(course__isnull=False).order_by('id')
             else:
                 topics = Topic.objects.filter(is_active=True, course__isnull=False).order_by('id')
         serializer = TopicSerializer(topics, many=True)
@@ -378,7 +385,21 @@ class TaskSubmitView(APIView):
         if serializer.is_valid():
             task = serializer.save()
             logger.info(f"Task saqlandi: task_id={task.id}, student={student.full_name}, topic={topic.title}")
-            return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
+
+            # Test uchun tanga berish (grade set bo'lsa)
+            coin_info = None
+            if task.task_type == 'test' and task.grade is not None:
+                from django.utils import timezone as tz
+                deadline_passed = bool(topic.deadline and tz.now() > topic.deadline)
+                try:
+                    coin_info = award_task_coins(student, topic, task.grade, deadline_passed, 'test')
+                except Exception as e:
+                    logger.error(f"Tanga berish xatoligi: {e}")
+
+            resp_data = TaskSerializer(task).data
+            if coin_info:
+                resp_data['coin_info'] = coin_info
+            return Response(resp_data, status=status.HTTP_201_CREATED)
 
         logger.error(f"Serializer validation xatolari: {serializer.errors}, telegram_id={telegram_id}, topic_id={topic_id}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -429,7 +450,36 @@ class TaskUpdateView(APIView):
         task.grade = grade
         task.save()
 
+        # Assignment uchun tanga berish (bir marta)
+        try:
+            award_task_coins(task.student, task.topic, task.grade, False, 'assignment')
+        except Exception as e:
+            logger.error(f"Assignment tanga berish xatoligi: {e}")
+
         return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
+
+
+class RotatedText(Flowable):
+    """Matnni 90 daraja aylantiradi (pastdan tepaga)"""
+    def __init__(self, text, font_name='Helvetica', font_size=6):
+        Flowable.__init__(self)
+        self.text = text
+        self.font_name = font_name
+        self.font_size = font_size
+
+    def draw(self):
+        canvas = self.canv
+        canvas.saveState()
+        canvas.rotate(90)
+        canvas.setFont(self.font_name, self.font_size)
+        canvas.drawString(3, -self.font_size * 0.8, self.text)
+        canvas.restoreState()
+
+    def wrap(self, availWidth, availHeight):
+        text_width = stringWidth(self.text, self.font_name, self.font_size)
+        self.width = availWidth
+        self.height = text_width + 6
+        return self.width, self.height
 
 
 class WeeklyReportPDFView(APIView):
@@ -445,7 +495,7 @@ class WeeklyReportPDFView(APIView):
         group_course = getattr(group, "course", None)
         if group_course:
             # Barcha active topiclarni olamiz (id bo'yicha tartibda)
-            all_topics = Topic.objects.filter(is_active=True, course=group.course).order_by('id')
+            all_topics = Topic.objects.filter(is_active=True, course=group.course, course__is_active=True).order_by('id')
             # Oxirgi 10 ta topicni olamiz
             topics_list = list(all_topics)
             topics = topics_list[-10:] if len(topics_list) >= 10 else topics_list
@@ -457,58 +507,70 @@ class WeeklyReportPDFView(APIView):
         if not topics:
             return HttpResponse("No active topics", status=404)
 
-        # Kiril harflarini qo'llab-quvvatlaydigan fontni yuklash
+        # Font
         try:
-            # DejaVu Sans font (ko'pchilik Linux sistemalarida mavjud)
             pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
             pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
             font_name = 'DejaVuSans'
             font_name_bold = 'DejaVuSans-Bold'
         except:
-            # Agar font topilmasa, standart fontni ishlat
             font_name = 'Helvetica'
             font_name_bold = 'Helvetica-Bold'
 
-        # Stillar
         from reportlab.lib.styles import ParagraphStyle
-        from reportlab.lib.enums import TA_CENTER, TA_LEFT
-        styles = getSampleStyleSheet()
-        
-        # Ism ustuni uchun stil
+        from reportlab.lib.enums import TA_LEFT, TA_CENTER
+        from django.utils import timezone as tz
+
+        # Sarlavha stillari
+        title_style = ParagraphStyle(
+            'WeeklyTitle',
+            fontName=font_name_bold,
+            fontSize=14,
+            leading=18,
+            alignment=TA_CENTER,
+            textColor=colors.HexColor("#1A3A6E"),
+            spaceAfter=4,
+        )
+        subtitle_style = ParagraphStyle(
+            'WeeklySubtitle',
+            fontName=font_name,
+            fontSize=10,
+            leading=13,
+            alignment=TA_CENTER,
+            textColor=colors.HexColor("#444444"),
+            spaceAfter=8,
+        )
+
+        course_name = group.course.name if group.course else "—"
+        today = tz.localtime(tz.now()).strftime("%d.%m.%Y")
+        title_para = Paragraph("HAFTALIK HISOBOT", title_style)
+        subtitle_para = Paragraph(
+            f"Guruh: <b>{group.name}</b>  |  Kurs: <b>{course_name}</b>  |  Sana: <b>{today}</b>",
+            subtitle_style,
+        )
+
+        # Ism ustuni stili
         name_style = ParagraphStyle(
             'NameStyle',
-            parent=styles['Normal'],
+            fontName=font_name,
             fontSize=7,
             leading=9,
             alignment=TA_LEFT,
-            wordWrap='CJK',
-            fontName=font_name
+            wordWrap='LTR',
         )
-        
-        # Vertikal mavzu sarlavhasi uchun stil
-        vertical_style = ParagraphStyle(
-            'VerticalStyle',
-            parent=styles['Normal'],
-            fontSize=6,
-            leading=7,
+
+        # Header qatori
+        talaba_style = ParagraphStyle(
+            'TalabaHdr',
+            fontName=font_name_bold,
+            fontSize=8,
             alignment=TA_CENTER,
-            fontName=font_name
+            textColor=colors.white,
         )
-        
-        # Jadval sarlavhalari - mavzularni vertikal qilamiz
-        header = [Paragraph("<b>Talaba</b>", styles['Heading4'])]
-        
+        header = [Paragraph("Talaba", talaba_style)]
         for t in topics:
-            # Mavzu nomini vertikal qilish - har bir belgini yangi qatorda
-            # PASTDAN TEPAGA yozish (teskari tartib)
-            topic_type = "📝" if t.correct_answers else "📋"
-            # Har bir belgini <br/> bilan ajratamiz - teskari tartibda
-            vertical_text = f"<font size='5'>{topic_type}</font><br/>"
-            vertical_text += "<br/>".join(reversed(list(t.title)))
-            header.append(Paragraph(vertical_text, vertical_style))
-        
-        # Umumiy o'rtacha ustuni qo'shamiz - tepadan pastga
-        header.append(Paragraph("<b>U<br/>m<br/>u<br/>m<br/>i<br/>y<br/><br/>o<br/>'<br/>r<br/>t<br/>a<br/>c<br/>h<br/>a</b>", vertical_style))
+            header.append(RotatedText(t.title, font_name, 6))
+        header.append(RotatedText("Umumiy o'rtacha", font_name_bold, 6))
         data = [header]
 
         # Studentlar uchun qatordan-qatordan to'ldirish
@@ -584,48 +646,66 @@ class WeeklyReportPDFView(APIView):
         
         # Ustun kengliklarini hisoblash
         num_topics = len(topics)
-        
-        # Ism ustuni uchun minimal 150 point
-        name_col_width = 150
-        
+
+        # Ism ustuni uchun 200 point (uzun ismlar wrap bo'lib to'liq ko'rinadi)
+        name_col_width = 200
+
         # Qolgan joy mavzular va umumiy o'rtacha uchun
-        remaining = page_width - name_col_width
-        topic_col_width = remaining / (num_topics + 1)  # +1 umumiy o'rtacha uchun
-        
+        # avg ustun topic_col_width * 1.2 bo'lgani uchun (num_topics + 1.2) ga bo'lamiz
+        topic_col_width = (page_width - name_col_width) / (num_topics + 1.2)
+
         # Har bir mavzu uchun minimal 22 point
         topic_col_width = max(topic_col_width, 22)
-        
+
         col_widths = [name_col_width]  # Ism
         col_widths.extend([topic_col_width] * num_topics)  # Mavzular
         col_widths.append(topic_col_width * 1.2)  # Umumiy o'rtacha biroz kengroq
         
         table = Table(data, colWidths=col_widths, repeatRows=1)
 
+        # Header ranglari: "Talaba" — to'q ko'k, mavzular — navbatma-navbat 2 ko'k,
+        # "Umumiy o'rtacha" — yashil
+        COLOR_DARK   = colors.HexColor("#1A3A6E")
+        COLOR_ODD    = colors.HexColor("#2E5596")
+        COLOR_EVEN   = colors.HexColor("#3A6BC4")
+        COLOR_GREEN  = colors.HexColor("#1B6B3A")
+        COLOR_ROW_ALT = colors.HexColor("#EEF2FA")
+
+        hdr_cmds = [
+            ("BACKGROUND", (0, 0), (0, 0), COLOR_DARK),   # Talaba ustuni
+        ]
+        for i in range(num_topics):
+            col = i + 1
+            bg = COLOR_ODD if i % 2 == 0 else COLOR_EVEN
+            hdr_cmds.append(("BACKGROUND", (col, 0), (col, 0), bg))
+        last_col = num_topics + 1
+        hdr_cmds.append(("BACKGROUND", (last_col, 0), (last_col, 0), COLOR_GREEN))
+
         style = TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 1), (0, -1), "LEFT"),  # Ism ustuni chapga
-            ("ALIGN", (1, 0), (-1, -1), "CENTER"),  # Qolgan hamma markazga
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Vertikal o'rtaga
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 1), (0, -1), "LEFT"),
+            ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("FONTNAME", (0, 0), (-1, 0), font_name_bold),
             ("FONTNAME", (0, 1), (-1, -1), font_name),
             ("FONTSIZE", (0, 0), (-1, -1), 7),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
             ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
             ("BOTTOMPADDING", (0, 1), (-1, -1), 3),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
-        ])
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#AAAAAA")),
+            ("LINEBELOW", (0, 0), (-1, 0), 1.5, colors.HexColor("#0D2347")),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, COLOR_ROW_ALT]),
+        ] + hdr_cmds)
         table.setStyle(style)
 
-        doc.build([table])
+        doc.build([title_para, subtitle_para, table])
         return response
 
 # vazifalar topshirmagan studentlarni tekshiradi
 class UnsubmittedTasksCheckView(APIView):
     def get(self, request):
-        # faqat o‘tilgan mavzular
-        active_topics = Topic.objects.filter(is_active=True)
+        # faqat faol kurslarning o’tilgan mavzulari
+        active_topics = Topic.objects.filter(is_active=True, course__is_active=True)
 
         data = []
         for student in Student.objects.all():
@@ -730,6 +810,7 @@ class TopicCreateView(APIView):
         title = request.data.get("title")
         deadline_str = request.data.get("deadline")
         is_active = request.data.get("is_active", False)
+        show_detailed_results = request.data.get("show_detailed_results", False)
         
         # Validatsiya
         if not course_id or not title:
@@ -762,7 +843,8 @@ class TopicCreateView(APIView):
             course=course,
             title=title,
             deadline=deadline,
-            is_active=is_active
+            is_active=is_active,
+            show_detailed_results=show_detailed_results
         )
         
         serializer = TopicSerializer(topic)
@@ -815,13 +897,13 @@ class StudentResultsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Studentning kurslarini olish
+        # Studentning faqat faol kurslarini olish
         student_courses = []
         for group in student_groups:
-            if group.course:
+            if group.course and group.course.is_active:
                 student_courses.append(group.course)
-        
-        # Agar kurs bo'lmasa, bo'sh javob qaytaramiz
+
+        # Agar faol kurs bo'lmasa, bo'sh javob qaytaramiz
         if not student_courses:
             response_data = {
                 "telegram_id": student.telegram_id,
@@ -829,8 +911,8 @@ class StudentResultsView(APIView):
                 "results": []
             }
             return Response(response_data, status=status.HTTP_200_OK)
-        
-        # Faqat student tegishli bo'lgan kurslar bo'yicha mavzuları olish
+
+        # Faqat student tegishli faol kurslar bo'yicha mavzularni olish
         all_topics = Topic.objects.filter(
             is_active=True,
             course__in=student_courses
@@ -859,3 +941,549 @@ class StudentResultsView(APIView):
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class CoursesListView(APIView):
+    """Barcha kurslar ro'yxati. ?all=1 — nofaol kurslar ham (admin uchun)"""
+    def get(self, request):
+        from .models import Course
+        show_all = request.query_params.get('all')
+        if show_all:
+            courses = Course.objects.all().order_by('id')
+        else:
+            courses = Course.objects.filter(is_active=True).order_by('id')
+        data = [{"id": c.id, "name": c.name} for c in courses]
+        return Response(data)
+
+
+class CourseTopicsView(APIView):
+    """
+    Kurs bo'yicha topiclar va har biridagi unique qatnashuvchilar soni
+    GET /api/kurslar/<id>/topiclar/
+    Response: [{code, name, count}]
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        from django.db.models import Count
+        from .models import Course, Topic
+
+        if not Course.objects.filter(pk=pk).exists():
+            return Response({"error": "Kurs topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        topics = Topic.objects.filter(course_id=pk).order_by('-id')
+
+        results = []
+        for topic in topics:
+            if not topic.correct_answers:
+                continue
+            for code in topic.correct_answers:
+                count = (
+                    Task.objects
+                    .filter(task_type='test', test_code=code)
+                    .values('student')
+                    .distinct()
+                    .count()
+                )
+                results.append({
+                    "code": code,
+                    "name": topic.title,
+                    "count": count,
+                })
+
+        return Response(results)
+
+
+# ─────────────────────────────────────────────
+# Tashqi server uchun endpointlar
+# ─────────────────────────────────────────────
+
+class TestStatsView(APIView):
+    """
+    Barcha testlar ro'yxati (sahifalab, 8 ta/sahifa)
+    GET /api/test-stats/?page=1
+
+    Response:
+    {
+        "results": [{"code": "TEST001", "name": "...", "count": 87}],
+        "current_page": 1,
+        "total_pages": 4,
+        "total": 30
+    }
+    """
+    PAGE_SIZE = 8
+
+    def get(self, request):
+        from django.core.paginator import Paginator
+        from django.db.models import Count
+
+        try:
+            page_num = max(1, int(request.query_params.get("page", 1)))
+        except (ValueError, TypeError):
+            page_num = 1
+
+        # Har bir test_code uchun distinct studentlar soni
+        test_stats = (
+            Task.objects
+            .filter(task_type='test')
+            .exclude(test_code__isnull=True)
+            .exclude(test_code='')
+            .values('test_code')
+            .annotate(count=Count('student', distinct=True))
+            .order_by('test_code')
+        )
+
+        paginator = Paginator(test_stats, self.PAGE_SIZE)
+        page = paginator.get_page(page_num)
+
+        results = []
+        for item in page.object_list:
+            tc = item['test_code']
+            topic = Topic.objects.filter(correct_answers__has_key=tc).first()
+            name = topic.title if topic else tc
+            results.append({
+                "code": tc,
+                "name": name,
+                "count": item['count'],
+            })
+
+        return Response({
+            "results": results,
+            "current_page": page_num,
+            "total_pages": paginator.num_pages,
+            "total": paginator.count,
+        })
+
+
+class TestResultsJSONView(APIView):
+    """
+    Bitta test natijalari (fan_ball, ped_ball, umumiy_ball bilan)
+    GET /api/test-results-json/<test_code>/
+
+    Response:
+    {
+        "code": "TEST001",
+        "name": "Matematika - Mart 2025",
+        "total_questions": 50,
+        "results": [
+            {"first_name": "Ali", "last_name": "Valiyev",
+             "fan_ball": 52, "ped_ball": 20, "umumiy_ball": 72}
+        ]
+    }
+    """
+
+    def _parse_correct(self, correct_str):
+        """Admin to'g'ri javoblar satrini listga aylantirish"""
+        import re
+        correct = correct_str.lower().strip()
+        result = []
+        has_numbers = bool(re.search(r'\d', correct))
+        if has_numbers:
+            for match in re.finditer(r'\d+([a-zx]+)', correct):
+                letters = match.group(1)
+                result.append(['x'] if letters == 'x' else list(letters))
+        elif re.match(r'^[a-zx]+$', correct):
+            result = [[ch] for ch in correct]
+        else:
+            filtered = ''.join(ch for ch in correct if ch.isalpha() or ch == 'x')
+            result = [[ch] for ch in filtered]
+        return result
+
+    def _parse_student(self, answer_str):
+        """Student javoblar satrini listga aylantirish"""
+        import re
+        user = answer_str.lower().strip()
+        has_numbers = bool(re.search(r'\d', user))
+        if has_numbers:
+            return [m.group(1) for m in re.finditer(r'\d+([a-zx])', user)]
+        filtered = ''.join(ch for ch in user if ch.isalpha() or ch == 'x')
+        return list(filtered)
+
+    def get(self, request, test_code):
+        # Bu test_code ga ega topic ni topish
+        topic = Topic.objects.filter(correct_answers__has_key=test_code).first()
+        if not topic:
+            return Response({"error": "Test topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        correct_str = topic.correct_answers.get(test_code, "")
+        correct_list = self._parse_correct(correct_str) if correct_str else []
+        total_questions = len(correct_list)
+
+        tasks = (
+            Task.objects
+            .filter(test_code=test_code, task_type='test')
+            .select_related('student')
+        )
+
+        results = []
+        for task in tasks:
+            name_parts = (task.student.full_name or "").strip().split()
+            first_name = name_parts[0] if name_parts else "-"
+            last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "-"
+
+            fan_ball = 0
+            ped_ball = 0
+
+            if task.test_answers and correct_list:
+                student_list = self._parse_student(task.test_answers)
+                if len(student_list) == len(correct_list):
+                    for i, (s_ans, c_ans) in enumerate(zip(student_list, correct_list)):
+                        if s_ans in c_ans:
+                            if i < 35:      # 1-35 → Fan bloki
+                                fan_ball += 2
+                            else:           # 36-50 → Ped bloki
+                                ped_ball += 2
+                else:
+                    # Javoblar soni mos kelmasa — grade dan foydalanamiz
+                    fan_ball = (task.grade or 0) * 2
+            else:
+                fan_ball = (task.grade or 0) * 2
+
+            results.append({
+                "first_name": first_name,
+                "last_name": last_name,
+                "fan_ball": fan_ball,
+                "ped_ball": ped_ball,
+                "umumiy_ball": fan_ball + ped_ball,
+                "created_at": task.submitted_at,
+            })
+
+        return Response({
+            "code": test_code,
+            "name": topic.title,
+            "total_questions": total_questions,
+            "results": results,
+        })
+
+
+# ─────────────────────────────────────────────
+# Tanga tizimi endpointlari
+# ─────────────────────────────────────────────
+
+class LeaderboardView(APIView):
+    """
+    Kurs bo'yicha reyting (top 600, tanga bo'yicha)
+    GET /api/coins/leaderboard/?course_id=1&telegram_id=xxx
+
+    Response:
+    {
+        "top10": [{rank, telegram_id, full_name, total_coins, current_streak, longest_streak}],
+        "my_rank": 15,          # null if >600 or not found
+        "my_coins": 123,
+        "my_streak": 2,
+        "my_longest_streak": 5
+    }
+    """
+
+    def get(self, request):
+        course_id = request.query_params.get('course_id')
+        telegram_id = request.query_params.get('telegram_id')
+
+        if not course_id:
+            return Response({"error": "course_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
+
+        wallets = (
+            CoinWallet.objects
+            .filter(course_id=course_id)
+            .select_related('student', 'course')
+            .order_by('-total_coins', '-longest_streak')
+        )
+
+        ranked = []
+        for rank, w in enumerate(wallets, start=1):
+            if rank <= 600:
+                ranked.append({
+                    "rank": rank,
+                    "telegram_id": w.student.telegram_id,
+                    "full_name": w.student.full_name,
+                    "total_coins": w.total_coins,
+                    "current_streak": w.current_streak,
+                    "longest_streak": w.longest_streak,
+                })
+
+        top10 = ranked[:10]
+
+        my_rank = None
+        my_coins = 0
+        my_streak = 0
+        my_longest = 0
+
+        if telegram_id:
+            for entry in ranked:
+                if entry["telegram_id"] == telegram_id:
+                    my_rank = entry["rank"]
+                    my_coins = entry["total_coins"]
+                    my_streak = entry["current_streak"]
+                    my_longest = entry["longest_streak"]
+                    break
+            # Agar >600 bo'lsa, tangalarini topib qaytaramiz
+            if my_rank is None:
+                try:
+                    student = Student.objects.get(telegram_id=telegram_id)
+                    w = CoinWallet.objects.filter(student=student, course_id=course_id).first()
+                    if w:
+                        my_coins = w.total_coins
+                        my_streak = w.current_streak
+                        my_longest = w.longest_streak
+                except Student.DoesNotExist:
+                    pass
+
+        return Response({
+            "top10": top10,
+            "my_rank": my_rank,
+            "my_coins": my_coins,
+            "my_streak": my_streak,
+            "my_longest_streak": my_longest,
+        })
+
+
+class StudentWalletView(APIView):
+    """
+    Student barcha kurslar bo'yicha hamyonini ko'rish
+    GET /api/coins/my/?telegram_id=xxx
+    """
+
+    def get(self, request):
+        telegram_id = request.query_params.get('telegram_id')
+        if not telegram_id:
+            return Response({"error": "telegram_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            student = Student.objects.get(telegram_id=telegram_id)
+        except Student.DoesNotExist:
+            return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        wallets = CoinWallet.objects.filter(student=student).select_related('course')
+        result = []
+        for w in wallets:
+            result.append({
+                "course_id": w.course.id,
+                "course_name": w.course.name,
+                "total_coins": w.total_coins,
+                "current_streak": w.current_streak,
+                "longest_streak": w.longest_streak,
+            })
+
+        return Response({
+            "full_name": student.full_name,
+            "wallets": result,
+        })
+
+
+class AdminLeaderboardView(APIView):
+    """
+    Admin uchun filtrlangan reyting
+    GET /api/coins/admin-leaderboard/?course_id=1&from=2026-01-01&to=2026-05-06&sort=coins|streak
+    """
+
+    def get(self, request):
+        from django.db.models import Sum, Max
+        from django.utils.dateparse import parse_date
+        import pytz
+
+        course_id = request.query_params.get('course_id')
+        sort_by = request.query_params.get('sort', 'coins')  # coins | streak
+        from_date_str = request.query_params.get('from')
+        to_date_str = request.query_params.get('to')
+
+        if not course_id:
+            return Response({"error": "course_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
+
+        local_tz = pytz.timezone('Asia/Tashkent')
+
+        # Sana filtri
+        tx_filter = {'wallet__course_id': course_id}
+        if from_date_str:
+            fd = parse_date(from_date_str)
+            if fd:
+                from datetime import datetime
+                tx_filter['created_at__gte'] = local_tz.localize(
+                    datetime.combine(fd, datetime.min.time())
+                )
+        if to_date_str:
+            td = parse_date(to_date_str)
+            if td:
+                from datetime import datetime
+                tx_filter['created_at__lte'] = local_tz.localize(
+                    datetime.combine(td, datetime.max.time())
+                )
+
+        # Sana oralig'idagi yig'ilgan tanga yoki streak bo'yicha saralash
+        if sort_by == 'streak':
+            # Eng uzun streak bo'yicha (all-time, walletdan)
+            wallets = (
+                CoinWallet.objects
+                .filter(course_id=course_id)
+                .select_related('student')
+                .order_by('-longest_streak', '-total_coins')
+            )
+            results = []
+            for rank, w in enumerate(wallets[:50], start=1):
+                results.append({
+                    "rank": rank,
+                    "telegram_id": w.student.telegram_id,
+                    "full_name": w.student.full_name,
+                    "total_coins": w.total_coins,
+                    "longest_streak": w.longest_streak,
+                    "current_streak": w.current_streak,
+                })
+        else:
+            # Tanlangan davr ichida eng ko'p tanga
+            from django.db.models import Sum
+            tx_agg = (
+                CoinTransaction.objects
+                .filter(**tx_filter)
+                .values('wallet__student__telegram_id', 'wallet__student__full_name', 'wallet__id')
+                .annotate(period_coins=Sum('total_coins'), max_streak=Max('streak_after'))
+                .order_by('-period_coins')
+            )
+            results = []
+            for rank, row in enumerate(tx_agg[:50], start=1):
+                results.append({
+                    "rank": rank,
+                    "telegram_id": row['wallet__student__telegram_id'],
+                    "full_name": row['wallet__student__full_name'],
+                    "period_coins": row['period_coins'],
+                    "max_streak_in_period": row['max_streak'],
+                })
+
+        return Response({"results": results, "sort_by": sort_by})
+
+
+# ─── Davomat ───────────────────────────────────────────────────────────────────
+
+class AttendanceSessionCreateView(APIView):
+    """
+    Admin davomat sessiyasi ochadi
+    POST /api/attendance/session/
+    Body: { "code": "3847", "expires_at": "2026-05-16T15:00:00", "created_by": "1811507184" }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        code = request.data.get("code", "").strip()
+        expires_at = request.data.get("expires_at")
+        created_by = request.data.get("created_by", "")
+
+        if not code or not expires_at:
+            return Response({"error": "code va expires_at majburiy"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Oldingi aktiv sessiyalarni o'chirish (faqat shu adminniki)
+        AttendanceSession.objects.filter(created_by=created_by, is_active=True).update(is_active=False)
+
+        session = AttendanceSession.objects.create(
+            code=code,
+            expires_at=expires_at,
+            created_by=created_by,
+            is_active=True,
+        )
+        return Response({"id": session.id, "code": session.code, "expires_at": session.expires_at}, status=status.HTTP_201_CREATED)
+
+
+class AttendanceMarkView(APIView):
+    """
+    Talaba davomat qo'yadi
+    POST /api/attendance/mark/
+    Body: { "telegram_id": "123456789", "code": "3847" }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        from django.utils import timezone
+
+        telegram_id = str(request.data.get("telegram_id", "")).strip()
+        code = str(request.data.get("code", "")).strip()
+
+        if not telegram_id or not code:
+            return Response({"error": "telegram_id va code majburiy"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            student = Student.objects.get(telegram_id=telegram_id)
+        except Student.DoesNotExist:
+            return Response({"error": "Talaba topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Aktiv va muddati o'tmagan sessiyani topish
+        session = AttendanceSession.objects.filter(
+            code=code,
+            is_active=True,
+            expires_at__gt=timezone.now(),
+        ).first()
+
+        if not session:
+            return Response({"error": "Kod noto'g'ri yoki muddati tugagan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Takroriy tasdiq tekshiruvi
+        if Attendance.objects.filter(student=student, session=session).exists():
+            return Response({"error": "already_marked"}, status=status.HTTP_409_CONFLICT)
+
+        Attendance.objects.create(student=student, session=session)
+        return Response({"ok": True, "session_date": session.created_at.strftime("%d.%m.%Y")}, status=status.HTTP_201_CREATED)
+
+
+class AttendanceCSVView(APIView):
+    """
+    Haftalik davomat CSV hisobot
+    GET /api/attendance/csv/?from=2026-05-10&to=2026-05-16
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        import csv
+        from django.utils import timezone
+        from datetime import datetime
+        import io
+
+        from_str = request.query_params.get("from")
+        to_str = request.query_params.get("to")
+
+        try:
+            import pytz
+            tz = pytz.timezone("Asia/Tashkent")
+            from_dt = tz.localize(datetime.strptime(from_str, "%Y-%m-%d").replace(hour=0, minute=0, second=0))
+            to_dt = tz.localize(datetime.strptime(to_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59))
+        except Exception:
+            return Response({"error": "from va to parametrlari kerak (YYYY-MM-DD)"}, status=status.HTTP_400_BAD_REQUEST)
+
+        sessions = list(
+            AttendanceSession.objects.filter(
+                created_at__gte=from_dt,
+                created_at__lte=to_dt,
+            ).order_by("created_at")
+        )
+
+        # Barcha davomatlarni bir so'rovda olish
+        attendances = Attendance.objects.filter(
+            session__in=sessions
+        ).select_related("student").values("student_id", "session_id")
+
+        # (student_id, session_id) set
+        marked_set = {(a["student_id"], a["session_id"]) for a in attendances}
+
+        # Guruhi bor barcha studentlar (kelgan-kelmaganidan qatʼi nazar)
+        students = list(Student.objects.filter(groups__isnull=False).distinct().order_by("full_name"))
+
+        output = io.StringIO()
+        # UTF-8 BOM — Excel uchun
+        output.write("﻿")
+        writer = csv.writer(output)
+
+        # Sarlavha
+        session_labels = [s.created_at.astimezone(tz).strftime("%d.%m") for s in sessions]
+        writer.writerow(["Ism Familya", "Telefon"] + session_labels + ["Jami"])
+
+        for student in students:
+            row = [student.full_name, student.phone or "—"]
+            count = 0
+            for s in sessions:
+                if (student.id, s.id) in marked_set:
+                    row.append("✅")
+                    count += 1
+                else:
+                    row.append("❌")
+            row.append(f"{count}/{len(sessions)}")
+            writer.writerow(row)
+
+        csv_bytes = output.getvalue().encode("utf-8")
+        response = HttpResponse(csv_bytes, content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="davomat_{from_str}_{to_str}.csv"'
+        return response

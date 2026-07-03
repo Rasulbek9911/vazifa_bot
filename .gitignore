@@ -130,3 +130,14 @@ dmypy.json
 .pyre/
 .idea/*
 .env
+
+# Server-only files: DB backups, ad-hoc load-test scripts, generated reports/images
+backup_*
+/test_*.py
+test_report_*.pdf
+weekly_preview.pdf
+image.png
+image copy.png
+*.sqlite3
+*.sql
+CLAUDE.md
