@@ -26,8 +26,12 @@ class Course(models.Model):
         null=True,
         help_text="Bu kurs uchun mas'ul admin Telegram ID"
     )
+    has_assignments = models.BooleanField(
+        default=False,
+        help_text="Bu kursda 'Maxsus topshiriq' (fayl/rasm) yuborish ham mumkinmi"
+    )
     is_active = models.BooleanField(
-        default=True, 
+        default=True,
         help_text="Kurs faolmi"
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -175,9 +179,12 @@ class Task(models.Model):
     task_type = models.CharField(
         max_length=20, choices=TASK_TYPE_CHOICES, default='test')
     
-    # Maxsus topshiriq uchun - fayl
+    # Maxsus topshiriq uchun - fayl (eski, bitta fayl uchun, backward compat)
     file_link = models.TextField(null=True, blank=True)
-    
+
+    # Maxsus topshiriq uchun - bir nechta fayl: [{"file_id": ..., "type": "photo"/"document"}, ...]
+    files = models.JSONField(null=True, blank=True, default=list)
+
     # Test uchun - test kodi va javoblar
     test_code = models.CharField(max_length=50, null=True, blank=True)
     test_answers = models.CharField(max_length=255, null=True, blank=True)
@@ -428,3 +435,60 @@ class OperatorProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — operator profili"
+
+
+class ScheduleConfig(models.Model):
+    """Bot'dagi rejalashtirilgan (cron) vazifalar uchun sozlama — admin panel orqali boshqariladi"""
+    job_key = models.CharField(max_length=50, unique=True)
+    enabled = models.BooleanField(default=True)
+    weekdays = models.CharField(
+        max_length=30, blank=True, default='',
+        help_text="vergul bilan: mon,tue,wed,thu,fri,sat,sun. Bo'sh = har kuni"
+    )
+    hour = models.PositiveSmallIntegerField(default=21)
+    minute = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Schedule sozlamasi"
+        verbose_name_plural = "Schedule sozlamalari"
+
+    def __str__(self):
+        return f"{self.job_key} ({'on' if self.enabled else 'off'})"
+
+
+class WeeklyReportSetting(models.Model):
+    """Haftalik PDF hisobot uchun qaysi mavzular ko'rsatilishi (oxirgi 10 ta yoki aniq oy)"""
+    mode = models.CharField(max_length=10, default='last10')  # 'last10' | 'month'
+    year = models.PositiveSmallIntegerField(null=True, blank=True)
+    month = models.PositiveSmallIntegerField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Haftalik PDF sozlamasi"
+        verbose_name_plural = "Haftalik PDF sozlamalari"
+
+    def __str__(self):
+        return f"{self.mode} {self.year or ''}-{self.month or ''}"
+
+
+class MonthlyStreakSetting(models.Model):
+    """
+    Belgilangan (year, month) uchun 'oylik streak rejimi'ni yoqadi.
+    Yoqilgan bo'lsa — Tangalarim/reyting/PDF'da o'sha oy bo'yicha streak
+    va tanga hisob-kitobi shu oyning birinchi mavzusidan 1 deb qayta
+    (on-the-fly, DB'ga yozmasdan) hisoblanadi — oldingi oylardagi uzviylik
+    hisobga olinmaydi. O'chirilgan bo'lsa — global (butun davr) streak ishlatiladi.
+    """
+    year = models.PositiveSmallIntegerField()
+    month = models.PositiveSmallIntegerField()
+    enabled = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Oylik streak sozlamasi"
+        verbose_name_plural = "Oylik streak sozlamalari"
+        unique_together = ('year', 'month')
+
+    def __str__(self):
+        return f"{self.year}-{self.month:02d} ({'on' if self.enabled else 'off'})"

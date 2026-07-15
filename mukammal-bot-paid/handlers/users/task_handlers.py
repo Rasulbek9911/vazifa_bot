@@ -11,7 +11,7 @@ from aiogram.dispatcher.filters import Text, Command
 from data.config import ADMINS, API_BASE_URL, MILLIY_ADMIN, ATTESTATSIYA_ADMIN
 from loader import dp, bot
 from states.task_state import TaskState
-from keyboards.default.vazifa_keyboard import vazifa_key
+from keyboards.default.vazifa_keyboard import build_vazifa_keyboard
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from filters.is_private import IsPrivate
 
@@ -311,8 +311,13 @@ async def process_topic(callback: types.CallbackQuery, state: FSMContext):
             "   birontasini yuboring. Misol: 1ab → 1a yoki 1b"
         )
     else:
-        await callback.message.answer("📎 Endi faylni yuboring (rasm yoki hujjat).")
-    
+        await state.update_data(collected_files=[])
+        await callback.message.answer(
+            "📎 Fayl(lar)ni yuboring (rasm yoki hujjat).\n\n"
+            "Bir nechtasini ketma-ket yoki albom qilib bir yo'la yuborishingiz mumkin.\n"
+            "Yuborib bo'lgach, \"✅ Yuborishni yakunlash\" tugmasini bosing."
+        )
+
     await TaskState.file.set()
     await callback.answer()
 
@@ -440,7 +445,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                 f"Kerakli javoblar soni: {len(correct_answers_list)}\n"
                 f"Sizning javoblaringiz: {len(student_answers_list)}\n\n"
                 f"Iltimos, to'g'ri formatda qayta yuboring.",
-                reply_markup=vazifa_key
+                reply_markup=await build_vazifa_keyboard(message.from_user.id)
             )
             await state.finish()
             return
@@ -507,7 +512,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
             final_grade = int(correct_count * 0.8)
             result_text += f"\n\n⏰ Deadline o'tgan! Ball 80% ga tushirildi: {final_grade}/{total_count}"
         
-        await message.answer(result_text, reply_markup=vazifa_key)
+        await message.answer(result_text, reply_markup=await build_vazifa_keyboard(message.from_user.id))
         
         # DBga saqlash - grade qismiga to'g'ri javoblar soni (yoki 80% agar deadline o'tgan bo'lsa)
         # course_type ni yubormaymiz, backend topic.course dan oladi
@@ -522,7 +527,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
         }
     else:
         # To'g'ri javoblar mavjud emas - oddiy saqlash
-        await message.answer("✅ 📝 Test javoblari yuborildi! Admin tekshiradi.", reply_markup=vazifa_key)
+        await message.answer("✅ 📝 Test javoblari yuborildi! Admin tekshiradi.", reply_markup=await build_vazifa_keyboard(message.from_user.id))
         
         payload = {
             "student_id": message.from_user.id,
@@ -552,7 +557,7 @@ async def process_test_answers(message: types.Message, state: FSMContext):
                     f"Status: {resp.status}\n"
                     f"Xato: {error_detail}\n\n"
                     f"Iltimos, admin bilan bog'laning.",
-                    reply_markup=vazifa_key
+                    reply_markup=await build_vazifa_keyboard(message.from_user.id)
                 )
             else:
                 resp_data = await resp.json()
@@ -573,18 +578,35 @@ async def process_test_answers(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# Maxsus topshiriq uchun fayl qabul qilish
+MAX_ASSIGNMENT_FILES = 10
+
+
+def _finish_assignment_kb() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup()
+    kb.add(InlineKeyboardButton("✅ Yuborishni yakunlash", callback_data="finish_assignment"))
+    return kb
+
+
+# Maxsus topshiriq uchun fayl(lar) qabul qilish (bir nechtasi to'planib, "Yakunlash" bosilganda birga yuboriladi)
 @dp.message_handler(content_types=["document", "photo"], state=TaskState.file)
 async def process_file(message: types.Message, state: FSMContext):
     data = await state.get_data()
     task_type = data.get("task_type", "test")
-    
+
     # Agar test bo'lsa, fayl qabul qilmaymiz
     if task_type == "test":
         await message.answer("❌ Test uchun matn yuboring, fayl emas!")
         return
-    topic_id = data["topic_id"]
-    task_type = data.get("task_type", "test")
+
+    collected = data.get("collected_files", [])
+
+    if len(collected) >= MAX_ASSIGNMENT_FILES:
+        await message.answer(
+            f"⚠️ Siz allaqachon maksimal {MAX_ASSIGNMENT_FILES} ta fayl yubordingiz.\n"
+            f"Yuborishni yakunlash uchun pastdagi tugmani bosing.",
+            reply_markup=_finish_assignment_kb()
+        )
+        return
 
     if message.document:
         file_id = message.document.file_id
@@ -593,29 +615,59 @@ async def process_file(message: types.Message, state: FSMContext):
         file_id = message.photo[-1].file_id
         file_type = "photo"
 
+    collected.append({"file_id": file_id, "type": file_type})
+    await state.update_data(collected_files=collected)
+
+    await message.answer(
+        f"📎 {len(collected)}-fayl qabul qilindi.\n\n"
+        f"Yana yuborishingiz mumkin yoki yakunlash uchun tugmani bosing.",
+        reply_markup=_finish_assignment_kb()
+    )
+
+
+@dp.callback_query_handler(lambda c: c.data == "finish_assignment", state=TaskState.file)
+async def finish_assignment(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    task_type = data.get("task_type", "test")
+    collected = data.get("collected_files", [])
+
+    if task_type == "test":
+        await callback.answer()
+        return
+
+    if not collected:
+        await callback.answer("❌ Avval kamida bitta fayl yuboring!", show_alert=True)
+        return
+
+    await callback.answer()
+    topic_id = data["topic_id"]
+
     # course_type ni yubormaymiz, backend topic.course dan oladi
     payload = {
-        "student_id": message.from_user.id,  # telegram_id
+        "student_id": callback.from_user.id,  # telegram_id
         "topic_id": topic_id,
         "task_type": task_type,
-        "file_link": file_id
+        "files": collected,
     }
 
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{API_BASE_URL}/tasks/submit/", json=payload) as resp:
             if resp.status == 201:
-                data = await resp.json()
-                task_id = data["id"]
-                student_name = data["student"]["full_name"]
-                
-                # Birinchi guruhni olish
-                all_groups = data["student"].get("all_groups", [])
-                group_name = all_groups[0]["name"] if all_groups else "N/A"
-                
-                topic_title = data["topic"]["title"]
+                resp_data = await resp.json()
+                task_id = resp_data["id"]
+                student_name = resp_data["student"]["full_name"]
 
-                # ✅ Studenta javob
-                await message.answer(f"✅ 📋 Maxsus topshiriq yuborildi!", reply_markup=vazifa_key)
+                # Birinchi guruhni olish
+                all_groups = resp_data["student"].get("all_groups", [])
+                group_name = all_groups[0]["name"] if all_groups else "N/A"
+
+                topic_title = resp_data["topic"]["title"]
+
+                # ✅ Studentga javob
+                await callback.message.answer(
+                    f"✅ 📋 Maxsus topshiriq yuborildi! ({len(collected)} ta fayl)",
+                    reply_markup=await build_vazifa_keyboard(callback.from_user.id)
+                )
 
                 # ✅ Admin uchun inline keyboard (faqat maxsus topshiriq uchun)
                 kb = InlineKeyboardMarkup(row_width=3)
@@ -630,29 +682,40 @@ async def process_file(message: types.Message, state: FSMContext):
                     f"👤 Student: {student_name}\n"
                     f"👥 Guruh: {group_name}\n"
                     f"📚 Mavzu: {topic_title}\n"
+                    f"📎 Fayllar soni: {len(collected)}\n"
                 )
 
                 # ✨ Topic'dan course ma'lumotlarini olamiz va course adminiga yuboramiz
-                topic_data = data["topic"]
+                topic_data = resp_data["topic"]
                 course_admin_id = None
-                
+
                 # Agar topic.course mavjud bo'lsa, course adminini olamiz
                 if topic_data.get("course"):
                     course_admin_id = topic_data["course"].get("admin_telegram_id")
-                
+
                 if not course_admin_id:
                     course_admin_id = ATTESTATSIYA_ADMIN
-                
+
                 # Adminlarga ham yuboramiz (barcha adminlar ko'rishi uchun)
                 admins_to_notify = [course_admin_id] + ADMINS
                 admins_to_notify = list(set(admins_to_notify))  # Dublikatlarni olib tashlash
-                
+
+                photos = [f for f in collected if f["type"] == "photo"]
+                documents = [f for f in collected if f["type"] == "document"]
+
                 for admin_id in admins_to_notify:
                     try:
-                        if file_type == "document":
-                            await bot.send_document(admin_id, file_id, caption=caption, reply_markup=kb)
-                        else:
-                            await bot.send_photo(admin_id, file_id, caption=caption, reply_markup=kb)
+                        if len(photos) == 1:
+                            await bot.send_photo(admin_id, photos[0]["file_id"])
+                        elif len(photos) >= 2:
+                            media = [types.InputMediaPhoto(p["file_id"]) for p in photos[:10]]
+                            await bot.send_media_group(admin_id, media)
+
+                        for doc in documents:
+                            await bot.send_document(admin_id, doc["file_id"])
+
+                        # Bitta yagona xabar - izoh + baholash tugmalari
+                        await bot.send_message(admin_id, caption, reply_markup=kb)
                     except Exception as e:
                         print(f"❌ Admin {admin_id} ga yuborishda xato: {e}")
 
@@ -660,26 +723,25 @@ async def process_file(message: types.Message, state: FSMContext):
                 error_text = await resp.text()
                 print(f"❌ Vazifa saqlashda xatolik. Status: {resp.status}, Error: {error_text}")
                 print(f"Payload: {payload}")
-                
+
                 # Parse JSON error if possible
                 try:
-                    import json
                     error_data = json.loads(error_text)
                     error_detail = str(error_data)
-                except:
+                except Exception:
                     error_detail = error_text[:200]
-                
-                await message.answer(
+
+                await callback.message.answer(
                     f"❌ Vazifa yuborishda xatolik bo'ldi!\n\n"
                     f"Status: {resp.status}\n"
                     f"Xato: {error_detail}\n\n"
                     f"Iltimos, admin bilan bog'laning.",
-                    reply_markup=vazifa_key
+                    reply_markup=await build_vazifa_keyboard(callback.from_user.id)
                 )
 
     try:
         await state.finish()
-    except:
+    except Exception:
         pass
 
 

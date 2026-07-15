@@ -14,6 +14,11 @@ from states.broadcast_state import BroadcastState
 from states.update_answers_state import UpdateAnswersState
 from states.add_topic_state import AddTopicState
 from states.grp_test_state import GrpTestState
+from states.settings_state import SettingsState
+from utils.scheduler_instance import (
+    JOB_LABELS, DAY_LABELS, DAY_ORDER, DEFAULT_SCHEDULE,
+    days_str_to_label, apply_job, remove_job,
+)
 
 MONTH_NAMES_UZ = {
     1: "Yanvar", 2: "Fevral", 3: "Mart", 4: "Aprel",
@@ -27,7 +32,7 @@ async def _get_coin_months(course_id: int, student_ids=None):
     qs = CoinTransaction.objects.filter(wallet__course_id=course_id)
     if student_ids:
         qs = qs.filter(wallet__student_id__in=student_ids)
-    return await sync_to_async(list)(qs.dates('created_at', 'month', order='DESC'))
+    return await sync_to_async(list)(qs.dates('topic__activated_at', 'month', order='DESC'))
 
 
 async def _get_task_months(topic_ids: list, student_ids=None):
@@ -252,77 +257,225 @@ async def activate_topic(message: types.Message):
 # --- Barcha userlarga xabar yuborish ---
 @dp.message_handler(IsPrivate(), commands=["broadcast"], user_id=ADMINS)
 @dp.message_handler(IsPrivate(), lambda msg: msg.text == "📢 Broadcast", user_id=ADMINS)
-async def start_broadcast(message: types.Message):
-    """Admin broadcast xabarini yozish boshlaydi"""
-    await message.answer(
-        "📢 Yubormoqchi bo'lgan xabaringizni yuboring:\n\n"
-        "⚠️ Xabar matn, rasm, video yoki hujjat bo'lishi mumkin.\n"
-        "❌ Bekor qilish uchun: /cancel"
-    )
-    await BroadcastState.waiting_for_message.set()
-
-
-@dp.message_handler(IsPrivate(), state=BroadcastState.waiting_for_message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
-async def process_broadcast_message(message: types.Message, state: FSMContext):
-    """Broadcast xabarini qabul qilish va guruh tanlashni ko'rsatish"""
-    from base_app.models import Group
-    
-    # Xabarni state ga saqlaymiz
+async def start_broadcast(message: types.Message, state: FSMContext):
+    """Admin broadcast jarayonini boshlaydi — avval auditoriya so'raladi"""
     await state.update_data(
-        message_id=message.message_id,
-        from_chat_id=message.chat.id,
-        selected_groups=[]  # Tanlangan guruhlar ro'yxati
+        selected_groups=[],
+        audience_mode=None,
+        session_id=None,
     )
-    
-    # Barcha guruhlarni olish (course bilan)
-    groups = await sync_to_async(list)(
-        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
-    )
-    
-    if not groups:
-        await message.answer("❌ Hech qanday guruh topilmadi.")
-        await state.finish()
-        return
-    
-    # Inline keyboard yaratish (multiselect)
+
     keyboard = InlineKeyboardMarkup(row_width=1)
-    
-    # Har bir guruhni qo'shamiz (checkbox bilan)
+    keyboard.add(
+        InlineKeyboardButton(text="👥 Hammaga (guruh tanlab)", callback_data="broadcast_audience_all"),
+        InlineKeyboardButton(text="📵 Faqat davomat qilmaganlarga", callback_data="broadcast_audience_absent"),
+    )
+
+    await message.answer(
+        "📢 Broadcast\n\n"
+        "🎯 Kimga yuborilsin?",
+        reply_markup=keyboard
+    )
+    await BroadcastState.waiting_for_audience_type.set()
+
+
+async def _build_group_selection_keyboard(groups, selected_groups):
+    """Guruh tanlash (multiselect) keyboardini quradi — 'hammaga' va 'davomat' oqimlari uchun umumiy"""
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
     for group in groups:
         student_count = await sync_to_async(group.enrolled_students.count)()
         course_name = group.course.name if group.course else "N/A"
+        checkbox = "✅" if group.id in selected_groups else "☐"
         keyboard.add(
             InlineKeyboardButton(
-                text=f"☐ {course_name} - {group.name} ({student_count} ta)",
+                text=f"{checkbox} {course_name} - {group.name} ({student_count} ta)",
                 callback_data=f"broadcast_toggle_{group.id}"
             )
         )
-    
-    # "Barcha guruhlarga" va "Yuborish" tugmalarini qo'shamiz
+
     total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
+    all_group_ids = [g.id for g in groups]
+    all_selected = bool(all_group_ids) and set(selected_groups) == set(all_group_ids)
+
     keyboard.add(
         InlineKeyboardButton(
-            text=f"📢 Barcha guruhlarni tanlash ({total_students} ta)",
+            text=("❌ Barchasini bekor qilish" if all_selected else f"📢 Barcha guruhlarni tanlash ({total_students} ta)"),
             callback_data="broadcast_select_all"
         )
     )
+
+    selected_student_count = 0
+    for group in groups:
+        if group.id in selected_groups:
+            selected_student_count += await sync_to_async(group.enrolled_students.count)()
+
     keyboard.add(
         InlineKeyboardButton(
-            text="✅ Yuborish (0 ta guruh)",
-            callback_data="broadcast_send"
+            text=f"➡️ Davom etish ({len(selected_groups)} ta guruh, {selected_student_count} ta student)",
+            callback_data="broadcast_groups_confirm"
         )
     )
-    
-    await message.answer(
-        "✅ Xabar qabul qilindi!\n\n"
+    return keyboard
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_audience_all", state=BroadcastState.waiting_for_audience_type)
+async def broadcast_audience_all(callback: types.CallbackQuery, state: FSMContext):
+    """'Hammaga' tanlandi — to'g'ridan-to'g'ri guruh tanlash ekraniga o'tamiz"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Group
+
+    await state.update_data(audience_mode='all', session_id=None)
+
+    groups = await sync_to_async(list)(
+        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
+    )
+    if not groups:
+        await callback.message.edit_text("❌ Hech qanday guruh topilmadi.")
+        await state.finish()
+        return
+
+    keyboard = await _build_group_selection_keyboard(groups, [])
+    await callback.message.edit_text(
         "👥 Guruh(lar)ni tanlang:\n"
         "☐ - tanlanmagan\n"
         "✅ - tanlangan\n\n"
-        "Bir nechta guruhni tanlashingiz mumkin.",
+        "📭 Hech qanday guruh tanlanmagan",
         reply_markup=keyboard
     )
-    
     await BroadcastState.waiting_for_group_selection.set()
+    await callback.answer()
+
+
+SESSIONS_PAGE_SIZE = 8
+
+
+async def _build_sessions_page(page: int):
+    """Davomat sessiyalari ro'yxatini sahifalab ko'rsatadi (page 1-based)"""
+    from base_app.models import AttendanceSession
+    from django.utils import timezone as dj_timezone
+
+    sessions = await sync_to_async(list)(
+        AttendanceSession.objects.order_by('-created_at')
+    )
+    if not sessions:
+        return None, None
+
+    total = len(sessions)
+    total_pages = max(1, (total + SESSIONS_PAGE_SIZE - 1) // SESSIONS_PAGE_SIZE)
+    page = max(1, min(page, total_pages))
+
+    start = (page - 1) * SESSIONS_PAGE_SIZE
+    page_items = sessions[start:start + SESSIONS_PAGE_SIZE]
+
+    now = dj_timezone.now()
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for session in page_items:
+        created_local = dj_timezone.localtime(session.created_at)
+        status = "🟢" if session.is_active and session.expires_at > now else "🔴"
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"{status} {session.code} — {created_local.strftime('%d.%m %H:%M')}",
+                callback_data=f"broadcast_session_{session.id}"
+            )
+        )
+
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton("◀", callback_data=f"broadcast_sessions_page:{page-1}"))
+    nav.append(InlineKeyboardButton(f"{page}/{total_pages}", callback_data="broadcast_sessions_noop"))
+    if page < total_pages:
+        nav.append(InlineKeyboardButton("▶", callback_data=f"broadcast_sessions_page:{page+1}"))
+    keyboard.add(*nav)
+
+    text = (
+        f"📅 Qaysi davomat sessiyasiga qatnashmaganlarga xabar yuborilsin? ({page}/{total_pages} sahifa, jami {total} ta)\n\n"
+        "🟢 - faol, 🔴 - tugagan"
+    )
+    return text, keyboard
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_audience_absent", state=BroadcastState.waiting_for_audience_type)
+async def broadcast_audience_absent(callback: types.CallbackQuery, state: FSMContext):
+    """'Davomat qilmaganlarga' tanlandi — sessiyalar ro'yxatini (sahifalab) ko'rsatamiz"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    text, keyboard = await _build_sessions_page(1)
+    if text is None:
+        await callback.message.edit_text("❌ Hech qanday davomat sessiyasi topilmagan.")
+        await state.finish()
+        return
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+    await BroadcastState.waiting_for_session_selection.set()
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("broadcast_sessions_page:"), state=BroadcastState.waiting_for_session_selection)
+async def broadcast_sessions_page(callback: types.CallbackQuery, state: FSMContext):
+    """Sessiyalar ro'yxatida sahifa almashtirish"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    page = int(callback.data.split(":")[1])
+    text, keyboard = await _build_sessions_page(page)
+    if text is None:
+        await callback.message.edit_text("❌ Hech qanday davomat sessiyasi topilmagan.")
+        await state.finish()
+        return
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_sessions_noop", state=BroadcastState.waiting_for_session_selection)
+async def broadcast_sessions_noop(callback: types.CallbackQuery):
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("broadcast_session_"), state=BroadcastState.waiting_for_session_selection)
+async def broadcast_session_select(callback: types.CallbackQuery, state: FSMContext):
+    """Sessiya tanlandi — endi qaysi guruh shu darsga qatnashishi kerakligini so'raymiz"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Group, AttendanceSession
+
+    session_id = int(callback.data.split("_")[2])
+    session = await sync_to_async(AttendanceSession.objects.filter(id=session_id).first)()
+    if not session:
+        await callback.answer("❌ Sessiya topilmadi.", show_alert=True)
+        return
+
+    await state.update_data(audience_mode='absent', session_id=session_id)
+
+    groups = await sync_to_async(list)(
+        Group.objects.select_related('course').prefetch_related('enrolled_students').all()
+    )
+    if not groups:
+        await callback.message.edit_text("❌ Hech qanday guruh topilmadi.")
+        await state.finish()
+        return
+
+    keyboard = await _build_group_selection_keyboard(groups, [])
+    await callback.message.edit_text(
+        f"📵 Sessiya: <b>{session.code}</b>\n\n"
+        "👥 Ushbu darsga qaysi guruh talabalari qatnashishi kerak edi? Guruh(lar)ni tanlang:\n"
+        "☐ - tanlanmagan\n"
+        "✅ - tanlangan\n\n"
+        "📭 Hech qanday guruh tanlanmagan",
+        reply_markup=keyboard,
+        parse_mode="HTML"
+    )
+    await BroadcastState.waiting_for_group_selection.set()
+    await callback.answer()
 
 
 @dp.callback_query_handler(lambda c: c.data.startswith("broadcast_toggle_"), state=BroadcastState.waiting_for_group_selection)
@@ -332,81 +485,51 @@ async def toggle_group_selection(callback: types.CallbackQuery, state: FSMContex
         await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
         return
     
-    from base_app.models import Group
-    
+    from base_app.models import Group, AttendanceSession
+
     # Qaysi guruh bosilganini aniqlaymiz
     group_id = int(callback.data.split("_")[2])
-    
+
     # State dan tanlangan guruhlarni olamiz
     data = await state.get_data()
     selected_groups = data.get('selected_groups', [])
-    
+
     # Toggle: agar tanlangan bo'lsa - olib tashlaymiz, aks holda qo'shamiz
     if group_id in selected_groups:
         selected_groups.remove(group_id)
     else:
         selected_groups.append(group_id)
-    
+
     # State ni yangilaymiz
     await state.update_data(selected_groups=selected_groups)
-    
-    # Keyboardni yangilaymiz
+
     groups = await sync_to_async(list)(
         Group.objects.select_related('course').prefetch_related('enrolled_students').all()
     )
-    
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    
-    for group in groups:
-        student_count = await sync_to_async(group.enrolled_students.count)()
-        course_name = group.course.name if group.course else "N/A"
-        # Tanlangan guruhlar uchun ✅, boshqalar uchun ☐
-        checkbox = "✅" if group.id in selected_groups else "☐"
-        keyboard.add(
-            InlineKeyboardButton(
-                text=f"{checkbox} {course_name} - {group.name} ({student_count} ta)",
-                callback_data=f"broadcast_toggle_{group.id}"
-            )
-        )
-    
-    # "Barcha guruhlarga" va "Yuborish" tugmalari
-    total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
-    all_group_ids = [g.id for g in groups]
-    all_selected = set(selected_groups) == set(all_group_ids)
-    
-    keyboard.add(
-        InlineKeyboardButton(
-            text=f"{'❌ Barchasini bekor qilish' if all_selected else f'📢 Barcha guruhlarni tanlash ({total_students} ta)'}",
-            callback_data="broadcast_select_all"
-        )
-    )
-    
-    # Tanlangan guruhlardagi studentlar sonini hisoblaymiz
+    keyboard = await _build_group_selection_keyboard(groups, selected_groups)
+
     selected_student_count = 0
     for group in groups:
         if group.id in selected_groups:
             selected_student_count += await sync_to_async(group.enrolled_students.count)()
-    
-    keyboard.add(
-        InlineKeyboardButton(
-            text=f"✅ Yuborish ({len(selected_groups)} ta guruh, {selected_student_count} ta student)",
-            callback_data="broadcast_send"
-        )
-    )
-    
+
     # Xabar matnini ham yangilaymiz - tanlangan guruhlar ko'rinsin
-    message_text = (
-        "✅ Xabar qabul qilindi!\n\n"
+    message_text = ""
+    if data.get('audience_mode') == 'absent' and data.get('session_id'):
+        session = await sync_to_async(AttendanceSession.objects.filter(id=data['session_id']).first)()
+        if session:
+            message_text += f"📵 Sessiya: {session.code}\n\n"
+    message_text += (
         "👥 Guruh(lar)ni tanlang:\n"
         "☐ - tanlanmagan\n"
         "✅ - tanlangan\n\n"
     )
-    
+
     if selected_groups:
         message_text += f"📊 Tanlandi: {len(selected_groups)} ta guruh, {selected_student_count} ta student"
     else:
         message_text += "📭 Hech qanday guruh tanlanmagan"
-    
+
     try:
         await callback.message.edit_text(
             text=message_text,
@@ -414,7 +537,7 @@ async def toggle_group_selection(callback: types.CallbackQuery, state: FSMContex
         )
     except Exception as e:
         print(f"Message update error: {e}")
-    
+
     await callback.answer(f"{'✅ Tanlandi' if group_id in selected_groups else '❌ Bekor qilindi'}")
 
 
@@ -425,79 +548,53 @@ async def select_all_groups(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
         return
     
-    from base_app.models import Group
-    
+    from base_app.models import Group, AttendanceSession
+
     # State dan tanlangan guruhlarni olamiz
     data = await state.get_data()
     selected_groups = data.get('selected_groups', [])
-    
+
     # Barcha guruhlarni olamiz
     groups = await sync_to_async(list)(
         Group.objects.select_related('course').prefetch_related('enrolled_students').all()
     )
-    
+
     all_group_ids = [g.id for g in groups]
-    
+
     # Agar barcha tanlangan bo'lsa - barchasini bekor qilamiz, aks holda barchasini tanlaymiz
     if set(selected_groups) == set(all_group_ids):
         selected_groups = []
     else:
         selected_groups = all_group_ids.copy()
-    
+
     # State ni yangilaymiz
     await state.update_data(selected_groups=selected_groups)
-    
-    # Keyboardni yangilaymiz
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    
-    for group in groups:
-        student_count = await sync_to_async(group.enrolled_students.count)()
-        course_name = group.course.name if group.course else "N/A"
-        checkbox = "✅" if group.id in selected_groups else "☐"
-        keyboard.add(
-            InlineKeyboardButton(
-                text=f"{checkbox} {course_name} - {group.name} ({student_count} ta)",
-                callback_data=f"broadcast_toggle_{group.id}"
-            )
-        )
-    
-    # "Barcha guruhlarga" va "Yuborish" tugmalari
-    total_students = sum([await sync_to_async(g.enrolled_students.count)() for g in groups])
+
+    keyboard = await _build_group_selection_keyboard(groups, selected_groups)
     all_selected = len(selected_groups) == len(all_group_ids)
-    
-    keyboard.add(
-        InlineKeyboardButton(
-            text=f"{'❌ Barchasini bekor qilish' if all_selected else f'📢 Barcha guruhlarni tanlash ({total_students} ta)'}",
-            callback_data="broadcast_select_all"
-        )
-    )
-    
-    # Tanlangan guruhlardagi studentlar sonini hisoblaymiz
+
     selected_student_count = 0
     for group in groups:
         if group.id in selected_groups:
             selected_student_count += await sync_to_async(group.enrolled_students.count)()
-    
-    keyboard.add(
-        InlineKeyboardButton(
-            text=f"✅ Yuborish ({len(selected_groups)} ta guruh, {selected_student_count} ta student)",
-            callback_data="broadcast_send"
-        )
-    )
-    
+
     # Xabar matnini ham yangilaymiz
-    message_text = (
-        "✅ Xabar qabul qilindi!\n\n"
+    message_text = ""
+    if data.get('audience_mode') == 'absent' and data.get('session_id'):
+        session = await sync_to_async(AttendanceSession.objects.filter(id=data['session_id']).first)()
+        if session:
+            message_text += f"📵 Sessiya: {session.code}\n\n"
+    message_text += (
         "👥 Guruh(lar)ni tanlang:\n"
         "☐ - tanlanmagan\n"
         "✅ - tanlangan\n\n"
     )
-    
+
     if selected_groups:
         message_text += f"📊 Tanlandi: {len(selected_groups)} ta guruh, {selected_student_count} ta student"
     else:
         message_text += "📭 Hech qanday guruh tanlanmagan"
-    
+
     try:
         await callback.message.edit_text(
             text=message_text,
@@ -505,70 +602,118 @@ async def select_all_groups(callback: types.CallbackQuery, state: FSMContext):
         )
     except Exception as e:
         print(f"Message update error: {e}")
-    
+
     await callback.answer(f"{'✅ Hammasi tanlandi!' if all_selected else '❌ Hammasi bekor qilindi!'}")
 
 
-@dp.callback_query_handler(lambda c: c.data == "broadcast_send", state=BroadcastState.waiting_for_group_selection)
-async def send_broadcast_to_groups(callback: types.CallbackQuery, state: FSMContext):
-    """Tanlangan guruhlarga broadcast yuborish"""
-    if str(callback.from_user.id) not in ADMINS:
-        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
-        return
-    
-    from base_app.models import Group, Student
-    
-    # State dan xabar va tanlangan guruhlar ma'lumotlarini olamiz
-    data = await state.get_data()
-    message_id = data['message_id']
-    from_chat_id = data['from_chat_id']
+async def _resolve_broadcast_targets(data):
+    """State ma'lumotlari asosida (guruhlar + auditoriya rejimi) yuboriladigan studentlar ro'yxatini hisoblaydi.
+
+    Qaytaradi: (students_list, group_names, session_label) yoki xatolik bo'lsa (None, error_text, None)
+    """
+    from base_app.models import Group, Attendance, AttendanceSession
+
     selected_groups = data.get('selected_groups', [])
-    
+    audience_mode = data.get('audience_mode', 'all')
+    session_id = data.get('session_id')
+
     if not selected_groups:
-        await callback.answer("❌ Hech qanday guruh tanlanmagan!", show_alert=True)
-        return
-    
-    # Tanlangan guruhlarni olamiz
+        return None, "❌ Hech qanday guruh tanlanmagan!", None
+
     groups = await sync_to_async(list)(
         Group.objects.filter(id__in=selected_groups).select_related('course').prefetch_related('enrolled_students')
     )
-    
     if not groups:
-        await callback.answer("❌ Guruhlar topilmadi!", show_alert=True)
-        await state.finish()
-        return
-    
-    # Guruh nomlarini yig'amiz
-    group_names = []
-    for group in groups:
-        course_name = group.course.name if group.course else "N/A"
-        group_names.append(f"{course_name} - {group.name}")
-    
-    # Unique studentlarni yig'amiz (bir student bir nechta guruhda bo'lishi mumkin)
+        return None, "❌ Guruhlar topilmadi!", None
+
+    group_names = [f"{group.course.name if group.course else 'N/A'} - {group.name}" for group in groups]
+
     unique_students = {}
     for group in groups:
         students = await sync_to_async(list)(group.enrolled_students.all())
         for student in students:
-            unique_students[student.telegram_id] = student
-    
+            unique_students[student.id] = student
+
     students_list = list(unique_students.values())
-    
+
+    session_label = ""
+    if audience_mode == 'absent' and session_id:
+        session = await sync_to_async(AttendanceSession.objects.filter(id=session_id).first)()
+        if not session:
+            return None, "❌ Sessiya topilmadi!", None
+        session_label = f"📵 Sessiya: {session.code}\n"
+
+        attended_ids = set(await sync_to_async(list)(
+            Attendance.objects.filter(
+                session_id=session_id,
+                student_id__in=list(unique_students.keys())
+            ).values_list('student_id', flat=True)
+        ))
+        students_list = [s for s in students_list if s.id not in attended_ids]
+
     if not students_list:
-        await callback.answer("❌ Tanlangan guruhlarda studentlar yo'q!", show_alert=True)
-        await state.finish()
+        return None, "❌ Yuboriladigan student qolmadi (barchasi davomat qo'ygan yoki guruhda studentlar yo'q)!", None
+
+    return students_list, group_names, session_label
+
+
+@dp.callback_query_handler(lambda c: c.data == "broadcast_groups_confirm", state=BroadcastState.waiting_for_group_selection)
+async def broadcast_groups_confirm(callback: types.CallbackQuery, state: FSMContext):
+    """Guruh(lar) tanlandi — endi xabar matnini so'raymiz"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
         return
-    
+
+    data = await state.get_data()
+    students_list, group_names_or_error, session_label = await _resolve_broadcast_targets(data)
+
+    if students_list is None:
+        await callback.answer(group_names_or_error, show_alert=True)
+        return
+
+    group_names = group_names_or_error
+
     await callback.message.edit_text(
-        f"📤 Xabar yuborilmoqda...\n\n"
-        f"👥 Tanlangan guruhlar ({len(groups)} ta):\n" +
+        (session_label or "") +
+        f"👥 Tanlangan guruhlar ({len(group_names)} ta):\n" +
         "\n".join([f"  • {name}" for name in group_names[:5]]) +
         (f"\n  • ... va yana {len(group_names) - 5} ta" if len(group_names) > 5 else "") +
-        f"\n\n📝 Unique studentlar: {len(students_list)} ta"
+        f"\n📝 Yuboriladigan studentlar: {len(students_list)} ta\n\n"
+        "✍️ Endi yubormoqchi bo'lgan xabaringizni yuboring:\n"
+        "⚠️ Xabar matn, rasm, video yoki hujjat bo'lishi mumkin.\n"
+        "❌ Bekor qilish uchun: /cancel"
     )
-    
+    await BroadcastState.waiting_for_message.set()
+    await callback.answer()
+
+
+@dp.message_handler(IsPrivate(), state=BroadcastState.waiting_for_message, user_id=ADMINS, content_types=types.ContentTypes.ANY)
+async def process_broadcast_message(message: types.Message, state: FSMContext):
+    """Xabar qabul qilindi — avval tanlangan auditoriyaga yuboradi"""
+    data = await state.get_data()
+    students_list, group_names_or_error, session_label = await _resolve_broadcast_targets(data)
+
+    if students_list is None:
+        await message.answer(group_names_or_error)
+        await state.finish()
+        return
+
+    group_names = group_names_or_error
+    message_id = message.message_id
+    from_chat_id = message.chat.id
+
+    await message.answer(
+        f"📤 Xabar yuborilmoqda...\n\n" +
+        (session_label or "") +
+        f"👥 Tanlangan guruhlar ({len(group_names)} ta):\n" +
+        "\n".join([f"  • {name}" for name in group_names[:5]]) +
+        (f"\n  • ... va yana {len(group_names) - 5} ta" if len(group_names) > 5 else "") +
+        f"\n\n📝 Yuboriladigan studentlar: {len(students_list)} ta"
+    )
+
     success_count = 0
     fail_count = 0
-    
+
     # Xabarni copy qilish
     for student in students_list:
         try:
@@ -581,11 +726,12 @@ async def send_broadcast_to_groups(callback: types.CallbackQuery, state: FSMCont
         except Exception as e:
             fail_count += 1
             print(f"Failed to send to {student.telegram_id}: {e}")
-    
+
     # Natijani ko'rsatish
     result_text = (
-        f"✅ Xabar yuborish tugadi!\n\n"
-        f"👥 Tanlangan guruhlar: {len(groups)} ta\n"
+        f"✅ Xabar yuborish tugadi!\n\n" +
+        (session_label or "") +
+        f"👥 Tanlangan guruhlar: {len(group_names)} ta\n"
         f"📋 Guruhlar:\n" +
         "\n".join([f"  • {name}" for name in group_names[:5]]) +
         (f"\n  • ... va yana {len(group_names) - 5} ta" if len(group_names) > 5 else "") +
@@ -594,10 +740,9 @@ async def send_broadcast_to_groups(callback: types.CallbackQuery, state: FSMCont
         f"❌ Xato: {fail_count}\n"
         f"📝 Jami: {len(students_list)}"
     )
-    
-    await callback.message.edit_text(result_text)
+
+    await message.answer(result_text)
     await state.finish()
-    await callback.answer("✅ Yuborildi!", show_alert=False)
 
 
 @dp.message_handler(IsPrivate(), commands=["cancel"], state="*", user_id=ADMINS)
@@ -640,6 +785,9 @@ async def admin_panel(message: types.Message):
         InlineKeyboardButton("⏰ Deadline natijalari\nMuddati tugagan testlar", callback_data="admin_menu_deadline_results"),
         InlineKeyboardButton("📅 Davomat sessiyasi\nDars uchun kod ochish", callback_data="admin_menu_attendance"),
     )
+    kb.add(
+        InlineKeyboardButton("⚙️ Sozlamalar\nSchedule va haftalik PDF", callback_data="admin_menu_settings"),
+    )
     await message.answer("👨‍💼 <b>Admin panel</b>\n\nKerakli amalni tanlang:", reply_markup=kb, parse_mode="HTML")
 
 
@@ -664,6 +812,10 @@ async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
         await coin_pdf_select_course(callback)
         return
 
+    if action == "admin_menu_settings":
+        await settings_menu(callback)
+        return
+
     await callback.message.delete()
 
     if action == "admin_menu_add_topic":
@@ -671,7 +823,7 @@ async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
     elif action == "admin_menu_update_answers":
         await update_test_answers_start(callback.message)
     elif action == "admin_menu_broadcast":
-        await start_broadcast(callback.message)
+        await start_broadcast(callback.message, state)
     elif action == "admin_menu_topics":
         await show_all_topics(callback.message)
     elif action == "admin_menu_addtest":
@@ -1331,32 +1483,14 @@ async def _generate_and_send_coin_grp_pdf(
         scope = group_name or "Umumiy"
 
         if year and month:
-            qs_w2 = CoinWallet.objects.filter(course_id=course_id).select_related('student')
-            if student_ids is not None:
-                qs_w2 = qs_w2.filter(student_id__in=student_ids)
-            all_wallets = await sync_to_async(list)(qs_w2[:600])
-            if not all_wallets:
+            from base_app.coins import get_monthly_rating_rows
+            rows = await sync_to_async(get_monthly_rating_rows)(course_id, year, month, student_ids)
+            if not rows:
                 await bot.edit_message_text(
                     "❌ Bu bo'yicha hali tanga reyting yo'q.",
                     chat_id=chat_id, message_id=status_msg_id
                 )
                 return
-            txn_qs = CoinTransaction.objects.filter(
-                wallet__course_id=course_id,
-                created_at__year=year, created_at__month=month
-            )
-            if student_ids is not None:
-                txn_qs = txn_qs.filter(wallet__student_id__in=student_ids)
-            monthly = await sync_to_async(lambda: dict(
-                txn_qs.values('wallet__student_id')
-                      .annotate(s=Sum('total_coins'))
-                      .values_list('wallet__student_id', 's')
-            ))()
-            rows = sorted(
-                [{'wallet__student__full_name': w.student.full_name,
-                  'oylik': monthly.get(w.student_id, 0)} for w in all_wallets],
-                key=lambda r: r['oylik'], reverse=True
-            )
             month_label = f"{MONTH_NAMES_UZ[month]} {year}"
             pdf_buffer = await sync_to_async(generate_coin_monthly_pdf)(course, rows, group_name, month_label)
             safe_name = course.name.replace('/', '-')[:30]
@@ -1648,31 +1782,14 @@ async def _generate_and_send_coin_pdf(
         course = await sync_to_async(Course.objects.get)(id=course_id)
 
         if year and month:
-            # Barcha walletlar (kurs bo'yicha)
-            all_wallets = await sync_to_async(list)(
-                CoinWallet.objects.filter(course_id=course_id)
-                    .select_related('student')[:600]
-            )
-            if not all_wallets:
+            from base_app.coins import get_monthly_rating_rows
+            rows = await sync_to_async(get_monthly_rating_rows)(course_id, year, month, None)
+            if not rows:
                 await bot.edit_message_text(
                     "❌ Bu kursda hali tanga reyting yo'q.",
                     chat_id=chat_id, message_id=status_msg_id
                 )
                 return
-            # Oylik sumlar: {student_id: oylik_coins}
-            monthly = await sync_to_async(lambda: dict(
-                CoinTransaction.objects
-                    .filter(wallet__course_id=course_id,
-                            created_at__year=year, created_at__month=month)
-                    .values('wallet__student_id')
-                    .annotate(s=Sum('total_coins'))
-                    .values_list('wallet__student_id', 's')
-            ))()
-            rows = sorted(
-                [{'wallet__student__full_name': w.student.full_name,
-                  'oylik': monthly.get(w.student_id, 0)} for w in all_wallets],
-                key=lambda r: r['oylik'], reverse=True
-            )
             month_label = f"{MONTH_NAMES_UZ[month]} {year}"
             pdf_buffer = await sync_to_async(generate_coin_monthly_pdf)(course, rows, None, month_label)
             safe_name = course.name.replace('/', '-')[:30]
@@ -2332,3 +2449,570 @@ async def process_detailed_results(callback: types.CallbackQuery, state: FSMCont
         await callback.message.answer(f"❌ Xatolik: {e}")
     finally:
         await state.finish()
+
+
+# ═══════════════════════════════════════════════════════════════
+# --- SOZLAMALAR: schedule (on/off, kunlar, vaqt) + Haftalik PDF ---
+# ═══════════════════════════════════════════════════════════════
+
+_JOB_EXPLANATIONS = {
+    'weekly_report': "Tanlangan kunlarda har bir guruhga avtomatik PDF hisobot yuboriladi.",
+    'unsubmitted_warnings': "Tanlangan kunlarda vazifa topshirmagan studentlarga shaxsiy eslatma + adminlarga yig'ma ro'yxat fayl yuboriladi.",
+    'deadline_results': "Tanlangan kunlarda o'sha kuni muddati tugagan testlar bo'yicha studentlarga batafsil natija (qaysi savolga qanday javob berilgani) + adminga umumiy hisobot yuboriladi.",
+    'attendance_csv': "Tanlangan kunlarda haftalik davomat statistikasi CSV fayl qilib faqat adminlarga yuboriladi.",
+    'followup_reminders': "Tanlangan kunlarda qo'ng'iroq qilingan, lekin hali vazifa topshirmagan studentlar ro'yxati adminlarga yuboriladi.",
+}
+
+
+async def settings_menu(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    from base_app.models import ScheduleConfig, WeeklyReportSetting
+    configs = await sync_to_async(list)(ScheduleConfig.objects.all())
+    config_map = {c.job_key: c for c in configs}
+    weekly_setting = await sync_to_async(WeeklyReportSetting.objects.first)()
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for job_key, label in JOB_LABELS.items():
+        cfg = config_map.get(job_key)
+        if cfg:
+            enabled, weekdays, hour, minute = cfg.enabled, cfg.weekdays, cfg.hour, cfg.minute
+        else:
+            d = DEFAULT_SCHEDULE[job_key]
+            enabled, weekdays, hour, minute = True, d['weekdays'], d['hour'], d['minute']
+        status = "✅" if enabled else "🚫"
+        btn_text = f"{status} {label} — {days_str_to_label(weekdays)} {hour:02d}:{minute:02d}"
+        kb.add(InlineKeyboardButton(btn_text, callback_data=f"sjob:{job_key}"))
+
+    kb.add(InlineKeyboardButton(f"📄 Haftalik PDF — {_pdf_setting_label(weekly_setting)}", callback_data="spdf"))
+    kb.add(InlineKeyboardButton("🔥 Oylik streak rejimi", callback_data="sstreak"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_back"))
+
+    await callback.message.edit_text(
+        "⚙️ <b>Sozlamalar</b>\n\nKerakli vazifani tanlang:",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+async def _render_job_detail(callback: types.CallbackQuery, job_key: str):
+    from base_app.models import ScheduleConfig
+    cfg = await sync_to_async(ScheduleConfig.objects.filter(job_key=job_key).first)()
+    if cfg:
+        enabled, weekdays, hour, minute = cfg.enabled, cfg.weekdays, cfg.hour, cfg.minute
+    else:
+        d = DEFAULT_SCHEDULE[job_key]
+        enabled, weekdays, hour, minute = True, d['weekdays'], d['hour'], d['minute']
+
+    status_lbl = "✅ Yoqilgan" if enabled else "🚫 O'chirilgan"
+    text = (
+        f"{JOB_LABELS[job_key]}\n\n"
+        f"Holat: {status_lbl}\n"
+        f"Kunlar: {days_str_to_label(weekdays)}\n"
+        f"Vaqt: {hour:02d}:{minute:02d}\n\n"
+        f"{_JOB_EXPLANATIONS[job_key]}"
+    )
+    kb = InlineKeyboardMarkup(row_width=1)
+    toggle_lbl = "🚫 O'chirish" if enabled else "✅ Yoqish"
+    kb.add(InlineKeyboardButton(toggle_lbl, callback_data=f"stoggle:{job_key}"))
+    kb.add(InlineKeyboardButton("📅 Kunlarni o'zgartirish", callback_data=f"sdays:{job_key}"))
+    kb.add(InlineKeyboardButton("🕐 Vaqtni o'zgartirish", callback_data=f"stime:{job_key}"))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_settings"))
+
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("sjob:"))
+async def settings_job_detail(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    await state.finish()
+    job_key = callback.data.split(":", 1)[1]
+    await _render_job_detail(callback, job_key)
+    await callback.answer()
+
+
+async def _get_or_default_cfg(job_key):
+    from base_app.models import ScheduleConfig
+    d = DEFAULT_SCHEDULE[job_key]
+
+    def _get():
+        cfg, _ = ScheduleConfig.objects.get_or_create(job_key=job_key, defaults={
+            'enabled': True, 'weekdays': d['weekdays'], 'hour': d['hour'], 'minute': d['minute'],
+        })
+        return cfg
+    return await sync_to_async(_get)()
+
+
+# --- Yoqish/o'chirish ---
+
+@dp.callback_query_handler(lambda c: c.data.startswith("stoggle:"))
+async def settings_toggle_ask(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    job_key = callback.data.split(":", 1)[1]
+    cfg = await _get_or_default_cfg(job_key)
+
+    if cfg.enabled:
+        text = (
+            f"{JOB_LABELS[job_key]}\n\n"
+            f"Hozir: ✅ Yoqilgan — {_JOB_EXPLANATIONS[job_key]}\n\n"
+            f"O'chirsangiz, bu xabar/hisobot butunlay yuborilmay qo'yadi (ma'lumotlar yo'qolmaydi, "
+            f"xohlagan payt qayta yoqish mumkin).\n\nO'chirishni tasdiqlaysizmi?"
+        )
+    else:
+        text = (
+            f"{JOB_LABELS[job_key]}\n\n"
+            f"Hozir: 🚫 O'chirilgan.\n\n"
+            f"Yoqsangiz: {_JOB_EXPLANATIONS[job_key]}\n\nYoqishni tasdiqlaysizmi?"
+        )
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("✅ Ha", callback_data=f"stoggleapply:{job_key}"),
+        InlineKeyboardButton("❌ Yo'q", callback_data=f"sjob:{job_key}"),
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("stoggleapply:"))
+async def settings_toggle_apply(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    job_key = callback.data.split(":", 1)[1]
+    cfg = await _get_or_default_cfg(job_key)
+
+    def _flip():
+        from django.db import close_old_connections
+        close_old_connections()
+        cfg.enabled = not cfg.enabled
+        cfg.save(update_fields=['enabled'])
+        return cfg
+    cfg = await sync_to_async(_flip)()
+
+    if cfg.enabled:
+        apply_job(job_key, cfg.weekdays, cfg.hour, cfg.minute)
+    else:
+        remove_job(job_key)
+
+    await callback.answer("✅ Saqlandi")
+    await _render_job_detail(callback, job_key)
+
+
+# --- Kunlarni o'zgartirish ---
+
+async def _render_days_kb(callback: types.CallbackQuery, job_key: str, selected: list):
+    kb = InlineKeyboardMarkup(row_width=2)
+    for day in DAY_ORDER:
+        mark = "✅" if day in selected else "☐"
+        kb.add(InlineKeyboardButton(f"{mark} {DAY_LABELS[day]}", callback_data=f"sdaytoggle:{day}"))
+    kb.add(InlineKeyboardButton("➡️ Davom etish", callback_data="sdayconfirm"))
+    kb.add(InlineKeyboardButton("🔙 Bekor qilish", callback_data=f"sjob:{job_key}"))
+    text = f"{JOB_LABELS[job_key]}\n\nQaysi kunlarda ishlashini tanlang (kamida 1 ta):"
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("sdays:"))
+async def settings_days_start(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    job_key = callback.data.split(":", 1)[1]
+    cfg = await _get_or_default_cfg(job_key)
+    selected = [d for d in cfg.weekdays.split(',') if d] if cfg.weekdays else list(DAY_ORDER)
+
+    await state.update_data(settings_job_key=job_key, settings_selected_days=selected)
+    await SettingsState.waiting_for_days_selection.set()
+    await _render_days_kb(callback, job_key, selected)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("sdaytoggle:"), state=SettingsState.waiting_for_days_selection)
+async def settings_days_toggle(callback: types.CallbackQuery, state: FSMContext):
+    day = callback.data.split(":", 1)[1]
+    data = await state.get_data()
+    job_key = data.get('settings_job_key')
+    selected = list(data.get('settings_selected_days', []))
+    if day in selected:
+        selected.remove(day)
+    else:
+        selected.append(day)
+    await state.update_data(settings_selected_days=selected)
+    await _render_days_kb(callback, job_key, selected)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "sdayconfirm", state=SettingsState.waiting_for_days_selection)
+async def settings_days_confirm(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    job_key = data.get('settings_job_key')
+    selected = data.get('settings_selected_days', [])
+    if not selected:
+        await callback.answer("⚠️ Kamida 1 ta kun tanlang!", show_alert=True)
+        return
+
+    cfg = await _get_or_default_cfg(job_key)
+    old_days = days_str_to_label(cfg.weekdays)
+    new_days_str = ",".join(d for d in DAY_ORDER if d in selected)
+    new_days = days_str_to_label(new_days_str)
+
+    await state.update_data(settings_new_days=new_days_str)
+
+    text = (
+        f"{JOB_LABELS[job_key]}\n\n"
+        f"Hozir: {old_days}\n"
+        f"Yangi: {new_days}\n\n"
+        f"Bu kunlarga o'zgartirishni tasdiqlaysizmi?"
+    )
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("✅ Ha", callback_data="sdayapply"),
+        InlineKeyboardButton("❌ Yo'q", callback_data=f"sjob:{job_key}"),
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "sdayapply", state=SettingsState.waiting_for_days_selection)
+async def settings_days_apply(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    job_key = data.get('settings_job_key')
+    new_days_str = data.get('settings_new_days', '')
+
+    cfg = await _get_or_default_cfg(job_key)
+
+    def _save():
+        from django.db import close_old_connections
+        close_old_connections()
+        cfg.weekdays = new_days_str
+        cfg.save(update_fields=['weekdays'])
+        return cfg
+    cfg = await sync_to_async(_save)()
+
+    if cfg.enabled:
+        apply_job(job_key, cfg.weekdays, cfg.hour, cfg.minute)
+
+    await state.finish()
+    await callback.answer("✅ Saqlandi")
+    await _render_job_detail(callback, job_key)
+
+
+# --- Vaqtni o'zgartirish ---
+
+@dp.callback_query_handler(lambda c: c.data.startswith("stime:"))
+async def settings_time_start(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    job_key = callback.data.split(":", 1)[1]
+    await state.update_data(settings_job_key=job_key)
+    await SettingsState.waiting_for_time_input.set()
+    await callback.message.edit_text(
+        f"{JOB_LABELS[job_key]}\n\n"
+        f"Yangi vaqtni HH:MM formatida yuboring (masalan: 14:30).\n\n/cancel — bekor qilish",
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.message_handler(state=SettingsState.waiting_for_time_input)
+async def settings_time_input(message: types.Message, state: FSMContext):
+    if str(message.from_user.id) not in ADMINS:
+        return
+    text = message.text.strip() if message.text else ''
+    if text == '/cancel':
+        await state.finish()
+        await message.answer("✅ Bekor qilindi.")
+        return
+
+    import re
+    m = re.match(r'^([01]?\d|2[0-3]):([0-5]\d)$', text)
+    if not m:
+        await message.answer("❌ Noto'g'ri format. HH:MM ko'rinishida yuboring (masalan: 09:05 yoki 21:30).")
+        return
+    hour, minute = int(m.group(1)), int(m.group(2))
+
+    data = await state.get_data()
+    job_key = data.get('settings_job_key')
+    cfg = await _get_or_default_cfg(job_key)
+
+    await state.update_data(settings_new_hour=hour, settings_new_minute=minute)
+
+    text_out = (
+        f"{JOB_LABELS[job_key]}\n\n"
+        f"Hozir: {cfg.hour:02d}:{cfg.minute:02d}\n"
+        f"Yangi: {hour:02d}:{minute:02d}\n\n"
+        f"O'zgartirishni tasdiqlaysizmi?"
+    )
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("✅ Ha", callback_data="stimeapply"),
+        InlineKeyboardButton("❌ Yo'q", callback_data=f"sjob:{job_key}"),
+    )
+    await message.answer(text_out, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query_handler(lambda c: c.data == "stimeapply", state=SettingsState.waiting_for_time_input)
+async def settings_time_apply(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    job_key = data.get('settings_job_key')
+    hour = data.get('settings_new_hour')
+    minute = data.get('settings_new_minute')
+
+    cfg = await _get_or_default_cfg(job_key)
+
+    def _save():
+        from django.db import close_old_connections
+        close_old_connections()
+        cfg.hour = hour
+        cfg.minute = minute
+        cfg.save(update_fields=['hour', 'minute'])
+        return cfg
+    cfg = await sync_to_async(_save)()
+
+    if cfg.enabled:
+        apply_job(job_key, cfg.weekdays, cfg.hour, cfg.minute)
+
+    await state.finish()
+    await callback.answer("✅ Saqlandi")
+    await _render_job_detail(callback, job_key)
+
+
+# --- Haftalik PDF sozlamasi (oxirgi 10 ta / aniq oy / avtomatik joriy oy) ---
+
+def _pdf_setting_label(setting) -> str:
+    if setting and setting.mode == 'auto':
+        return "🔄 Avtomatik (har doim joriy oy)"
+    if setting and setting.mode == 'month' and setting.year and setting.month:
+        return f"{MONTH_NAMES_UZ[setting.month]} {setting.year}"
+    return "Standart (oxirgi 10 ta mavzu)"
+
+
+@dp.callback_query_handler(lambda c: c.data == "spdf")
+async def settings_pdf_menu(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    from base_app.models import WeeklyReportSetting
+    setting = await sync_to_async(WeeklyReportSetting.objects.first)()
+    current_lbl = _pdf_setting_label(setting)
+
+    from datetime import date
+    today = date.today()
+    prev_y, prev_m = today.year, today.month - 1
+    if prev_m == 0:
+        prev_m, prev_y = 12, prev_y - 1
+
+    is_auto = bool(setting and setting.mode == 'auto')
+    is_current = bool(setting and setting.mode == 'month' and setting.year == today.year and setting.month == today.month)
+    is_prev = bool(setting and setting.mode == 'month' and setting.year == prev_y and setting.month == prev_m)
+    is_other_month = bool(setting and setting.mode == 'month' and not is_current and not is_prev)
+    is_default = bool(not setting or setting.mode == 'last10')
+
+    def mark(active):
+        return "✅ " if active else ""
+
+    text = (
+        "📄 <b>Haftalik PDF sozlamasi</b>\n\n"
+        f"Hozirgi rejim: <b>{current_lbl}</b> ✅\n\n"
+        "Bu sozlama haftalik PDF hisobotda qaysi mavzular ustun sifatida ko'rsatilishini belgilaydi."
+    )
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        InlineKeyboardButton(f"{mark(is_auto)}🔄 Avtomatik (har doim joriy oy)", callback_data="spdfmode:auto"),
+        InlineKeyboardButton(f"{mark(is_current)}📌 Joriy oyni qotirish", callback_data="spdfmode:current"),
+        InlineKeyboardButton(f"{mark(is_prev)}⏮ Oldingi oy", callback_data="spdfmode:prev"),
+        InlineKeyboardButton(f"{mark(is_other_month)}🗓 Boshqa oy tanlash", callback_data="spdfmode:pick"),
+        InlineKeyboardButton(f"{mark(is_default)}♻️ Standart (oxirgi 10 ta)", callback_data="spdfmode:default"),
+        InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_settings"),
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+async def _show_pdf_confirm(callback: types.CallbackQuery, mode: str, year: int, month: int):
+    from base_app.models import WeeklyReportSetting
+    setting = await sync_to_async(WeeklyReportSetting.objects.first)()
+    old_lbl = _pdf_setting_label(setting)
+
+    if mode == 'last10':
+        new_lbl = "Standart (oxirgi 10 ta mavzu)"
+        note = "Har bir guruh uchun eng oxirgi qo'shilgan 10 ta mavzu ustun sifatida ko'rsatiladi."
+    elif mode == 'auto':
+        new_lbl = "🔄 Avtomatik (har doim joriy oy)"
+        note = (
+            "Har safar haftalik hisobot tuzilayotganda tizim o'sha paytdagi joriy oyni o'zi "
+            "hisoblab, faqat shu oyda faollashtirilgan mavzularni ko'rsatadi. Oy almashganda "
+            "qo'lda qayta tanlash shart emas."
+        )
+    else:
+        new_lbl = f"{MONTH_NAMES_UZ[month]} {year}"
+        note = (
+            f"Faqat {new_lbl} oyida faollashtirilgan mavzular ustun sifatida ko'rsatiladi "
+            f"(boshqa oylardagi mavzular hisobotga kirmaydi). Bu tanlov shu oyga qotib qoladi — "
+            f"keyingi oyda ham shu oy ko'rsatilaveradi, qayta o'zgartirmaguningizcha (agar avtomatik "
+            f"rejim kerak bo'lsa, «🔄 Avtomatik» tugmasini tanlang)."
+        )
+
+    text = (
+        "📄 <b>Haftalik PDF sozlamasi</b>\n\n"
+        f"Hozir: <b>{old_lbl}</b>\n"
+        f"Yangi: <b>{new_lbl}</b>\n\n"
+        f"{note}\n\nTasdiqlaysizmi?"
+    )
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("✅ Ha", callback_data=f"spdfapply:{mode}:{year}:{month}"),
+        InlineKeyboardButton("❌ Yo'q", callback_data="spdf"),
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("spdfmode:"))
+async def settings_pdf_mode(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    mode = callback.data.split(":", 1)[1]
+
+    if mode == 'pick':
+        from base_app.models import Topic
+        months = await sync_to_async(list)(
+            Topic.objects.filter(activated_at__isnull=False).dates('activated_at', 'month', order='DESC')
+        )
+        if not months:
+            await callback.answer("❌ Hali faollashtirilgan mavzular yo'q.", show_alert=True)
+            return
+        kb = InlineKeyboardMarkup(row_width=2)
+        for d in months:
+            kb.add(InlineKeyboardButton(
+                f"📅 {MONTH_NAMES_UZ[d.month]} {d.year}",
+                callback_data=f"spdfconfirm:{d.year}:{d.month}"
+            ))
+        kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="spdf"))
+        await callback.message.edit_text("🗓 Oyni tanlang:", reply_markup=kb, parse_mode="HTML")
+        await callback.answer()
+        return
+
+    from datetime import date
+    today = date.today()
+
+    if mode == 'default':
+        await _show_pdf_confirm(callback, 'last10', 0, 0)
+    elif mode == 'auto':
+        await _show_pdf_confirm(callback, 'auto', 0, 0)
+    elif mode == 'current':
+        await _show_pdf_confirm(callback, 'month', today.year, today.month)
+    elif mode == 'prev':
+        y, m = today.year, today.month - 1
+        if m == 0:
+            m = 12
+            y -= 1
+        await _show_pdf_confirm(callback, 'month', y, m)
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("spdfconfirm:"))
+async def settings_pdf_pick_confirm(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    _, year, month = callback.data.split(":")
+    await _show_pdf_confirm(callback, 'month', int(year), int(month))
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("spdfapply:"))
+async def settings_pdf_apply(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    _, mode, year, month = callback.data.split(":")
+    year, month = int(year), int(month)
+
+    from base_app.models import WeeklyReportSetting
+
+    def _save():
+        from django.db import close_old_connections
+        close_old_connections()
+        setting, _ = WeeklyReportSetting.objects.get_or_create(id=1, defaults={'mode': 'last10'})
+        setting.mode = mode
+        setting.year = year if mode == 'month' else None
+        setting.month = month if mode == 'month' else None
+        setting.save(update_fields=['mode', 'year', 'month'])
+    await sync_to_async(_save)()
+
+    await callback.answer("✅ Saqlandi")
+    await settings_pdf_menu(callback)
+
+
+# --- Oylik streak rejimi ---
+
+_STREAK_EXPLANATION = (
+    "Yoqilgan oy uchun Tangalarim, reyting va oylik PDF hisobotda streak (va unga bog'liq "
+    "tanga bonusi) o'sha oyning birinchi mavzusidan 1 deb qayta hisoblanadi — avvalgi "
+    "oylardagi uzviylik hisobga olinmaydi. Bu faqat ko'rsatish uchun (jonli hisoblanadi), "
+    "hech qanday saqlangan ma'lumot o'zgartirilmaydi — o'chirib qo'ysangiz hammasi "
+    "yana avvalgidek (uzluksiz) ko'rinadi."
+)
+
+
+@dp.callback_query_handler(lambda c: c.data == "sstreak")
+async def settings_streak_menu(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Topic, MonthlyStreakSetting
+    months = await sync_to_async(list)(
+        Topic.objects.filter(activated_at__isnull=False).dates('activated_at', 'month', order='DESC')
+    )
+    if not months:
+        await callback.answer("❌ Hali faollashtirilgan mavzular yo'q.", show_alert=True)
+        return
+
+    enabled_pairs = await sync_to_async(lambda: set(
+        MonthlyStreakSetting.objects.filter(enabled=True).values_list('year', 'month')
+    ))()
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for d in months:
+        status = "✅" if (d.year, d.month) in enabled_pairs else "🚫"
+        kb.add(InlineKeyboardButton(
+            f"{status} {MONTH_NAMES_UZ[d.month]} {d.year}",
+            callback_data=f"sstoggle:{d.year}:{d.month}"
+        ))
+    kb.add(InlineKeyboardButton("🔙 Orqaga", callback_data="admin_menu_settings"))
+
+    await callback.message.edit_text(
+        f"🔥 <b>Oylik streak rejimi</b>\n\n{_STREAK_EXPLANATION}\n\nOyni tanlang (yoqish/o'chirish):",
+        reply_markup=kb, parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("sstoggle:"))
+async def settings_streak_toggle(callback: types.CallbackQuery):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Ruxsat yo'q.", show_alert=True)
+        return
+    _, year, month = callback.data.split(":")
+    year, month = int(year), int(month)
+
+    from base_app.models import MonthlyStreakSetting
+
+    def _toggle():
+        from django.db import close_old_connections
+        close_old_connections()
+        setting, _ = MonthlyStreakSetting.objects.get_or_create(year=year, month=month)
+        setting.enabled = not setting.enabled
+        setting.save(update_fields=['enabled'])
+        return setting.enabled
+    new_state = await sync_to_async(_toggle)()
+
+    await callback.answer("✅ Yoqildi" if new_state else "🚫 O'chirildi")
+    await settings_streak_menu(callback)

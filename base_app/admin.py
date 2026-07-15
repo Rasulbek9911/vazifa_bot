@@ -7,18 +7,21 @@ from django.http import HttpResponse
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 import csv
-from .models import Course, Group, Student, Topic, Task, AttendanceSession, Attendance, FollowUp, OperatorProfile
+from .models import (
+    Course, Group, Student, Topic, Task, AttendanceSession, Attendance, FollowUp,
+    OperatorProfile, CoinWallet, CoinTransaction,
+)
 
 
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'task_type', 'admin_telegram_id', 'is_active', 'created_at')
-    list_filter = ('task_type', 'is_active')
+    list_display = ('name', 'code', 'task_type', 'has_assignments', 'admin_telegram_id', 'is_active', 'created_at')
+    list_filter = ('task_type', 'has_assignments', 'is_active')
     search_fields = ('name', 'code', 'admin_telegram_id')
     readonly_fields = ('created_at',)
-    
+
     fieldsets = (
         ('Asosiy ma`lumotlar', {
-            'fields': ('name', 'code', 'task_type', 'admin_telegram_id', 'is_active')
+            'fields': ('name', 'code', 'task_type', 'has_assignments', 'admin_telegram_id', 'is_active')
         }),
         ('Qo`shimcha', {
             'fields': ('created_at',)
@@ -167,7 +170,18 @@ class TaskAdmin(admin.ModelAdmin):
         return obj.topic.course.name if obj.topic.course else obj.course_type
     get_course.short_description = 'Kurs'
     get_course.admin_order_field = 'topic__course__name'
-    
+
+    def delete_model(self, request, obj):
+        from .coins import reverse_task_coins
+        reverse_task_coins(obj)
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        from .coins import reverse_task_coins
+        for obj in queryset:
+            reverse_task_coins(obj)
+        super().delete_queryset(request, queryset)
+
     def add_custom_points_to_tests(self, request, queryset):
         """
         Tanlangan test natijalariga o'zingiz kiritgan ball qo'shadi.
@@ -764,6 +778,31 @@ class FollowUpAdmin(admin.ModelAdmin):
     ordering = ('-called_at',)
 
 
+class CoinTransactionInline(admin.TabularInline):
+    model = CoinTransaction
+    extra = 0
+    readonly_fields = ('topic', 'task_type', 'result_coins', 'streak_coins', 'total_coins', 'streak_after', 'deadline_penalty', 'created_at')
+    can_delete = False
+    ordering = ('-created_at',)
+
+
+class CoinWalletAdmin(admin.ModelAdmin):
+    list_display = ('student', 'course', 'total_coins', 'current_streak', 'longest_streak', 'last_topic', 'last_submitted_at', 'updated_at')
+    list_filter = ('course',)
+    search_fields = ('student__full_name', 'student__telegram_id')
+    readonly_fields = ('updated_at',)
+    ordering = ('-total_coins',)
+    inlines = [CoinTransactionInline]
+
+
+class CoinTransactionAdmin(admin.ModelAdmin):
+    list_display = ('wallet', 'topic', 'task_type', 'result_coins', 'streak_coins', 'total_coins', 'streak_after', 'deadline_penalty', 'created_at')
+    list_filter = ('task_type', 'deadline_penalty', 'topic__course')
+    search_fields = ('wallet__student__full_name', 'wallet__student__telegram_id', 'topic__title')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+
+
 class OperatorProfileInline(admin.StackedInline):
     model = OperatorProfile
     can_delete = False
@@ -795,3 +834,5 @@ admin.site.register(Task, TaskAdmin)
 admin.site.register(AttendanceSession, AttendanceSessionAdmin)
 admin.site.register(Attendance, AttendanceAdmin)
 admin.site.register(FollowUp, FollowUpAdmin)
+admin.site.register(CoinWallet, CoinWalletAdmin)
+admin.site.register(CoinTransaction, CoinTransactionAdmin)

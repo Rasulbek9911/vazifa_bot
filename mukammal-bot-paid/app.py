@@ -4,8 +4,8 @@ from loader import dp, bot
 import middlewares, filters, handlers
 from utils.notify_admins import on_startup_notify
 from utils.set_bot_commands import set_default_commands
-from handlers.users.scheduled_tasks import send_weekly_reports, send_unsubmitted_warnings, send_deadline_results, send_attendance_csv, send_followup_reminders
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from utils.scheduler_instance import scheduler, apply_job, DEFAULT_SCHEDULE
+from asgiref.sync import sync_to_async
 import logging
 
 import os
@@ -37,23 +37,24 @@ async def on_startup(dispatcher):
     await bot.delete_webhook(drop_pending_updates=True)
     logger.info("🤖 Polling rejimi ishga tushdi")
 
-    scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
+    from base_app.models import ScheduleConfig
+    from django.db import close_old_connections
+    close_old_connections()
+    configs = await sync_to_async(list)(ScheduleConfig.objects.all())
+    config_map = {c.job_key: c for c in configs}
 
-    scheduler.add_job(send_weekly_reports, "cron", day_of_week="wed", hour=13, minute=0, id="weekly_report_wed")
-    scheduler.add_job(send_weekly_reports, "cron", day_of_week="sun", hour=13, minute=0, id="weekly_report_sun")
-    logger.info("✅ Haftalik report schedulerlari qo'shildi (Chorshanba va Yakshanba 13:00)")
+    for job_key, defaults in DEFAULT_SCHEDULE.items():
+        cfg = config_map.get(job_key)
+        if cfg is None:
+            weekdays, hour, minute, enabled = defaults['weekdays'], defaults['hour'], defaults['minute'], True
+        else:
+            weekdays, hour, minute, enabled = cfg.weekdays, cfg.hour, cfg.minute, cfg.enabled
 
-    scheduler.add_job(send_unsubmitted_warnings, "cron", day_of_week="mon,thu", hour=21, minute=0, id="unsubmitted_warnings")
-    logger.info("✅ Eslatma scheduleri qo'shildi (Dushanba va Payshanba 21:00)")
-
-    scheduler.add_job(send_deadline_results, "cron", hour=21, minute=0, id="deadline_results")
-    logger.info("✅ Deadline natijalar scheduleri qo'shildi (har kuni 21:00)")
-
-    scheduler.add_job(send_attendance_csv, "cron", day_of_week="sun", hour=7, minute=0, id="attendance_csv")
-    logger.info("✅ Davomat CSV scheduleri qo'shildi (Yakshanba 07:00)")
-
-    scheduler.add_job(send_followup_reminders, "cron", day_of_week="tue,fri", hour=21, minute=0, id="followup_reminders")
-    logger.info("✅ Followup eslatma scheduleri qo'shildi (Seshanba va Juma 21:00)")
+        if enabled:
+            apply_job(job_key, weekdays, hour, minute)
+            logger.info(f"✅ '{job_key}' scheduleri qo'shildi ({weekdays or 'har kuni'} {hour:02d}:{minute:02d})")
+        else:
+            logger.info(f"⏸ '{job_key}' scheduleri o'chirilgan (Sozlamalar orqali yoqish mumkin)")
 
     scheduler.start()
     logger.info("🚀 Scheduler ishga tushdi")
@@ -69,4 +70,5 @@ if __name__ == '__main__':
         on_startup=on_startup,
         on_shutdown=on_shutdown,
         skip_updates=True,
+
     )

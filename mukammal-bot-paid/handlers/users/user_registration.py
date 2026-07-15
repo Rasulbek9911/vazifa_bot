@@ -24,7 +24,7 @@ from base_app.models import Group, Student
 from django.db import close_old_connections
 
 from data.config import ADMINS, ATTESTATSIYA_ADMIN
-from keyboards.default.vazifa_keyboard import vazifa_key, admin_key, cancel_key
+from keyboards.default.vazifa_keyboard import admin_key, cancel_key, build_vazifa_keyboard
 from loader import dp, bot
 from states.register_state import RegisterState
 from filters.is_private import IsPrivate
@@ -293,7 +293,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
                     f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
                     f"👥 Guruhlar:\n{g_text}\n\n"
                     f"📝 Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
-                    reply_markup=vazifa_key,
+                    reply_markup=await build_vazifa_keyboard(message.from_user.id),
                 )
             else:
                 # Ro'yxatdan o'tgan, lekin guruh yo'q — admin hal qilishi kerak
@@ -316,7 +316,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
                         f"🔗 Guruh havolasi:\n{group['invite_link']}\n\n"
                         f"📝 Vazifa yuborish uchun pastdagi tugmalardan foydalaning.",
                         parse_mode="HTML",
-                        reply_markup=vazifa_key,
+                        reply_markup=await build_vazifa_keyboard(message.from_user.id),
                     )
 
                     # Adminga xabar
@@ -607,7 +607,7 @@ async def step_math_score(message: types.Message, state: FSMContext):
         f"🔗 Guruhga qo'shilish uchun:\n{group['invite_link']}\n\n"
         f"Guruhga qo'shilgach vazifa yuborishingiz mumkin bo'ladi.",
         parse_mode="HTML",
-        reply_markup=vazifa_key,
+        reply_markup=await build_vazifa_keyboard(message.from_user.id),
     )
     await state.finish()
 
@@ -675,7 +675,7 @@ async def process_name_change(message: types.Message, state: FSMContext):
 
     await asyncio.to_thread(_update)
 
-    keyboard = admin_key if str(telegram_id) in ADMINS else vazifa_key
+    keyboard = admin_key if str(telegram_id) in ADMINS else await build_vazifa_keyboard(telegram_id)
     await message.answer(
         f"✅ Ismingiz o'zgartirildi!\n\n👤 Yangi ism: {new_name}",
         reply_markup=keyboard,

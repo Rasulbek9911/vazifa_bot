@@ -8,6 +8,7 @@ from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from asgiref.sync import sync_to_async
 from filters.is_private import IsPrivate
+from handlers.users.admin_handlers import MONTH_NAMES_UZ
 
 
 MEDAL = {1: "🥇", 2: "🥈", 3: "🥉"}
@@ -134,30 +135,26 @@ async def _send_leaderboard(message, course_id, course_name, telegram_id, edit=F
 
 # ── Tangalarim ────────────────────────────────────────────────────────────
 
-@dp.message_handler(IsPrivate(), lambda msg: msg.text == "🪙 Tangalarim")
-async def show_my_coins(message: types.Message):
-    telegram_id = str(message.from_user.id)
+async def _get_my_coin_months(telegram_id: str):
+    from base_app.models import CoinTransaction
+    qs = CoinTransaction.objects.filter(
+        wallet__student__telegram_id=telegram_id
+    ).dates('topic__activated_at', 'month', order='DESC')
+    return await sync_to_async(list)(qs)
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}/coins/my/?telegram_id={telegram_id}") as resp:
-            if resp.status == 404:
-                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
-                return
-            elif resp.status != 200:
-                await message.answer("❌ Ma'lumot olishda xatolik.")
-                return
-            data = await resp.json()
 
-    wallets = data.get("wallets", [])
-    full_name = data.get("full_name", "")
+def _build_my_coins_kb(months: list) -> types.InlineKeyboardMarkup:
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(types.InlineKeyboardButton("📋 Barcha vaqt", callback_data="mycoins_all"))
+    for d in months:
+        kb.add(types.InlineKeyboardButton(
+            f"📅 {MONTH_NAMES_UZ[d.month]} {d.year}",
+            callback_data=f"mycoins_{d.year}_{d.month}"
+        ))
+    return kb
 
-    if not wallets:
-        await message.answer(
-            "🪙 Hali tanga to'planmagan.\n\n"
-            "Vazifa topshirganingizda avtomatik tanga beriladi!"
-        )
-        return
 
+async def _build_all_time_coins_text(telegram_id: str, full_name: str, wallets: list) -> str:
     lines = [f"🪙 <b>Tangalarim — {full_name}</b>\n"]
 
     # Har bir kurs uchun rank ham olamiz
@@ -182,7 +179,122 @@ async def show_my_coins(message: types.Message):
                 f"  📍 Reyting o'rni: <b>{rank_text}</b>"
             )
 
-    await message.answer("\n\n".join(lines), parse_mode="HTML")
+    return "\n\n".join(lines)
+
+
+async def _build_month_coins_text(
+    telegram_id: str, full_name: str, wallets: list, year: int, month: int,
+    monthly_reset_enabled: bool = False,
+) -> str:
+    month_label = f"{MONTH_NAMES_UZ[month]} {year}"
+    lines = [f"🪙 <b>Tangalarim — {full_name}</b>\n📅 {month_label}\n"]
+    if monthly_reset_enabled:
+        lines.append(
+            "🔄 <i>Bu oy uchun maxsus hisoblash faol — streak shu oyning "
+            "birinchi mavzusidan 1 dan boshlab hisoblanmoqda.</i>\n"
+        )
+
+    period_total = 0
+    async with aiohttp.ClientSession() as session:
+        for w in wallets:
+            period_coins = w.get("period_coins", 0)
+            period_total += period_coins
+
+            url = (
+                f"{API_BASE_URL}/coins/leaderboard/?course_id={w['course_id']}"
+                f"&telegram_id={telegram_id}&year={year}&month={month}"
+            )
+            async with session.get(url) as resp2:
+                lb = await resp2.json() if resp2.status == 200 else {}
+
+            my_rank = lb.get("my_rank")
+            rank_text = f"#{my_rank}" if my_rank else "600+"
+
+            lines.append(
+                f"📚 <b>{w['course_name']}</b>\n"
+                f"  💰 Shu oyda: <b>{period_coins}</b> 🪙\n"
+                f"  📍 Reyting o'rni (shu oy): <b>{rank_text}</b>"
+            )
+
+    lines.append(f"\n💰 Jami (barcha kurslar): <b>{period_total}</b> 🪙")
+    return "\n\n".join(lines)
+
+
+@dp.message_handler(IsPrivate(), lambda msg: msg.text == "🪙 Tangalarim")
+async def show_my_coins(message: types.Message):
+    telegram_id = str(message.from_user.id)
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/coins/my/?telegram_id={telegram_id}") as resp:
+            if resp.status == 404:
+                await message.answer("❌ Siz ro'yxatdan o'tmagansiz. /start ni bosing.")
+                return
+            elif resp.status != 200:
+                await message.answer("❌ Ma'lumot olishda xatolik.")
+                return
+            data = await resp.json()
+
+    wallets = data.get("wallets", [])
+    full_name = data.get("full_name", "")
+
+    if not wallets:
+        await message.answer(
+            "🪙 Hali tanga to'planmagan.\n\n"
+            "Vazifa topshirganingizda avtomatik tanga beriladi!"
+        )
+        return
+
+    text = await _build_all_time_coins_text(telegram_id, full_name, wallets)
+    months = await _get_my_coin_months(telegram_id)
+    await message.answer(text, parse_mode="HTML", reply_markup=_build_my_coins_kb(months))
+
+
+@dp.callback_query_handler(lambda c: c.data == "mycoins_all")
+async def mycoins_all_time(callback: types.CallbackQuery):
+    telegram_id = str(callback.from_user.id)
+    await callback.answer("⏳ Yuklanmoqda...")
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_BASE_URL}/coins/my/?telegram_id={telegram_id}") as resp:
+            if resp.status != 200:
+                await callback.message.answer("❌ Ma'lumot olishda xatolik.")
+                return
+            data = await resp.json()
+
+    wallets = data.get("wallets", [])
+    full_name = data.get("full_name", "")
+    text = await _build_all_time_coins_text(telegram_id, full_name, wallets)
+    months = await _get_my_coin_months(telegram_id)
+    try:
+        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=_build_my_coins_kb(months))
+    except Exception:
+        await callback.message.answer(text, parse_mode="HTML", reply_markup=_build_my_coins_kb(months))
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("mycoins_") and c.data != "mycoins_all")
+async def mycoins_month_filter(callback: types.CallbackQuery):
+    _, year_str, month_str = callback.data.split("_")
+    year, month = int(year_str), int(month_str)
+    telegram_id = str(callback.from_user.id)
+    await callback.answer("⏳ Yuklanmoqda...")
+
+    async with aiohttp.ClientSession() as session:
+        url = f"{API_BASE_URL}/coins/my/?telegram_id={telegram_id}&year={year}&month={month}"
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                await callback.message.answer("❌ Ma'lumot olishda xatolik.")
+                return
+            data = await resp.json()
+
+    wallets = data.get("wallets", [])
+    full_name = data.get("full_name", "")
+    monthly_reset_enabled = data.get("monthly_reset_enabled", False)
+    text = await _build_month_coins_text(telegram_id, full_name, wallets, year, month, monthly_reset_enabled)
+    months = await _get_my_coin_months(telegram_id)
+    try:
+        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=_build_my_coins_kb(months))
+    except Exception:
+        await callback.message.answer(text, parse_mode="HTML", reply_markup=_build_my_coins_kb(months))
 
 
 # ── Admin reyting menyusi ──────────────────────────────────────────────────

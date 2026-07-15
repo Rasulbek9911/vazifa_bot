@@ -5,7 +5,7 @@ from .models import Course, Group, Student, Topic, Task, InviteCode, AttendanceS
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ["id", "name", "code", "task_type", "admin_telegram_id", "is_active", "created_at"]
+        fields = ["id", "name", "code", "task_type", "has_assignments", "admin_telegram_id", "is_active", "created_at"]
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -99,7 +99,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "student", "student_id",
             "topic", "topic_id",
             "task_type",
-            "file_link", 
+            "file_link", "files",
             "test_code", "test_answers",
             "grade", "submitted_at"
         ]

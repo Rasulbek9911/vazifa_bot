@@ -14,7 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Student, Task, Group, Topic, CoinWallet, CoinTransaction, AttendanceSession, Attendance
+from .models import Student, Task, Group, Topic, CoinWallet, CoinTransaction, AttendanceSession, Attendance, WeeklyReportSetting
 from .serializers import StudentSerializer, TaskSerializer
 from .coins import award_task_coins
 
@@ -341,6 +341,7 @@ class TaskSubmitView(APIView):
         topic_id = request.data.get("topic_id")
         task_type = request.data.get("task_type", "test")
         file_link = request.data.get("file_link")
+        files = request.data.get("files")
         test_code = request.data.get("test_code")
         test_answers = request.data.get("test_answers")
         grade = request.data.get("grade")
@@ -369,7 +370,10 @@ class TaskSubmitView(APIView):
         }
         
         # Optional fields
-        if file_link:
+        if files:
+            data["files"] = files
+            data["file_link"] = files[0].get("file_id")  # backward compat
+        elif file_link:
             data["file_link"] = file_link
         if test_code:
             data["test_code"] = test_code
@@ -491,14 +495,32 @@ class WeeklyReportPDFView(APIView):
 
         students = group.enrolled_students.all()
 
+        # Haftalik report qaysi mavzularni ko'rsatishi (standart: oxirgi 10 ta, yoki admin belgilagan aniq/avtomatik oy)
+        weekly_setting = WeeklyReportSetting.objects.first()
+        report_year, report_month = None, None
+        if weekly_setting and weekly_setting.mode == 'auto':
+            from django.utils import timezone as tz_now
+            today_local = tz_now.localtime(tz_now.now())
+            report_year, report_month = today_local.year, today_local.month
+        elif weekly_setting and weekly_setting.mode == 'month' and weekly_setting.year and weekly_setting.month:
+            report_year, report_month = weekly_setting.year, weekly_setting.month
+        month_mode = bool(report_year and report_month)
+
         # Guruhning course yoki course_type'iga mos mavzularni olamiz
         group_course = getattr(group, "course", None)
         if group_course:
-            # Barcha active topiclarni olamiz (id bo'yicha tartibda)
-            all_topics = Topic.objects.filter(is_active=True, course=group.course, course__is_active=True).order_by('id')
-            # Oxirgi 10 ta topicni olamiz
-            topics_list = list(all_topics)
-            topics = topics_list[-10:] if len(topics_list) >= 10 else topics_list
+            if month_mode:
+                # Faqat shu oyda faollashtirilgan (activated_at) mavzular
+                all_topics = Topic.objects.filter(
+                    is_active=True, course=group.course, course__is_active=True,
+                    activated_at__year=report_year, activated_at__month=report_month,
+                ).order_by('id')
+                topics = list(all_topics)
+            else:
+                # Barcha active topiclarni olamiz (id bo'yicha tartibda), oxirgi 10 tasi ko'rsatiladi
+                all_topics = Topic.objects.filter(is_active=True, course=group.course, course__is_active=True).order_by('id')
+                topics_list = list(all_topics)
+                topics = topics_list[-10:] if len(topics_list) >= 10 else topics_list
         else:
             topics = []
             all_topics = Topic.objects.none()
@@ -544,10 +566,19 @@ class WeeklyReportPDFView(APIView):
         course_name = group.course.name if group.course else "—"
         today = tz.localtime(tz.now()).strftime("%d.%m.%Y")
         title_para = Paragraph("HAFTALIK HISOBOT", title_style)
-        subtitle_para = Paragraph(
-            f"Guruh: <b>{group.name}</b>  |  Kurs: <b>{course_name}</b>  |  Sana: <b>{today}</b>",
-            subtitle_style,
-        )
+        oy_nomlari = ["", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+                      "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"]
+        if month_mode:
+            davr_str = f"{oy_nomlari[report_month]} {report_year}"
+            subtitle_para = Paragraph(
+                f"Guruh: <b>{group.name}</b>  |  Kurs: <b>{course_name}</b>  |  Davr: <b>{davr_str}</b>  |  Sana: <b>{today}</b>",
+                subtitle_style,
+            )
+        else:
+            subtitle_para = Paragraph(
+                f"Guruh: <b>{group.name}</b>  |  Kurs: <b>{course_name}</b>  |  Sana: <b>{today}</b>",
+                subtitle_style,
+            )
 
         # Ism ustuni stili
         name_style = ParagraphStyle(
@@ -1164,6 +1195,7 @@ class LeaderboardView(APIView):
     """
     Kurs bo'yicha reyting (top 600, tanga bo'yicha)
     GET /api/coins/leaderboard/?course_id=1&telegram_id=xxx
+    GET /api/coins/leaderboard/?course_id=1&telegram_id=xxx&year=2026&month=6  (shu oy bo'yicha reyting)
 
     Response:
     {
@@ -1176,30 +1208,82 @@ class LeaderboardView(APIView):
     """
 
     def get(self, request):
+        from django.db.models import Sum, Q
+        from django.db.models.functions import Coalesce
+        from .coins import _month_bounds, is_monthly_streak_enabled, _compute_reset_month_coins, compute_month_leaderboard
+
         course_id = request.query_params.get('course_id')
         telegram_id = request.query_params.get('telegram_id')
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
 
         if not course_id:
             return Response({"error": "course_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
 
-        wallets = (
-            CoinWallet.objects
-            .filter(course_id=course_id)
-            .select_related('student', 'course')
-            .order_by('-total_coins', '-longest_streak')
-        )
+        period = None
+        monthly_reset = False
+        if year and month:
+            year, month = int(year), int(month)
+            start, end = _month_bounds(year, month)
+            period = (start, end)
+            monthly_reset = is_monthly_streak_enabled(year, month)
 
-        ranked = []
-        for rank, w in enumerate(wallets, start=1):
-            if rank <= 600:
-                ranked.append({
-                    "rank": rank,
-                    "telegram_id": w.student.telegram_id,
-                    "full_name": w.student.full_name,
-                    "total_coins": w.total_coins,
-                    "current_streak": w.current_streak,
-                    "longest_streak": w.longest_streak,
-                })
+        if period and monthly_reset:
+            # Oylik streak rejimi yoqilgan — bulk (N+1 siz) qayta hisoblanadi
+            computed = compute_month_leaderboard(course_id, year, month)
+
+            ranked = []
+            for rank, (w, p_coins, p_streak, p_longest) in enumerate(computed, start=1):
+                if rank <= 600:
+                    ranked.append({
+                        "rank": rank,
+                        "telegram_id": w.student.telegram_id,
+                        "full_name": w.student.full_name,
+                        "total_coins": p_coins,
+                        "current_streak": p_streak,
+                        "longest_streak": p_longest,
+                    })
+        elif period:
+            start, end = period
+            wallets = (
+                CoinWallet.objects
+                .filter(course_id=course_id)
+                .select_related('student', 'course')
+                .annotate(period_coins=Coalesce(Sum(
+                    'transactions__total_coins',
+                    filter=Q(transactions__topic__activated_at__gte=start, transactions__topic__activated_at__lt=end)
+                ), 0))
+                .order_by('-period_coins', '-longest_streak')
+            )
+            ranked = []
+            for rank, w in enumerate(wallets, start=1):
+                if rank <= 600:
+                    ranked.append({
+                        "rank": rank,
+                        "telegram_id": w.student.telegram_id,
+                        "full_name": w.student.full_name,
+                        "total_coins": w.period_coins,
+                        "current_streak": w.current_streak,
+                        "longest_streak": w.longest_streak,
+                    })
+        else:
+            wallets = (
+                CoinWallet.objects
+                .filter(course_id=course_id)
+                .select_related('student', 'course')
+                .order_by('-total_coins', '-longest_streak')
+            )
+            ranked = []
+            for rank, w in enumerate(wallets, start=1):
+                if rank <= 600:
+                    ranked.append({
+                        "rank": rank,
+                        "telegram_id": w.student.telegram_id,
+                        "full_name": w.student.full_name,
+                        "total_coins": w.total_coins,
+                        "current_streak": w.current_streak,
+                        "longest_streak": w.longest_streak,
+                    })
 
         top10 = ranked[:10]
 
@@ -1222,9 +1306,20 @@ class LeaderboardView(APIView):
                     student = Student.objects.get(telegram_id=telegram_id)
                     w = CoinWallet.objects.filter(student=student, course_id=course_id).first()
                     if w:
-                        my_coins = w.total_coins
-                        my_streak = w.current_streak
-                        my_longest = w.longest_streak
+                        if period and monthly_reset:
+                            start, end = period
+                            my_coins, my_streak, my_longest = _compute_reset_month_coins(w, start, end)
+                        elif period:
+                            start, end = period
+                            my_coins = CoinTransaction.objects.filter(
+                                wallet=w, topic__activated_at__gte=start, topic__activated_at__lt=end
+                            ).aggregate(s=Sum('total_coins'))['s'] or 0
+                            my_streak = w.current_streak
+                            my_longest = w.longest_streak
+                        else:
+                            my_coins = w.total_coins
+                            my_streak = w.current_streak
+                            my_longest = w.longest_streak
                 except Student.DoesNotExist:
                     pass
 
@@ -1241,9 +1336,12 @@ class StudentWalletView(APIView):
     """
     Student barcha kurslar bo'yicha hamyonini ko'rish
     GET /api/coins/my/?telegram_id=xxx
+    GET /api/coins/my/?telegram_id=xxx&year=2026&month=6  (faqat shu oyda yig'ilgan tanga)
     """
 
     def get(self, request):
+        from .coins import get_month_period_data, is_monthly_streak_enabled
+
         telegram_id = request.query_params.get('telegram_id')
         if not telegram_id:
             return Response({"error": "telegram_id kerak"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1253,21 +1351,38 @@ class StudentWalletView(APIView):
         except Student.DoesNotExist:
             return Response({"error": "Student topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        if year and month:
+            year, month = int(year), int(month)
+
         wallets = CoinWallet.objects.filter(student=student).select_related('course')
         result = []
+        period_total = 0
         for w in wallets:
-            result.append({
+            entry = {
                 "course_id": w.course.id,
                 "course_name": w.course.name,
                 "total_coins": w.total_coins,
                 "current_streak": w.current_streak,
                 "longest_streak": w.longest_streak,
-            })
+            }
+            if year and month:
+                data = get_month_period_data(w, year, month)
+                entry["period_coins"] = data['period_coins']
+                entry["period_streak"] = data['streak']
+                entry["period_longest_streak"] = data['longest_streak']
+                period_total += data['period_coins']
+            result.append(entry)
 
-        return Response({
+        response = {
             "full_name": student.full_name,
             "wallets": result,
-        })
+        }
+        if year and month:
+            response["period_total"] = period_total
+            response["monthly_reset_enabled"] = is_monthly_streak_enabled(year, month)
+        return Response(response)
 
 
 class AdminLeaderboardView(APIView):
@@ -1291,20 +1406,20 @@ class AdminLeaderboardView(APIView):
 
         local_tz = pytz.timezone('Asia/Tashkent')
 
-        # Sana filtri
+        # Sana filtri (mavzu qachon faollashtirilgani bo'yicha)
         tx_filter = {'wallet__course_id': course_id}
         if from_date_str:
             fd = parse_date(from_date_str)
             if fd:
                 from datetime import datetime
-                tx_filter['created_at__gte'] = local_tz.localize(
+                tx_filter['topic__activated_at__gte'] = local_tz.localize(
                     datetime.combine(fd, datetime.min.time())
                 )
         if to_date_str:
             td = parse_date(to_date_str)
             if td:
                 from datetime import datetime
-                tx_filter['created_at__lte'] = local_tz.localize(
+                tx_filter['topic__activated_at__lte'] = local_tz.localize(
                     datetime.combine(td, datetime.max.time())
                 )
 

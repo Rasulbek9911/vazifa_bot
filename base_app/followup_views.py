@@ -59,6 +59,19 @@ def _lock_status(fu, current_user):
     return 'locked_by_other'
 
 
+def _matches_search(student, search_q, search_q_digits):
+    if not search_q:
+        return True
+    if search_q in student.full_name.lower():
+        return True
+    if search_q_digits:
+        if student.phone and search_q_digits in ''.join(ch for ch in student.phone if ch.isdigit()):
+            return True
+        if student.telegram_id and search_q_digits in student.telegram_id:
+            return True
+    return False
+
+
 def _called_today_by_other(fu, current_user):
     if not fu or not fu.called_at:
         return False
@@ -73,11 +86,14 @@ def followup_list(request):
     course_id = request.GET.get('course_id', '')
     group_id = request.GET.get('group_id', '')
     search_q = request.GET.get('q', '').strip().lower()
+    search_q_digits = ''.join(ch for ch in search_q if ch.isdigit())
     tab = request.GET.get('tab', 'not_called')
     page_num = request.GET.get('page', 1)
     user = request.user
     is_super = _is_superadmin(user)
     can_block = user.is_staff or user.is_superuser
+    if tab == 'blocked' and not can_block:
+        tab = 'not_called'
 
     topics_qs = Topic.objects.filter(is_active=True, course__is_active=True).select_related('course')
     if course_id:
@@ -105,12 +121,44 @@ def followup_list(request):
         groups_qs = groups_qs.filter(course_id=course_id)
     all_groups_list = list(groups_qs)
 
+    # --- BLOCKED studentlar (active_topics'ga bog'liq emas) ---
+    blocked_qs = Student.objects.filter(is_blocked=True).distinct().prefetch_related('groups__course').order_by('full_name')
+    if group_id:
+        blocked_qs = blocked_qs.filter(groups__id=group_id)
+    elif operator_groups:
+        blocked_qs = blocked_qs.filter(groups__id__in=[g.id for g in operator_groups])
+    if course_id:
+        blocked_qs = blocked_qs.filter(groups__course_id=course_id)
+
+    blocked_list = []
+    for student in blocked_qs:
+        if not _matches_search(student, search_q, search_q_digits):
+            continue
+        all_grps = list(student.groups.all())
+        blocked_list.append({
+            'student': student,
+            'groups_str': ', '.join(g.name for g in all_grps),
+            'groups_list': all_grps,
+        })
+
     if not active_topics:
+        if tab == 'blocked':
+            paginator = Paginator(blocked_list, PAGE_SIZE)
+            page = paginator.get_page(page_num)
+            return render(request, 'followup/list.html', {
+                'students_data': page.object_list, 'page': page, 'paginator': paginator,
+                'courses': courses, 'groups': all_groups_list,
+                'selected_course_id': course_id, 'selected_group_id': group_id,
+                'tab': tab, 'total_unsubmitted': 0, 'total_called': 0,
+                'total_not_called': 0, 'total_blocked': len(blocked_list),
+                'is_super': is_super, 'can_block': can_block, 'operator_groups': operator_groups,
+            })
         return render(request, 'followup/list.html', {
             'students_data': [], 'courses': courses, 'groups': all_groups_list,
             'selected_course_id': course_id, 'selected_group_id': group_id,
             'tab': tab, 'total_unsubmitted': 0, 'total_called': 0,
-            'total_not_called': 0, 'is_super': is_super,
+            'total_not_called': 0, 'total_blocked': len(blocked_list), 'is_super': is_super,
+            'can_block': can_block, 'operator_groups': operator_groups,
         })
 
     submitted_pairs = set(
@@ -138,7 +186,7 @@ def followup_list(request):
     # --- NOT_CALLED ---
     not_called = []
     for student in students:
-        if search_q and search_q not in student.full_name.lower():
+        if not _matches_search(student, search_q, search_q_digits):
             continue
         fu = all_followups.get(student.id)
         if fu and fu.called_at:
@@ -194,7 +242,7 @@ def followup_list(request):
         student = called_students_map.get(fu.student_id)
         if not student:
             continue
-        if search_q and search_q not in student.full_name.lower():
+        if not _matches_search(student, search_q, search_q_digits):
             continue
         if group_id and not student.groups.filter(id=group_id).exists():
             continue
@@ -247,7 +295,10 @@ def followup_list(request):
 
     called_pending.sort(key=lambda x: x['student'].full_name)
 
-    active_list = not_called if tab == 'not_called' else called_pending
+    if tab == 'blocked':
+        active_list = blocked_list
+    else:
+        active_list = not_called if tab == 'not_called' else called_pending
     paginator = Paginator(active_list, PAGE_SIZE)
     page = paginator.get_page(page_num)
 
@@ -307,6 +358,7 @@ def followup_list(request):
         'total_unsubmitted': len(not_called) + len(called_pending),
         'total_called': len(called_pending),
         'total_not_called': len(not_called),
+        'total_blocked': len(blocked_list),
         'is_super': is_super,
         'can_block': can_block,
         'current_user': user,
