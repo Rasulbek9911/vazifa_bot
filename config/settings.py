@@ -11,22 +11,32 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Barcha qiymatlar .env orqali override qilinishi mumkin (Docker/ikkinchi server uchun).
+# .env bo'lmasa (hozirgi bare-metal server) default qiymatlar avvalgi hardcoded
+# qiymatlar bilan bir xil — xatti-harakat o'zgarmaydi.
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-axqgte^q+)6!x=i0r2@^2ckd^jix2p!*e4=ug*eq-!cb^b5)xe"
+SECRET_KEY = env.str("SECRET_KEY", default="django-insecure-axqgte^q+)6!x=i0r2@^2ckd^jix2p!*e4=ug*eq-!cb^b5)xe")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
 
 
-ALLOWED_HOSTS = ["45.138.159.37", "localhost", "127.0.0.1","185.191.141.71","matematikapro.uz","vazifa.matematikapro.uz","10.10.1.3"]
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=["45.138.159.37", "localhost", "127.0.0.1", "185.191.141.71", "matematikapro.uz", "vazifa.matematikapro.uz", "10.10.1.3"],
+)
 
 LOGIN_REDIRECT_URL = "/"
 
@@ -81,11 +91,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",  # PostgreSQL backend
-        "NAME": "vazifa_bot",  # Database nomi
-        "USER": "vazifa_user",  # PostgreSQL user
-        "PASSWORD": "vazifa_bot_2025",  # User paroli
-        "HOST": "localhost",  # PgBouncer orqali
-        "PORT": "6432",  # PgBouncer port (PostgreSQL 5432 emas)
+        "NAME": env.str("DB_NAME", default="vazifa_bot"),
+        "USER": env.str("DB_USER", default="vazifa_user"),
+        "PASSWORD": env.str("DB_PASSWORD", default="vazifa_bot_2025"),
+        "HOST": env.str("DB_HOST", default="localhost"),  # PgBouncer orqali
+        "PORT": env.str("DB_PORT", default="6432"),  # PgBouncer port (PostgreSQL 5432 emas)
         "CONN_MAX_AGE": 0,  # Har bir request uchun yangi connection (bot uchun xavfsiz)
         "OPTIONS": {
             "connect_timeout": 10,  # Connection timeout: 10 soniya
@@ -137,6 +147,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -156,14 +167,17 @@ SESSION_COOKIE_AGE = 86400  # 1 kun
 
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = [
-    "http://185.191.141.71",
-    "https://185.191.141.71",
-    "http://vazifa.matematikapro.uz",
-    "https://vazifa.matematikapro.uz",
-    "http://10.10.1.3",
-    "https://10.10.1.3",
-]
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://185.191.141.71",
+        "https://185.191.141.71",
+        "http://vazifa.matematikapro.uz",
+        "https://vazifa.matematikapro.uz",
+        "http://10.10.1.3",
+        "https://10.10.1.3",
+    ],
+)
 
 # DRF — bot API uchun session auth o'chirilgan (CSRF kerak emas)
 REST_FRAMEWORK = {
