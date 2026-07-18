@@ -13,6 +13,7 @@ from utils.safe_send_message import safe_send_message
 from states.broadcast_state import BroadcastState
 from states.update_answers_state import UpdateAnswersState
 from states.add_topic_state import AddTopicState
+from states.add_course_state import AddCourseState
 from states.grp_test_state import GrpTestState
 from states.settings_state import SettingsState
 from utils.scheduler_instance import (
@@ -2210,6 +2211,109 @@ async def process_new_answers(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+# --- YANGI KURS YARATISH ---
+def _generate_unique_course_code(name: str) -> str:
+    """Kurs nomidan (masalan 'Ingliz tili') unikal kod (masalan 'ingliz_tili') yasaydi"""
+    import re
+    from base_app.models import Course
+
+    base = re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_") or "kurs"
+    code = base
+    i = 2
+    while Course.objects.filter(code=code).exists():
+        code = f"{base}_{i}"
+        i += 1
+    return code
+
+
+async def _prompt_course_name(target):
+    await target.answer(
+        "➕ Yangi kurs yaratish\n\n"
+        "📝 Kurs nomini yuboring (masalan: Matematika, Ingliz tili):\n\n"
+        "❌ Bekor qilish uchun /cancel"
+    )
+
+
+@dp.message_handler(IsPrivate(), lambda msg: msg.text == "➕ Kurs qo'shish", user_id=ADMINS)
+async def add_course_start(message: types.Message):
+    """Admin yangi kurs yaratish jarayonini boshlaydi"""
+    await _prompt_course_name(message)
+    await AddCourseState.waiting_for_name.set()
+
+
+@dp.callback_query_handler(lambda c: c.data == "goto_add_course", state="*")
+async def goto_add_course(callback: types.CallbackQuery, state: FSMContext):
+    """'Faol kurslar yo'q' xabaridagi tugma orqali kurs yaratishni boshlaydi"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    await callback.answer()
+    await _prompt_course_name(callback.message)
+    await AddCourseState.waiting_for_name.set()
+
+
+@dp.message_handler(IsPrivate(), state=AddCourseState.waiting_for_name, user_id=ADMINS)
+async def process_course_name(message: types.Message, state: FSMContext):
+    """Kurs nomini qabul qilish va vazifa turini so'rash"""
+    name = message.text.strip()
+
+    if not name:
+        await message.answer("❌ Kurs nomi bo'sh bo'lishi mumkin emas. Qaytadan yuboring yoki /cancel")
+        return
+
+    from base_app.models import Course
+
+    if await sync_to_async(Course.objects.filter(name=name).exists)():
+        await message.answer("❌ Bu nomli kurs allaqachon mavjud. Boshqa nom kiriting yoki /cancel")
+        return
+
+    code = await sync_to_async(_generate_unique_course_code)(name)
+    await state.update_data(name=name, code=code)
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("🧪 Test", callback_data="course_task_type_test"),
+        InlineKeyboardButton("📋 Maxsus topshiriq", callback_data="course_task_type_assignment"),
+    )
+    await message.answer(
+        f"✅ Kurs nomi: {name}\n\n"
+        f"📚 Bu kursda qanday vazifa turi qabul qilinadi?",
+        reply_markup=keyboard
+    )
+    await AddCourseState.waiting_for_task_type.set()
+
+
+@dp.callback_query_handler(
+    lambda c: c.data in ("course_task_type_test", "course_task_type_assignment"),
+    state=AddCourseState.waiting_for_task_type,
+)
+async def process_course_task_type(callback: types.CallbackQuery, state: FSMContext):
+    """Vazifa turini qabul qilib, kursni yaratadi"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    task_type = "test" if callback.data == "course_task_type_test" else "assignment"
+    data = await state.get_data()
+
+    from base_app.models import Course
+
+    course = await sync_to_async(Course.objects.create)(
+        name=data.get("name"), code=data.get("code"), task_type=task_type, is_active=True
+    )
+
+    await callback.message.edit_text(
+        f"✅ Yangi kurs yaratildi!\n\n"
+        f"📚 Nomi: {course.name}\n"
+        f"🔑 Kodi: {course.code}\n"
+        f"📝 Vazifa turi: {'Test' if task_type == 'test' else 'Maxsus topshiriq'}\n\n"
+        f"Endi “➕ Mavzu qo'shish” tugmasi orqali shu kursga mavzu qo'sha olasiz."
+    )
+    await state.finish()
+    await callback.answer()
+
+
 # --- YANGI MAVZU QO'SHISH ---
 @dp.message_handler(IsPrivate(), lambda msg: msg.text == "➕ Mavzu qo'shish", user_id=ADMINS)
 async def add_topic_start(message: types.Message):
@@ -2218,9 +2322,17 @@ async def add_topic_start(message: types.Message):
     
     # Barcha kurslarni olamiz
     courses = await sync_to_async(list)(Course.objects.filter(is_active=True).order_by('name'))
-    
+
     if not courses:
-        await message.answer("❌ Hozircha faol kurslar mavjud emas.")
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        keyboard.add(
+            InlineKeyboardButton("➕ Yangi kurs yaratish", callback_data="goto_add_course")
+        )
+        await message.answer(
+            "❌ Hozircha faol kurslar mavjud emas.\n\n"
+            "Avval kurs yarating:",
+            reply_markup=keyboard
+        )
         return
     
     # Kurs tanlash uchun inline keyboard

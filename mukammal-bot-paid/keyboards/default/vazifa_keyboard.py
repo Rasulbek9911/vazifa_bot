@@ -69,6 +69,9 @@ admin_key = ReplyKeyboardMarkup(
             KeyboardButton(text='📢 Broadcast'),
             KeyboardButton(text='📅 Davomat sessiyasi'),
         ],
+        [
+            KeyboardButton(text="➕ Kurs qo'shish"),
+        ],
     ],
     resize_keyboard=True
 )
