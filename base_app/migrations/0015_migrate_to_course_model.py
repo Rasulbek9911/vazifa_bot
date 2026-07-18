@@ -10,44 +10,38 @@ def migrate_course_data(apps, schema_editor):
     Course = apps.get_model('base_app', 'Course')
     Group = apps.get_model('base_app', 'Group')
     Topic = apps.get_model('base_app', 'Topic')
-    
-    # 1. Kurslarni yaratish (agar mavjud bo'lmasa)
-    milliy, _ = Course.objects.get_or_create(
-        code='milliy_sert',
-        defaults={
-            'name': 'Milliy sertifikat',
-            'task_type': 'assignment',  # Milliy sert - maxsus topshiriq
-            'is_active': True
-        }
-    )
-    
-    attestatsiya, _ = Course.objects.get_or_create(
-        code='attestatsiya',
-        defaults={
-            'name': 'Attestatsiya',
-            'task_type': 'test',  # Attestatsiya - test
-            'is_active': True
-        }
-    )
-    
-    # 2. Guruhlarni yangi Course ga bog'lash
+
+    # Faqat haqiqatan ko'chiriladigan eski course_type ma'lumoti bo'lsagina
+    # kurs yaratamiz — bo'sh (yangi) bazada bekorga "Milliy sertifikat" /
+    # "Attestatsiya" kurslari paydo bo'lmasin.
     groups_milliy = Group.objects.filter(course_type='milliy_sert', course__isnull=True)
-    groups_milliy.update(course=milliy)
-    print(f"✅ {groups_milliy.count()} ta milliy_sert guruhi ko'chirildi")
-    
-    groups_attestatsiya = Group.objects.filter(course_type='attestatsiya', course__isnull=True)
-    groups_attestatsiya.update(course=attestatsiya)
-    print(f"✅ {groups_attestatsiya.count()} ta attestatsiya guruhi ko'chirildi")
-    
-    # 3. Topiclarni yangi Course ga bog'lash
     topics_milliy = Topic.objects.filter(course_type='milliy_sert', course__isnull=True)
-    topics_milliy.update(course=milliy)
-    print(f"✅ {topics_milliy.count()} ta milliy_sert topic ko'chirildi")
-    
+    if groups_milliy.exists() or topics_milliy.exists():
+        milliy, _ = Course.objects.get_or_create(
+            code='milliy_sert',
+            defaults={
+                'name': 'Milliy sertifikat',
+                'task_type': 'assignment',  # Milliy sert - maxsus topshiriq
+                'is_active': True
+            }
+        )
+        print(f"✅ {groups_milliy.update(course=milliy)} ta milliy_sert guruhi ko'chirildi")
+        print(f"✅ {topics_milliy.update(course=milliy)} ta milliy_sert topic ko'chirildi")
+
+    groups_attestatsiya = Group.objects.filter(course_type='attestatsiya', course__isnull=True)
     topics_attestatsiya = Topic.objects.filter(course_type='attestatsiya', course__isnull=True)
-    topics_attestatsiya.update(course=attestatsiya)
-    print(f"✅ {topics_attestatsiya.count()} ta attestatsiya topic ko'chirildi")
-    
+    if groups_attestatsiya.exists() or topics_attestatsiya.exists():
+        attestatsiya, _ = Course.objects.get_or_create(
+            code='attestatsiya',
+            defaults={
+                'name': 'Attestatsiya',
+                'task_type': 'test',  # Attestatsiya - test
+                'is_active': True
+            }
+        )
+        print(f"✅ {groups_attestatsiya.update(course=attestatsiya)} ta attestatsiya guruhi ko'chirildi")
+        print(f"✅ {topics_attestatsiya.update(course=attestatsiya)} ta attestatsiya topic ko'chirildi")
+
     print("🎉 Ma'lumotlar muvaffaqiyatli ko'chirildi!")
 
 

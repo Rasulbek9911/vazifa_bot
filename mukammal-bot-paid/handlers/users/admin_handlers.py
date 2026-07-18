@@ -775,6 +775,9 @@ async def admin_panel(message: types.Message):
         InlineKeyboardButton("🧪 Test qo'shish\nMavzuga test biriktirish", callback_data="admin_menu_addtest"),
     )
     kb.add(
+        InlineKeyboardButton("➕ Kurs qo'shish\nYangi kurs yaratish", callback_data="admin_menu_add_course"),
+    )
+    kb.add(
         InlineKeyboardButton("📢 Broadcast\nBarcha foydalanuvchilarga xabar", callback_data="admin_menu_broadcast"),
         InlineKeyboardButton("📊 Test statistikasi\nTopshiriqlar soni va foizi", callback_data="stats:1:all"),
     )
@@ -821,6 +824,8 @@ async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
 
     if action == "admin_menu_add_topic":
         await add_topic_start(callback.message)
+    elif action == "admin_menu_add_course":
+        await add_course_start(callback.message)
     elif action == "admin_menu_update_answers":
         await update_test_answers_start(callback.message)
     elif action == "admin_menu_broadcast":
