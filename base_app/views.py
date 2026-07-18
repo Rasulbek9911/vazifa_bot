@@ -1,6 +1,7 @@
 import logging
 
 from reportlab.lib.pagesizes import A4, landscape
+from django.db import transaction as db_transaction
 from django.http import HttpResponse
 from django.utils.timezone import now, timedelta
 from reportlab.lib import colors
@@ -387,18 +388,25 @@ class TaskSubmitView(APIView):
         serializer = TaskSerializer(data=data)
 
         if serializer.is_valid():
-            task = serializer.save()
-            logger.info(f"Task saqlandi: task_id={task.id}, student={student.full_name}, topic={topic.title}")
-
-            # Test uchun tanga berish (grade set bo'lsa)
             coin_info = None
-            if task.task_type == 'test' and task.grade is not None:
-                from django.utils import timezone as tz
-                deadline_passed = bool(topic.deadline and tz.now() > topic.deadline)
-                try:
-                    coin_info = award_task_coins(student, topic, task.grade, deadline_passed, 'test')
-                except Exception as e:
-                    logger.error(f"Tanga berish xatoligi: {e}")
+            try:
+                with db_transaction.atomic():
+                    task = serializer.save()
+                    logger.info(f"Task saqlandi: task_id={task.id}, student={student.full_name}, topic={topic.title}")
+
+                    # Test uchun tanga berish (grade set bo'lsa) — Task saqlash bilan
+                    # bitta tranzaksiyada, aks holda Task yozilib, tanga berish
+                    # muvaffaqiyatsiz bo'lganda "Task bor-u, tanga yo'q" holati paydo bo'ladi.
+                    if task.task_type == 'test' and task.grade is not None:
+                        from django.utils import timezone as tz
+                        deadline_passed = bool(topic.deadline and tz.now() > topic.deadline)
+                        coin_info = award_task_coins(student, topic, task.grade, deadline_passed, 'test')
+            except Exception as e:
+                logger.error(f"Task saqlash/tanga berish xatoligi: {e}")
+                return Response(
+                    {"error": "Ichki xatolik, qayta urinib ko'ring"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
             resp_data = TaskSerializer(task).data
             if coin_info:
@@ -451,14 +459,19 @@ class TaskUpdateView(APIView):
         if grade not in [3, 4, 5]:
             return Response({"error": "Noto‘g‘ri baho"}, status=status.HTTP_400_BAD_REQUEST)
 
-        task.grade = grade
-        task.save()
-
-        # Assignment uchun tanga berish (bir marta)
         try:
-            award_task_coins(task.student, task.topic, task.grade, False, 'assignment')
+            with db_transaction.atomic():
+                task.grade = grade
+                task.save()
+                # Assignment uchun tanga berish (bir marta) — grade saqlash bilan
+                # bitta tranzaksiyada, aks holda "grade bor-u, tanga yo'q" holati paydo bo'ladi.
+                award_task_coins(task.student, task.topic, task.grade, False, 'assignment')
         except Exception as e:
-            logger.error(f"Assignment tanga berish xatoligi: {e}")
+            logger.error(f"Assignment saqlash/tanga berish xatoligi: {e}")
+            return Response(
+                {"error": "Ichki xatolik, qayta urinib ko'ring"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
 
