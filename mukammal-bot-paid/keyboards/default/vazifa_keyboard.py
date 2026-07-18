@@ -71,6 +71,7 @@ admin_key = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(text="➕ Kurs qo'shish"),
+            KeyboardButton(text="📚 Kurslarni boshqarish"),
         ],
     ],
     resize_keyboard=True

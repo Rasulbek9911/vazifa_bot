@@ -14,6 +14,7 @@ from states.broadcast_state import BroadcastState
 from states.update_answers_state import UpdateAnswersState
 from states.add_topic_state import AddTopicState
 from states.add_course_state import AddCourseState
+from states.manage_course_state import ManageCourseState
 from states.grp_test_state import GrpTestState
 from states.settings_state import SettingsState
 from utils.scheduler_instance import (
@@ -776,6 +777,7 @@ async def admin_panel(message: types.Message):
     )
     kb.add(
         InlineKeyboardButton("➕ Kurs qo'shish\nYangi kurs yaratish", callback_data="admin_menu_add_course"),
+        InlineKeyboardButton("📚 Kurslarni boshqarish\nNomini o'zgartirish, o'chirish", callback_data="admin_menu_manage_courses"),
     )
     kb.add(
         InlineKeyboardButton("📢 Broadcast\nBarcha foydalanuvchilarga xabar", callback_data="admin_menu_broadcast"),
@@ -826,6 +828,8 @@ async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
         await add_topic_start(callback.message)
     elif action == "admin_menu_add_course":
         await add_course_start(callback.message)
+    elif action == "admin_menu_manage_courses":
+        await manage_courses_start(callback.message)
     elif action == "admin_menu_update_answers":
         await update_test_answers_start(callback.message)
     elif action == "admin_menu_broadcast":
@@ -2316,6 +2320,193 @@ async def process_course_task_type(callback: types.CallbackQuery, state: FSMCont
         f"Endi “➕ Mavzu qo'shish” tugmasi orqali shu kursga mavzu qo'sha olasiz."
     )
     await state.finish()
+    await callback.answer()
+
+
+# --- KURSLARNI BOSHQARISH (nomini o'zgartirish / faollashtirish / o'chirish) ---
+async def _render_course_list(target):
+    from base_app.models import Course
+
+    courses = await sync_to_async(list)(Course.objects.all().order_by('name'))
+    if not courses:
+        await target.answer("❌ Hozircha kurslar mavjud emas.")
+        return
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for course in courses:
+        label = course.name if course.is_active else f"🔴 {course.name} (nofaol)"
+        keyboard.add(InlineKeyboardButton(label, callback_data=f"course_manage_{course.id}"))
+
+    await target.answer("📚 Kurslar ro'yxati\n\nBoshqarish uchun kursni tanlang:", reply_markup=keyboard)
+
+
+@dp.message_handler(IsPrivate(), lambda msg: msg.text == "📚 Kurslarni boshqarish", user_id=ADMINS)
+async def manage_courses_start(message: types.Message):
+    await _render_course_list(message)
+
+
+async def _render_course_detail(callback_message, course):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("✏️ Nomini o'zgartirish", callback_data=f"course_rename_{course.id}"),
+        InlineKeyboardButton(
+            "🔴 Nofaollashtirish" if course.is_active else "🟢 Faollashtirish",
+            callback_data=f"course_toggle_{course.id}",
+        ),
+        InlineKeyboardButton("🗑 O'chirish", callback_data=f"course_delete_confirm_{course.id}"),
+        InlineKeyboardButton("⬅️ Orqaga", callback_data="course_manage_back"),
+    )
+    await callback_message.edit_text(
+        f"📚 <b>{course.name}</b>\n\n"
+        f"🔑 Kodi: {course.code}\n"
+        f"📝 Vazifa turi: {'Test' if course.task_type == 'test' else 'Maxsus topshiriq'}\n"
+        f"Holati: {'🟢 Faol' if course.is_active else '🔴 Nofaol'}",
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_manage_") and c.data != "course_manage_back", state="*")
+async def course_manage_detail(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+
+    course_id = int(callback.data.split("_")[-1])
+    try:
+        course = await sync_to_async(Course.objects.get)(id=course_id)
+    except Course.DoesNotExist:
+        await callback.answer("❌ Kurs topilmadi.", show_alert=True)
+        return
+
+    await _render_course_detail(callback.message, course)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data == "course_manage_back", state="*")
+async def course_manage_back(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+    await callback.message.delete()
+    await _render_course_list(callback.message)
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_toggle_"), state="*")
+async def course_toggle_active(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+
+    course_id = int(callback.data.split("_")[-1])
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+    course.is_active = not course.is_active
+    await sync_to_async(course.save)()
+
+    await _render_course_detail(callback.message, course)
+    await callback.answer("✅ Holat o'zgartirildi")
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_rename_"), state="*")
+async def course_rename_start(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    course_id = int(callback.data.split("_")[-1])
+    await state.update_data(rename_course_id=course_id)
+    await ManageCourseState.waiting_for_new_name.set()
+
+    await callback.message.answer(
+        "✏️ Kursning yangi nomini yuboring:\n\n❌ Bekor qilish uchun /cancel"
+    )
+    await callback.answer()
+
+
+@dp.message_handler(IsPrivate(), state=ManageCourseState.waiting_for_new_name, user_id=ADMINS)
+async def course_rename_finish(message: types.Message, state: FSMContext):
+    new_name = message.text.strip()
+    if not new_name:
+        await message.answer("❌ Kurs nomi bo'sh bo'lishi mumkin emas. Qaytadan yuboring yoki /cancel")
+        return
+
+    from base_app.models import Course
+
+    data = await state.get_data()
+    course_id = data.get("rename_course_id")
+
+    if await sync_to_async(Course.objects.filter(name=new_name).exclude(id=course_id).exists)():
+        await message.answer("❌ Bu nomli kurs allaqachon mavjud. Boshqa nom kiriting yoki /cancel")
+        return
+
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+    old_name = course.name
+    course.name = new_name
+    await sync_to_async(course.save)()
+
+    await state.finish()
+    await message.answer(f"✅ Kurs nomi o'zgartirildi: {old_name} → {new_name}")
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_delete_confirm_"), state="*")
+async def course_delete_confirm(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    course_id = int(callback.data.split("_")[-1])
+    from base_app.models import Course
+
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("✅ Ha, o'chirish", callback_data=f"course_delete_yes_{course_id}"),
+        InlineKeyboardButton("❌ Yo'q", callback_data=f"course_manage_{course_id}"),
+    )
+    await callback.message.edit_text(
+        f"⚠️ Rostdan ham <b>{course.name}</b> kursini o'chirmoqchimisiz?\n\n"
+        f"Bu amalni ortga qaytarib bo'lmaydi.",
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_delete_yes_"), state="*")
+async def course_delete_execute(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from django.db.models import ProtectedError
+    from base_app.models import Course, Group, Topic
+
+    course_id = int(callback.data.split("_")[-1])
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+    course_name = course.name
+
+    try:
+        await sync_to_async(course.delete)()
+    except ProtectedError:
+        groups_count = await sync_to_async(Group.objects.filter(course_id=course_id).count)()
+        topics_count = await sync_to_async(Topic.objects.filter(course_id=course_id).count)()
+        await callback.message.edit_text(
+            f"❌ <b>{course_name}</b> kursini o'chirib bo'lmadi.\n\n"
+            f"Unga {groups_count} ta guruh va {topics_count} ta mavzu bog'langan.\n"
+            f"Avval ularni o'chiring/boshqa kursga o'tkazing, yoki kursni shunchaki "
+            f"nofaollashtiring («🔴 Nofaollashtirish» tugmasi).",
+            parse_mode="HTML",
+        )
+        await callback.answer()
+        return
+
+    await callback.message.edit_text(f"✅ <b>{course_name}</b> kursi o'chirildi.", parse_mode="HTML")
     await callback.answer()
 
 
