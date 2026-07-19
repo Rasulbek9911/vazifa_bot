@@ -14,6 +14,7 @@ from states.task_state import TaskState
 from keyboards.default.vazifa_keyboard import build_vazifa_keyboard
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from filters.is_private import IsPrivate
+from utils.course_guard import course_guard_message
 
 
 # General channel/group ID is configured in data.config
@@ -38,6 +39,11 @@ async def _ask_course_type(message: types.Message, state: FSMContext, task_name:
     # Adminlarni tekshirish - adminlar vazifa yubormaydi
     if str(telegram_id) in ADMINS:
         await message.answer("ℹ️ Adminlar vazifa yubora olmaydi.")
+        return
+
+    guard_msg = await course_guard_message()
+    if guard_msg:
+        await message.answer(guard_msg)
         return
 
     # Studentni tekshirish

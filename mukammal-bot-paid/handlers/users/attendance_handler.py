@@ -13,6 +13,7 @@ from data.config import ADMINS, API_BASE_URL
 from loader import dp, bot
 from states.attendance_state import AttendanceSessionState, AttendanceMarkState
 from utils.safe_send_message import safe_send_message
+from utils.course_guard import course_guard_message
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,12 @@ TZ = pytz.timezone("Asia/Tashkent")
 async def _open_attendance_session(chat_id: int):
     """Sessiya ochish so'rovini yuboradi va state ni set qiladi (ikki joydan chaqiriladi)"""
     from loader import dp
+
+    guard_msg = await course_guard_message()
+    if guard_msg:
+        await bot.send_message(chat_id, guard_msg)
+        return
+
     await bot.send_message(
         chat_id,
         "📝 Davomat kodini kiriting (masalan: 3847):",
@@ -128,6 +135,10 @@ async def attendance_session_duration(message: types.Message, state: FSMContext)
 
 @dp.message_handler(lambda m: m.text == "🗓 Davomat")
 async def attendance_mark_start(message: types.Message):
+    guard_msg = await course_guard_message()
+    if guard_msg:
+        await message.answer(guard_msg)
+        return
     await message.answer("🔑 Bugungi dars kodini kiriting:")
     await AttendanceMarkState.waiting_for_code.set()
 
