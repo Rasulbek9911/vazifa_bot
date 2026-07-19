@@ -22,6 +22,7 @@ django.setup()
 
 from base_app.models import Group, Student
 from django.db import close_old_connections
+from asgiref.sync import sync_to_async
 
 from data.config import ADMINS, ATTESTATSIYA_ADMIN
 from keyboards.default.vazifa_keyboard import admin_key, cancel_key, build_vazifa_keyboard
@@ -117,7 +118,7 @@ async def get_student(telegram_id: int) -> dict:
     def _get():
         close_old_connections()
         try:
-            s = Student.objects.get(telegram_id=str(telegram_id))
+            s = Student.objects.select_related('registered_course').get(telegram_id=str(telegram_id))
             return {
                 "exists": True,
                 "full_name": s.full_name,
@@ -126,6 +127,9 @@ async def get_student(telegram_id: int) -> dict:
                 "phone": s.phone,
                 "math_score": s.math_score,
                 "groups": [{"id": g.id, "name": g.name} for g in s.groups.all()],
+                "registered_course_id": s.registered_course_id,
+                "registered_course_name": s.registered_course.name if s.registered_course_id else None,
+                "role": s.role,
             }
         except Student.DoesNotExist:
             return {"exists": False}
@@ -133,27 +137,19 @@ async def get_student(telegram_id: int) -> dict:
     return await asyncio.to_thread(_get)
 
 
-async def find_available_group(score: int) -> dict | None:
-    """
-    Score asosida bo'sh guruh topadi, real Telegram a'zolar sonini tekshiradi
-    (admin/owner/botlar hisobga olinmaydi), so'ng 1-martalik 24 soatlik link yaratadi.
-    """
-    def _get_candidates():
-        close_old_connections()
-        if score > 26:
-            qs = Group.objects.filter(
-                score_min__gte=27,
-                telegram_group_id__isnull=False,
-            ).exclude(telegram_group_id='').order_by('id')
-        else:
-            qs = Group.objects.filter(
-                score_max__lte=26,
-                telegram_group_id__isnull=False,
-            ).exclude(telegram_group_id='').order_by('id')
-        return [{"id": g.id, "name": g.name, "tgid": g.telegram_group_id} for g in qs]
+def _mark_group_full(group_id: int):
+    close_old_connections()
+    Group.objects.filter(id=group_id).update(is_full=True)
 
-    candidates = await asyncio.to_thread(_get_candidates)
 
+async def _pick_available_group(candidates: list) -> dict | None:
+    """
+    Har bir nomzod guruhning jonli Telegram a'zolar sonini tekshiradi
+    (admin/owner/botlar hisobga olinmaydi). Birinchi bo'sh joy topilgan guruhga
+    1-martalik 24 soatlik taklif havolasi yaratadi. `mark_full=True` bo'lgan
+    nomzodlar to'lganda `is_full=True` deb belgilanadi (keyingi tekshiruvlarda
+    Telegram API'ga bekorga murojaat qilinmasligi uchun).
+    """
     for g in candidates:
         try:
             total = await bot.get_chat_member_count(g["tgid"])
@@ -161,10 +157,10 @@ async def find_available_group(score: int) -> dict | None:
             regular_members = total - len(admins)
 
             logging.info(
-                f"Guruh '{g['name']}': jami={total}, adminlar={len(admins)}, oddiy={regular_members}"
+                f"Guruh '{g['name']}': jami={total}, adminlar={len(admins)}, oddiy={regular_members}, limit={g['limit']}"
             )
 
-            if regular_members < GROUP_MEMBER_LIMIT:
+            if regular_members < g["limit"]:
                 expire_ts = int(time.time()) + INVITE_EXPIRE_SECONDS
                 invite = await bot.create_chat_invite_link(
                     chat_id=g["tgid"],
@@ -177,11 +173,90 @@ async def find_available_group(score: int) -> dict | None:
                     "invite_link": invite.invite_link,
                     "count": regular_members,
                 }
+            elif g.get("mark_full"):
+                await asyncio.to_thread(_mark_group_full, g["id"])
         except Exception as e:
             logging.warning(f"Guruh '{g['name']}' tekshirishda xatolik: {e}")
             continue
 
     return None
+
+
+async def find_available_group(course_id: int, score: int = None, role: str = None) -> dict | None:
+    """
+    Berilgan kursning ro'yxatdan o'tish strategiyasiga (registration_strategy) qarab
+    mos bo'sh guruhni topadi:
+      - score_range: ball oralig'iga (score_min/score_max) qarab (eski, ishlab turgan mantiq)
+      - capacity:    guruhlar ketma-ket to'ldiriladi (max_students yetguncha)
+      - role:        student/o'qituvchi (target_role) ga mos guruh
+    """
+    from base_app.models import Course
+
+    def _get_course():
+        close_old_connections()
+        try:
+            return Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return None
+
+    course = await asyncio.to_thread(_get_course)
+    if course is None:
+        return None
+
+    strategy = course.registration_strategy
+
+    if strategy == 'capacity':
+        def _get_candidates():
+            close_old_connections()
+            qs = Group.objects.filter(
+                course_id=course_id,
+                is_full=False,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+            return [
+                {"id": g.id, "name": g.name, "tgid": g.telegram_group_id, "limit": g.max_students, "mark_full": True}
+                for g in qs
+            ]
+        candidates = await asyncio.to_thread(_get_candidates)
+        return await _pick_available_group(candidates)
+
+    if strategy == 'role':
+        def _get_candidates():
+            close_old_connections()
+            qs = Group.objects.filter(
+                course_id=course_id,
+                target_role=role,
+                is_full=False,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+            return [
+                {"id": g.id, "name": g.name, "tgid": g.telegram_group_id, "limit": g.max_students, "mark_full": True}
+                for g in qs
+            ]
+        candidates = await asyncio.to_thread(_get_candidates)
+        return await _pick_available_group(candidates)
+
+    # score_range (default) — eski, ishlab turgan mantiq: faqat course bo'yicha filtr qo'shildi
+    def _get_candidates():
+        close_old_connections()
+        if score is not None and score > 26:
+            qs = Group.objects.filter(
+                course_id=course_id,
+                score_min__gte=27,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+        else:
+            qs = Group.objects.filter(
+                course_id=course_id,
+                score_max__lte=26,
+                telegram_group_id__isnull=False,
+            ).exclude(telegram_group_id='').order_by('id')
+        return [
+            {"id": g.id, "name": g.name, "tgid": g.telegram_group_id, "limit": GROUP_MEMBER_LIMIT, "mark_full": False}
+            for g in qs
+        ]
+    candidates = await asyncio.to_thread(_get_candidates)
+    return await _pick_available_group(candidates)
 
 
 async def save_student(telegram_id: int, data: dict, group_id: int):
@@ -192,7 +267,9 @@ async def save_student(telegram_id: int, data: dict, group_id: int):
         student.viloyat    = data["viloyat"]
         student.tuman      = data["tuman"]
         student.phone      = data["phone"]
-        student.math_score = data["math_score"]
+        student.math_score = data.get("math_score")
+        student.registered_course_id = data.get("course_id")
+        student.role = data.get("role")
         student.save()
         group = Group.objects.get(id=group_id)
         student.groups.add(group)
@@ -208,7 +285,9 @@ async def update_student_extra(telegram_id: int, data: dict):
             viloyat=data["viloyat"],
             tuman=data["tuman"],
             phone=data["phone"],
-            math_score=data["math_score"],
+            math_score=data.get("math_score"),
+            registered_course_id=data.get("course_id"),
+            role=data.get("role"),
         )
 
     await asyncio.to_thread(_upd)
@@ -247,6 +326,155 @@ def phone_keyboard() -> ReplyKeyboardMarkup:
     return kb
 
 
+def role_keyboard() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton(text="🎓 Talaba", callback_data="regrole_student"),
+        InlineKeyboardButton(text="🧑‍🏫 O'qituvchi", callback_data="regrole_teacher"),
+    )
+    return kb
+
+
+# ---------------------------------------------------------------------------
+# KURS TANLASH (ro'yxatdan o'tishning 1-navbatdagi qadami)
+# ---------------------------------------------------------------------------
+
+async def _ask_course(target, state: FSMContext):
+    """
+    Faol kurslar ro'yxatini ko'rsatadi. Faqat bitta faol kurs bo'lsa, savol
+    berilmay avtomatik tanlanadi (bitta-kursli serverlarda oqim o'zgarmaydi).
+    """
+    from base_app.models import Course
+
+    courses = await sync_to_async(list)(Course.objects.filter(is_active=True).order_by('name'))
+
+    if not courses:
+        await target.answer(
+            "⚠️ Hozircha faol kurs mavjud emas.\n\n"
+            f"📞 Iltimos, admin bilan bog'laning:\n{ADMIN_CONTACT}",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.finish()
+        return
+
+    if len(courses) == 1:
+        course = courses[0]
+        await state.update_data(course_id=course.id)
+        await _after_course_chosen(target, state, course)
+        return
+
+    kb = InlineKeyboardMarkup(row_width=1)
+    for c in courses:
+        kb.add(InlineKeyboardButton(text=c.name, callback_data=f"regcourse_{c.id}"))
+    await target.answer("📚 <b>Qaysi kursga ro'yxatdan o'tmoqchisiz?</b>", parse_mode="HTML", reply_markup=kb)
+    await RegisterState.course.set()
+
+
+async def _after_course_chosen(target, state: FSMContext, course):
+    await target.answer(
+        f"✅ Kurs: <b>{course.name}</b>\n\n🗺 <b>Viloyatingizni tanlang:</b>",
+        parse_mode="HTML",
+        reply_markup=viloyat_keyboard(),
+    )
+    await RegisterState.viloyat.set()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("regcourse_"), state=RegisterState.course)
+async def step_course(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    from base_app.models import Course
+
+    course_id = int(callback.data.split("_")[-1])
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+    await state.update_data(course_id=course_id)
+    await _after_course_chosen(callback.message, state, course)
+
+
+# ---------------------------------------------------------------------------
+# RO'YXATDAN O'TISHNI YAKUNLASH (guruhga biriktirish)
+# ---------------------------------------------------------------------------
+
+async def _finalize_registration(send_msg, user_id: int, state: FSMContext, score: int = None, role: str = None):
+    """
+    Kurs strategiyasidan qat'i nazar ro'yxatdan o'tishning so'nggi qadami:
+    guruh qidiradi, topilsa student+guruhni saqlaydi, topilmasa admin bilan
+    bog'lanishni so'raydi. `send_msg` — Message yoki CallbackQuery.message
+    (ikkalasida ham .answer() bor).
+    """
+    await state.update_data(math_score=score, role=role)
+    data = await state.get_data()
+    course_id = data.get("course_id")
+
+    await send_msg.answer("⏳ Ma'lumotlar tekshirilmoqda...", reply_markup=ReplyKeyboardRemove())
+
+    group = await find_available_group(course_id, score=score, role=role)
+
+    if group is None:
+        await send_msg.answer(
+            f"⚠️ Afsuski, hozircha sizga mos bo'sh guruh mavjud emas.\n\n"
+            f"📞 Iltimos, admin bilan bog'laning:\n{ADMIN_CONTACT}",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        if data.get("is_existing"):
+            await update_student_extra(user_id, data)
+        await state.finish()
+        return
+
+    try:
+        if data.get("is_existing"):
+            await update_student_extra(user_id, data)
+
+            def _add_group():
+                close_old_connections()
+                s = Student.objects.get(telegram_id=str(user_id))
+                g = Group.objects.get(id=group["id"])
+                s.groups.add(g)
+
+            await asyncio.to_thread(_add_group)
+        else:
+            await save_student(user_id, data, group["id"])
+    except Exception as e:
+        logging.error(f"save_student error for {user_id}: {e}")
+        await send_msg.answer(
+            "❌ Ma'lumotlarni saqlashda xatolik yuz berdi.\n"
+            "Iltimos, admin bilan bog'laning: " + ADMIN_CONTACT,
+        )
+        await state.finish()
+        return
+
+    if role:
+        role_label = "Talaba" if role == "student" else "O'qituvchi"
+        detail_line = f"🎓 Rol: {role_label}\n"
+    elif score is not None:
+        detail_line = f"📊 Ball: {score}/35\n"
+    else:
+        detail_line = ""
+
+    await send_msg.answer(
+        f"✅ <b>Ro'yxatdan muvaffaqiyatli o'tdingiz!</b>\n\n"
+        f"👤 Ism: {data['full_name']}\n"
+        f"🗺 Viloyat: {data['viloyat']}\n"
+        f"🏘 Tuman: {data['tuman']}\n"
+        f"{detail_line}\n"
+        f"👥 Guruhingiz: <b>{group['name']}</b>\n\n"
+        f"🔗 Guruhga qo'shilish uchun:\n{group['invite_link']}\n\n"
+        f"Guruhga qo'shilgach vazifa yuborishingiz mumkin bo'ladi.",
+        parse_mode="HTML",
+        reply_markup=await build_vazifa_keyboard(user_id),
+    )
+    await state.finish()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("regrole_"), state=RegisterState.role)
+async def step_role(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    role = callback.data.split("_", 1)[1]  # "student" yoki "teacher"
+    role_label = "Talaba" if role == "student" else "O'qituvchi"
+    await callback.message.edit_text(f"✅ Rol: {role_label}")
+    await _finalize_registration(callback.message, callback.from_user.id, state, role=role)
+
+
 # ---------------------------------------------------------------------------
 # CANCEL
 # ---------------------------------------------------------------------------
@@ -278,12 +506,14 @@ async def cmd_start(message: types.Message, state: FSMContext):
     student = await get_student(message.from_user.id)
 
     if student["exists"]:
-        # Barcha ma'lumotlar to'ldirilganmi?
+        # Barcha ma'lumotlar to'ldirilganmi? (math_score faqat "Ball oralig'i bo'yicha"
+        # strategiyali kurslarda so'raladi, shuning uchun to'liqlik mezoni sifatida
+        # math_score o'rniga "kurs tanlangani" ishlatiladi)
         has_extra = all([
             student.get("viloyat"),
             student.get("tuman"),
             student.get("phone"),
-            student.get("math_score") is not None,
+            student.get("registered_course_id") is not None,
         ])
         if has_extra:
             groups = student.get("groups", [])
@@ -296,9 +526,21 @@ async def cmd_start(message: types.Message, state: FSMContext):
                     reply_markup=await build_vazifa_keyboard(message.from_user.id),
                 )
             else:
-                # Ro'yxatdan o'tgan, lekin guruh yo'q — admin hal qilishi kerak
+                # Ro'yxatdan o'tgan, lekin guruh yo'q — qayta urinib ko'ramiz
+                # (masalan, avval mos guruh bo'lmagan, admin keyin guruh qo'shgan bo'lishi mumkin)
                 score = student.get("math_score")
-                group = await find_available_group(score) if score else None
+                course_id = student.get("registered_course_id")
+                role = student.get("role")
+
+                group = await find_available_group(course_id, score=score, role=role)
+
+                if role:
+                    role_label = "Talaba" if role == "student" else "O'qituvchi"
+                    detail_line = f"🎓 Rol: {role_label}\n"
+                elif score is not None:
+                    detail_line = f"📊 Ball: {score}/35\n"
+                else:
+                    detail_line = ""
 
                 if group:
                     # Avtomatik guruhga biriktirish
@@ -327,7 +569,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                 int(admin_id),
                                 f"✅ <b>Avtomatik guruhga biriktirildi</b>\n\n"
                                 f"👤 {student['full_name']} (<code>{message.from_user.id}</code>)\n"
-                                f"📊 Ball: {score}/35\n"
+                                f"{detail_line}"
                                 f"👥 Guruh: <b>{group['name']}</b>",
                                 parse_mode="HTML",
                             )
@@ -351,9 +593,9 @@ async def cmd_start(message: types.Message, state: FSMContext):
                                 int(admin_id),
                                 f"🔔 <b>Guruhsiz student</b>\n\n"
                                 f"👤 {student['full_name']} (<code>{message.from_user.id}</code>)\n"
-                                f"📊 Ball: {score}/35\n"
+                                f"{detail_line}"
                                 f"❌ Mos bo'sh guruh topilmadi\n\n"
-                                f"➕ Django admin orqali qo'lda biriktiring.",
+                                f"➕ 👥 Guruhlarni boshqarish (yoki Django admin) orqali qo'lda biriktiring.",
                                 parse_mode="HTML",
                             )
                         except Exception:
@@ -367,12 +609,11 @@ async def cmd_start(message: types.Message, state: FSMContext):
         )
         await message.answer(
             f"👋 Xush kelibsiz, {student['full_name']}!\n\n"
-            "Bir necha qo'shimcha ma'lumot kerak. "
-            "Iltimos, <b>viloyatingizni</b> tanlang:",
+            "Bir necha qo'shimcha ma'lumot kerak.",
             parse_mode="HTML",
-            reply_markup=viloyat_keyboard(),
+            reply_markup=ReplyKeyboardRemove(),
         )
-        await RegisterState.viloyat.set()
+        await _ask_course(message, state)
         return
 
     # Yangi user — to'liq forma
@@ -407,13 +648,8 @@ async def step_full_name(message: types.Message, state: FSMContext):
         return
 
     await state.update_data(full_name=name)
-    await message.answer(
-        "✅ Yaxshi!\n\n🗺 <b>Viloyatingizni tanlang:</b>",
-        parse_mode="HTML",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    await message.answer("👇", reply_markup=viloyat_keyboard())
-    await RegisterState.viloyat.set()
+    await message.answer("✅ Yaxshi!", reply_markup=ReplyKeyboardRemove())
+    await _ask_course(message, state)
 
 
 # ---------------------------------------------------------------------------
@@ -493,7 +729,7 @@ async def step_phone_contact(message: types.Message, state: FSMContext):
     if not phone.startswith("+"):
         phone = "+" + phone
     await state.update_data(phone=phone)
-    await _ask_math_score(message, state)
+    await _after_phone(message, state)
 
 
 @dp.message_handler(IsPrivate(), state=RegisterState.phone)
@@ -511,7 +747,7 @@ async def step_phone_text(message: types.Message, state: FSMContext):
         return
 
     await state.update_data(phone=phone)
-    await _ask_math_score(message, state)
+    await _after_phone(message, state)
 
 
 def _is_valid_phone(phone: str) -> bool:
@@ -519,16 +755,36 @@ def _is_valid_phone(phone: str) -> bool:
     return bool(re.match(r"^\+?998\d{9}$", phone.replace(" ", "").replace("-", "")))
 
 
-async def _ask_math_score(message: types.Message, state: FSMContext):
-    await message.answer(
-        "✅ Telefon raqam saqlandi!\n\n"
-        "📊 <b>Oxirgi attestatsiya imtihonida matematika qismidan "
-        "nechta to'g'ri javob topgansiz?</b>\n\n"
-        "Jami 35 ta savol. <b>Faqat raqam kiriting (1–35):</b>",
-        parse_mode="HTML",
-        reply_markup=cancel_key,
-    )
-    await RegisterState.math_score.set()
+async def _after_phone(message: types.Message, state: FSMContext):
+    """
+    Telefondan keyingi qadam kurs strategiyasiga bog'liq:
+      - role:        "Talaba/O'qituvchi" so'raladi
+      - score_range: matematika balli so'raladi
+      - capacity:    hech narsa so'ralmaydi, to'g'ridan-to'g'ri guruh qidiriladi
+    """
+    from base_app.models import Course
+
+    data = await state.get_data()
+    course = await sync_to_async(Course.objects.get)(id=data["course_id"])
+    strategy = course.registration_strategy
+
+    if strategy == 'role':
+        await message.answer("✅ Telefon raqam saqlandi!", reply_markup=ReplyKeyboardRemove())
+        await message.answer("🧑‍🎓 <b>Siz kimsiz?</b>", parse_mode="HTML", reply_markup=role_keyboard())
+        await RegisterState.role.set()
+    elif strategy == 'score_range':
+        await message.answer(
+            "✅ Telefon raqam saqlandi!\n\n"
+            "📊 <b>Oxirgi attestatsiya imtihonida matematika qismidan "
+            "nechta to'g'ri javob topgansiz?</b>\n\n"
+            "Jami 35 ta savol. <b>Faqat raqam kiriting (1–35):</b>",
+            parse_mode="HTML",
+            reply_markup=cancel_key,
+        )
+        await RegisterState.math_score.set()
+    else:  # capacity
+        await message.answer("✅ Telefon raqam saqlandi!", reply_markup=ReplyKeyboardRemove())
+        await _finalize_registration(message, message.from_user.id, state)
 
 
 # ---------------------------------------------------------------------------
@@ -552,64 +808,7 @@ async def step_math_score(message: types.Message, state: FSMContext):
         await message.answer("❌ Raqam 1 dan 35 gacha bo'lishi kerak:")
         return
 
-    await state.update_data(math_score=score)
-    data = await state.get_data()
-
-    await message.answer("⏳ Ma'lumotlar tekshirilmoqda...", reply_markup=ReplyKeyboardRemove())
-
-    group = await find_available_group(score)
-
-    if group is None:
-        # Mos va bo'sh guruh yo'q
-        await message.answer(
-            f"⚠️ Afsuski, hozircha sizning natijangizga (<b>{score}/35</b>) "
-            f"mos bo'sh guruh mavjud emas.\n\n"
-            f"📞 Iltimos, admin bilan bog'laning:\n"
-            f"{ADMIN_CONTACT}",
-            parse_mode="HTML",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        # Ma'lumotlarni saqlab qo'yamiz (guruhsiz)
-        if data.get("is_existing"):
-            await update_student_extra(message.from_user.id, data)
-        await state.finish()
-        return
-
-    # Saqlash
-    try:
-        if data.get("is_existing"):
-            await update_student_extra(message.from_user.id, data)
-            # Guruhga qo'shish
-            def _add_group():
-                close_old_connections()
-                s = Student.objects.get(telegram_id=str(message.from_user.id))
-                g = Group.objects.get(id=group["id"])
-                s.groups.add(g)
-            await asyncio.to_thread(_add_group)
-        else:
-            await save_student(message.from_user.id, data, group["id"])
-    except Exception as e:
-        logging.error(f"save_student error for {message.from_user.id}: {e}")
-        await message.answer(
-            "❌ Ma'lumotlarni saqlashda xatolik yuz berdi.\n"
-            "Iltimos, admin bilan bog'laning: " + ADMIN_CONTACT,
-        )
-        await state.finish()
-        return
-
-    await message.answer(
-        f"✅ <b>Ro'yxatdan muvaffaqiyatli o'tdingiz!</b>\n\n"
-        f"👤 Ism: {data['full_name']}\n"
-        f"🗺 Viloyat: {data['viloyat']}\n"
-        f"🏘 Tuman: {data['tuman']}\n"
-        f"📊 Ball: {score}/35\n\n"
-        f"👥 Guruhingiz: <b>{group['name']}</b>\n\n"
-        f"🔗 Guruhga qo'shilish uchun:\n{group['invite_link']}\n\n"
-        f"Guruhga qo'shilgach vazifa yuborishingiz mumkin bo'ladi.",
-        parse_mode="HTML",
-        reply_markup=await build_vazifa_keyboard(message.from_user.id),
-    )
-    await state.finish()
+    await _finalize_registration(message, message.from_user.id, state, score=score)
 
 
 # ---------------------------------------------------------------------------

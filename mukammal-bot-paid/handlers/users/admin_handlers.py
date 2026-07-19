@@ -780,6 +780,9 @@ async def admin_panel(message: types.Message):
         InlineKeyboardButton("📚 Kurslarni boshqarish\nNomini o'zgartirish, o'chirish", callback_data="admin_menu_manage_courses"),
     )
     kb.add(
+        InlineKeyboardButton("👥 Guruhlarni boshqarish\nQo'shish, tahrirlash, o'chirish", callback_data="admin_menu_manage_groups"),
+    )
+    kb.add(
         InlineKeyboardButton("📢 Broadcast\nBarcha foydalanuvchilarga xabar", callback_data="admin_menu_broadcast"),
         InlineKeyboardButton("📊 Test statistikasi\nTopshiriqlar soni va foizi", callback_data="stats:1:all"),
     )
@@ -830,6 +833,9 @@ async def admin_menu_dispatch(callback: types.CallbackQuery, state: FSMContext):
         await add_course_start(callback.message)
     elif action == "admin_menu_manage_courses":
         await manage_courses_start(callback.message)
+    elif action == "admin_menu_manage_groups":
+        from handlers.users.group_handlers import manage_groups_start
+        await manage_groups_start(callback.message)
     elif action == "admin_menu_update_answers":
         await update_test_answers_start(callback.message)
     elif action == "admin_menu_broadcast":
@@ -2235,6 +2241,26 @@ def _generate_unique_course_code(name: str) -> str:
     return code
 
 
+REGISTRATION_STRATEGY_LABELS = {
+    'score_range': "📊 Ball oralig'i bo'yicha",
+    'capacity': "🔢 Sig'im bo'yicha ketma-ket",
+    'role': "🎓 Rol bo'yicha (talaba/o'qituvchi)",
+}
+
+REGISTRATION_STRATEGY_EXPLANATIONS = {
+    'score_range': "Har guruh ma'lum ball oralig'iga ega bo'ladi (masalan 27-35), student o'z balliga mos guruhga tushadi.",
+    'capacity': "Guruhlar ketma-ket to'ldiriladi — biri belgilangan sig'imga (max_students) yetgach, keyingisiga o'tiladi.",
+    'role': "Ro'yxatdan o'tishda \"🎓 Talaba\" yoki \"🧑‍🏫 O'qituvchi\" so'raladi, shunga mos guruhga biriktiriladi.",
+}
+
+
+def _registration_strategy_keyboard(callback_prefix):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for key, label in REGISTRATION_STRATEGY_LABELS.items():
+        keyboard.add(InlineKeyboardButton(label, callback_data=f"{callback_prefix}{key}"))
+    return keyboard
+
+
 async def _prompt_course_name(target):
     await target.answer(
         "➕ Yangi kurs yaratish\n\n"
@@ -2298,26 +2324,57 @@ async def process_course_name(message: types.Message, state: FSMContext):
     state=AddCourseState.waiting_for_task_type,
 )
 async def process_course_task_type(callback: types.CallbackQuery, state: FSMContext):
-    """Vazifa turini qabul qilib, kursni yaratadi"""
+    """Vazifa turini qabul qilib, ro'yxatdan o'tish strategiyasini so'raydi"""
     if str(callback.from_user.id) not in ADMINS:
         await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
         return
 
     task_type = "test" if callback.data == "course_task_type_test" else "assignment"
+    await state.update_data(task_type=task_type)
+
+    await callback.message.edit_text(
+        "👥 Studentlar ro'yxatdan o'tganda qaysi guruhga qanday biriktirilsin?\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['score_range']}\n"
+        f"  {REGISTRATION_STRATEGY_EXPLANATIONS['score_range']}\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['capacity']}\n"
+        f"  {REGISTRATION_STRATEGY_EXPLANATIONS['capacity']}\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['role']}\n"
+        f"  {REGISTRATION_STRATEGY_EXPLANATIONS['role']}",
+        reply_markup=_registration_strategy_keyboard("course_reg_strategy_"),
+    )
+    await AddCourseState.waiting_for_registration_strategy.set()
+    await callback.answer()
+
+
+@dp.callback_query_handler(
+    lambda c: c.data.startswith("course_reg_strategy_"),
+    state=AddCourseState.waiting_for_registration_strategy,
+)
+async def process_course_registration_strategy(callback: types.CallbackQuery, state: FSMContext):
+    """Ro'yxatdan o'tish strategiyasini qabul qilib, kursni yaratadi"""
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    strategy = callback.data[len("course_reg_strategy_"):]
     data = await state.get_data()
+    task_type = data.get("task_type", "test")
 
     from base_app.models import Course
 
     course = await sync_to_async(Course.objects.create)(
-        name=data.get("name"), code=data.get("code"), task_type=task_type, is_active=True
+        name=data.get("name"), code=data.get("code"), task_type=task_type,
+        registration_strategy=strategy, is_active=True,
     )
 
     await callback.message.edit_text(
         f"✅ Yangi kurs yaratildi!\n\n"
         f"📚 Nomi: {course.name}\n"
         f"🔑 Kodi: {course.code}\n"
-        f"📝 Vazifa turi: {'Test' if task_type == 'test' else 'Maxsus topshiriq'}\n\n"
-        f"Endi “➕ Mavzu qo'shish” tugmasi orqali shu kursga mavzu qo'sha olasiz."
+        f"📝 Vazifa turi: {'Test' if task_type == 'test' else 'Maxsus topshiriq'}\n"
+        f"👥 Ro'yxatdan o'tish: {REGISTRATION_STRATEGY_LABELS[strategy]}\n\n"
+        f"Endi “➕ Mavzu qo'shish” orqali mavzu, “👥 Guruhlarni boshqarish” orqali "
+        f"shu kursga guruh(lar) qo'sha olasiz."
     )
     await state.finish()
     await callback.answer()
@@ -2349,6 +2406,7 @@ async def _render_course_detail(callback_message, course):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         InlineKeyboardButton("✏️ Nomini o'zgartirish", callback_data=f"course_rename_{course.id}"),
+        InlineKeyboardButton("👥 Ro'yxatdan o'tish tartibi", callback_data=f"course_strategy_menu_{course.id}"),
         InlineKeyboardButton(
             "🔴 Nofaollashtirish" if course.is_active else "🟢 Faollashtirish",
             callback_data=f"course_toggle_{course.id}",
@@ -2360,10 +2418,57 @@ async def _render_course_detail(callback_message, course):
         f"📚 <b>{course.name}</b>\n\n"
         f"🔑 Kodi: {course.code}\n"
         f"📝 Vazifa turi: {'Test' if course.task_type == 'test' else 'Maxsus topshiriq'}\n"
+        f"👥 Ro'yxatdan o'tish: {REGISTRATION_STRATEGY_LABELS[course.registration_strategy]}\n"
         f"Holati: {'🟢 Faol' if course.is_active else '🔴 Nofaol'}",
         parse_mode="HTML",
         reply_markup=keyboard,
     )
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_strategy_menu_"), state="*")
+async def course_strategy_menu(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+
+    course_id = int(callback.data.split("_")[-1])
+    course = await sync_to_async(Course.objects.get)(id=course_id)
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for key, label in REGISTRATION_STRATEGY_LABELS.items():
+        mark = "✅ " if key == course.registration_strategy else ""
+        keyboard.add(InlineKeyboardButton(f"{mark}{label}", callback_data=f"course_strategy_set_{course.id}:{key}"))
+    keyboard.add(InlineKeyboardButton("⬅️ Orqaga", callback_data=f"course_manage_{course.id}"))
+
+    await callback.message.edit_text(
+        f"👥 <b>{course.name}</b> — ro'yxatdan o'tish tartibi\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['score_range']}\n  {REGISTRATION_STRATEGY_EXPLANATIONS['score_range']}\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['capacity']}\n  {REGISTRATION_STRATEGY_EXPLANATIONS['capacity']}\n\n"
+        f"{REGISTRATION_STRATEGY_LABELS['role']}\n  {REGISTRATION_STRATEGY_EXPLANATIONS['role']}",
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+    await callback.answer()
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith("course_strategy_set_"), state="*")
+async def course_strategy_set(callback: types.CallbackQuery, state: FSMContext):
+    if str(callback.from_user.id) not in ADMINS:
+        await callback.answer("❌ Sizda bu huquq yo'q.", show_alert=True)
+        return
+
+    from base_app.models import Course
+
+    payload = callback.data[len("course_strategy_set_"):]
+    course_id_str, strategy = payload.split(":", 1)
+    course = await sync_to_async(Course.objects.get)(id=int(course_id_str))
+    course.registration_strategy = strategy
+    await sync_to_async(course.save)()
+
+    await _render_course_detail(callback.message, course)
+    await callback.answer("✅ Ro'yxatdan o'tish tartibi o'zgartirildi")
 
 
 @dp.callback_query_handler(lambda c: c.data.startswith("course_manage_") and c.data != "course_manage_back", state="*")

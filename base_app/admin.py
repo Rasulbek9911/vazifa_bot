@@ -14,14 +14,14 @@ from .models import (
 
 
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'task_type', 'has_assignments', 'admin_telegram_id', 'is_active', 'created_at')
-    list_filter = ('task_type', 'has_assignments', 'is_active')
+    list_display = ('name', 'code', 'task_type', 'registration_strategy', 'has_assignments', 'admin_telegram_id', 'is_active', 'created_at')
+    list_filter = ('task_type', 'registration_strategy', 'has_assignments', 'is_active')
     search_fields = ('name', 'code', 'admin_telegram_id')
     readonly_fields = ('created_at',)
 
     fieldsets = (
         ('Asosiy ma`lumotlar', {
-            'fields': ('name', 'code', 'task_type', 'has_assignments', 'admin_telegram_id', 'is_active')
+            'fields': ('name', 'code', 'task_type', 'registration_strategy', 'has_assignments', 'admin_telegram_id', 'is_active')
         }),
         ('Qo`shimcha', {
             'fields': ('created_at',)
@@ -50,8 +50,8 @@ class SubtractPointsForm(forms.Form):
 
 
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ('id','name', 'course', 'is_full', 'telegram_group_id')
-    list_filter = ('course', 'is_full')
+    list_display = ('id','name', 'course', 'target_role', 'score_min', 'score_max', 'max_students', 'is_full', 'telegram_group_id')
+    list_filter = ('course', 'target_role', 'is_full')
     search_fields = ('name',)
     actions = ['export_group_rating_csv']
     
@@ -146,9 +146,9 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'telegram_id', 'get_groups')
+    list_display = ('full_name', 'telegram_id', 'get_groups', 'registered_course', 'role')
     search_fields = ('full_name', 'telegram_id')
-    list_filter = ('groups',)
+    list_filter = ('groups', 'registered_course', 'role')
     
     def get_groups(self, obj):
         """Barcha guruhlarni ko'rsatish"""

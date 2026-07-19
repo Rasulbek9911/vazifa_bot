@@ -34,8 +34,19 @@ class Course(models.Model):
         default=True,
         help_text="Kurs faolmi"
     )
+    REGISTRATION_STRATEGY_CHOICES = [
+        ('score_range', "Ball oralig'i bo'yicha"),
+        ('capacity', "Sig'im bo'yicha ketma-ket"),
+        ('role', "Rol bo'yicha (talaba/o'qituvchi)"),
+    ]
+    registration_strategy = models.CharField(
+        max_length=20,
+        choices=REGISTRATION_STRATEGY_CHOICES,
+        default='score_range',
+        help_text="Ro'yxatdan o'tishda studentni qaysi guruhga biriktirish mantig'i"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         verbose_name = "Kurs"
         verbose_name_plural = "Kurslar"
@@ -75,6 +86,16 @@ class Group(models.Model):
         default=False,
         help_text="Guruh to'lganmi (avtomatik hisoblanadi)"
     )
+    TARGET_ROLE_CHOICES = [
+        ('student', 'Talaba'),
+        ('teacher', "O'qituvchi"),
+    ]
+    target_role = models.CharField(
+        max_length=20,
+        choices=TARGET_ROLE_CHOICES,
+        null=True, blank=True,
+        help_text="Faqat kursning ro'yxatdan o'tish strategiyasi 'Rol bo'yicha' bo'lsa ishlatiladi"
+    )
 
     def __str__(self):
         if self.course:
@@ -98,6 +119,20 @@ class Student(models.Model):
     groups = models.ManyToManyField(
         Group, related_name="enrolled_students", blank=True,
         help_text="Student qaysi guruhlarda o'qiydi (ko'p kurs)")
+
+    registered_course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="registered_students",
+        help_text="Student ro'yxatdan o'tishda tanlagan kurs (guruhga qayta biriktirishda ishlatiladi)"
+    )
+    ROLE_CHOICES = [
+        ('student', 'Talaba'),
+        ('teacher', "O'qituvchi"),
+    ]
+    role = models.CharField(
+        max_length=20, choices=ROLE_CHOICES, null=True, blank=True,
+        help_text="Faqat 'Rol bo'yicha' strategiyali kursda ro'yxatdan o'tganda so'raladi"
+    )
 
     def __str__(self):
         group_names = [g.name for g in self.groups.all()[:2]]

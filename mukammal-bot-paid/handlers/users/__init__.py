@@ -2,6 +2,7 @@
 from . import user_registration
 from . import task_handlers
 from . import admin_handlers
+from . import group_handlers
 from . import rating_handler
 from . import attendance_handler
 # join_request_handler o'chirildi (aiogram 2.x qo'llab-quvvatlamaydi)

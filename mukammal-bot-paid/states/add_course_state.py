@@ -4,3 +4,4 @@ class AddCourseState(StatesGroup):
     """Yangi kurs yaratish uchun state"""
     waiting_for_name = State()  # Kurs nomini kutish
     waiting_for_task_type = State()  # Vazifa turini kutish (test/assignment)
+    waiting_for_registration_strategy = State()  # Ro'yxatdan o'tish strategiyasini kutish
