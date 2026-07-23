@@ -97,6 +97,7 @@ DATABASES = {
         "HOST": env.str("DB_HOST", default="localhost"),  # PgBouncer orqali
         "PORT": env.str("DB_PORT", default="6432"),  # PgBouncer port (PostgreSQL 5432 emas)
         "CONN_MAX_AGE": 0,  # Har bir request uchun yangi connection (bot uchun xavfsiz)
+        "DISABLE_SERVER_SIDE_CURSORS": True,  # PgBouncer transaction pooling bilan named cursor ishlamaydi (InvalidCursorName oldini oladi)
         "OPTIONS": {
             "connect_timeout": 10,  # Connection timeout: 10 soniya
         },
@@ -183,4 +184,42 @@ CSRF_TRUSTED_ORIGINS = env.list(
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
+}
+
+# Xatoliklarni faylga yozish (DEBUG=False bo'lsa ham loglar saqlanadi,
+# lekin foydalanuvchiga traceback ko'rsatilmaydi)
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "django_error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "django_errors.log",
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["django_error_file"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["django_error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
 }
